@@ -68,6 +68,15 @@ class ZimbraAdminClientTests(unittest.TestCase):
             zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
 
+class ZimbraAdminClientRequests(unittest.TestCase):
+    def setUp(self):
+        self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+
+    def testGetAllAccountsReturnsSomething(self):
+        resp = self.zc.GetAllAccountsRequest()
+        self.assertIsInstance(resp, list)
+
 
 def main():
     unittest.main()
