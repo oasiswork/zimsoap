@@ -822,11 +822,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="DelegateAuthRequest">
     <soap:operation soapAction="/service/admin/soap/DelegateAuthRequest"/>
     <input>
-      <soap:header use="literal" message="tns:AuthRequest" part="AuthRequest"/>
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:AuthResponse" part="AuthResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -834,11 +834,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="CreateAccountRequest">
     <soap:operation soapAction="/service/admin/soap/CreateAccountRequest"/>
     <input>
-      <soap:header use="literal" message="tns:CreateAccountRequest" part="CreateAccountRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:CreateAccountResponse" part="CreateAccountResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -846,11 +846,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetAccountRequest">
     <soap:operation soapAction="/service/admin/soap/GetAccountRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetAccountRequest" part="GetAccountRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetAccountResponse" part="GetAccountResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -858,11 +858,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetAllAdminAccountsRequest">
     <soap:operation soapAction="/service/admin/soap/GetAllAdminAccountsRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetAllAdminAccountsRequest" part="GetAllAdminAccountsRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetAllAdminAccountsResponse" part="GetAllAdminAccountsResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -870,11 +870,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="ModifyAccountRequest">
     <soap:operation soapAction="/service/admin/soap/ModifyAccountRequest"/>
     <input>
-      <soap:header use="literal" message="tns:ModifyAccountRequest" part="ModifyAccountRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:ModifyAccountResponse" part="ModifyAccountResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -882,11 +882,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="RenameAccountRequest">
     <soap:operation soapAction="/service/admin/soap/RenameAccountRequest"/>
     <input>
-      <soap:header use="literal" message="tns:RenameAccountRequest" part="RenameAccountRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:RenameAccountResponse" part="RenameAccountResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -894,11 +894,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="DeleteAccountRequest">
     <soap:operation soapAction="/service/admin/soap/DeleteAccountRequest"/>
     <input>
-      <soap:header use="literal" message="tns:DeleteAccountRequest" part="DeleteAccountRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:DeleteAccountResponse" part="DeleteAccountResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -906,11 +906,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="SetPasswordRequest">
     <soap:operation soapAction="/service/admin/soap/SetPasswordRequest"/>
     <input>
-      <soap:header use="literal" message="tns:SetPasswordRequest" part="SetPasswordRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:SetPasswordResponse" part="SetPasswordResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -918,11 +918,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="AddAccountAliasRequest">
     <soap:operation soapAction="/service/admin/soap/AddAccountAliasRequest"/>
     <input>
-      <soap:header use="literal" message="tns:AddAccountAliasRequest" part="AddAccountAliasRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:AddAccountAliasResponse" part="AddAccountAliasResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -930,11 +930,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="RemoveAccountAliasRequest">
     <soap:operation soapAction="/service/admin/soap/RemoveAccountAliasRequest"/>
     <input>
-      <soap:header use="literal" message="tns:RemoveAccountAliasRequest" part="RemoveAccountAliasRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:RemoveAccountAliasResponse" part="RemoveAccountAliasResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -942,12 +942,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetAllAccountsRequest">
     <soap:operation soapAction="/service/admin/soap/GetAllAccountsRequest"/>
     <input>
-      <!-- <soap:header use="literal" message="tns:GetAllAccountsRequest" part="GetAllAccountsRequest"/>  -->
-      <soap:header use="literal" message="tns:context" part="context" namespace="urn:zimbra" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal" message="tns:GetAllAccountsRequest" part="GetAllAccountsRequest"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetAllAccountsResponse" part="GetAllAccountsResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -955,11 +954,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetAllDistributionListsRequest">
     <soap:operation soapAction="/service/admin/soap/GetAllDistributionListsRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetAllDistributionListsRequest" part="GetAllDistributionListsRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetAllDistributionListsResponse" part="GetAllDistributionListsResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -967,11 +966,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="CreateDomainRequest">
     <soap:operation soapAction="/service/admin/soap/CreateDomainRequest"/>
     <input>
-      <soap:header use="literal" message="tns:CreateDomainRequest" part="CreateDomainRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:CreateDomainResponse" part="CreateDomainResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -979,11 +978,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetDomainRequest">
     <soap:operation soapAction="/service/admin/soap/GetDomainRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetDomainRequest" part="GetDomainRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetDomainResponse" part="GetDomainResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -991,11 +990,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetAllDomainsRequest">
     <soap:operation soapAction="/service/admin/soap/GetAllDomainsRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetAllDomainsRequest" part="GetAllDomainsRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetAllDomainsResponse" part="GetAllDomainsResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1003,11 +1002,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="ModifyDomainRequest">
     <soap:operation soapAction="/service/admin/soap/ModifyDomainRequest"/>
     <input>
-      <soap:header use="literal" message="tns:ModifyDomainRequest" part="ModifyDomainRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:ModifyDomainResponse" part="ModifyDomainResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1015,11 +1014,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="DeleteDomainRequest">
     <soap:operation soapAction="/service/admin/soap/DeleteDomainRequest"/>
     <input>
-      <soap:header use="literal" message="tns:DeleteDomainRequest" part="DeleteDomainRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:DeleteDomainResponse" part="DeleteDomainResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1027,11 +1026,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="CreateCosRequest">
     <soap:operation soapAction="/service/admin/soap/CreateCosRequest"/>
     <input>
-      <soap:header use="literal" message="tns:CreateCosRequest" part="CreateCosRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:CreateCosResponse" part="CreateCosResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1039,11 +1038,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetAllCosRequest">
     <soap:operation soapAction="/service/admin/soap/GetAllCosRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetAllCosRequest" part="GetAllCosRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetAllCosResponse" part="GetAllCosResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1051,11 +1050,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="ModifyCosRequest">
     <soap:operation soapAction="/service/admin/soap/ModifyCosRequest"/>
     <input>
-      <soap:header use="literal" message="tns:ModifyCosRequest" part="ModifyCosRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:ModifyCosResponse" part="ModifyCosResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1063,11 +1062,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="DeleteCosRequest">
     <soap:operation soapAction="/service/admin/soap/DeleteCosRequest"/>
     <input>
-      <soap:header use="literal" message="tns:DeleteCosRequest" part="DeleteCosRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:DeleteCosResponse" part="DeleteCosResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1075,11 +1074,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GrantRightRequest">
     <soap:operation soapAction="/service/admin/soap/GrantRightRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GrantRightRequest" part="GrantRightRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GrantRightResponse" part="GrantRightResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1087,11 +1086,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="GetDistributionListRequest">
     <soap:operation soapAction="/service/admin/soap/GetDistributionListRequest"/>
     <input>
-      <soap:header use="literal" message="tns:GetDistributionListRequest" part="GetDistributionListRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:GetDistributionListResponse" part="GetDistributionListResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
@@ -1099,11 +1098,11 @@ targetNamespace="urn:zimbraAdmin">
   <operation name="AddDistributionListMemberRequest">
     <soap:operation soapAction="/service/admin/soap/AddDistributionListMemberRequest"/>
     <input>
-      <soap:header use="literal" message="tns:AddDistributionListMemberRequest" part="AddDistributionListMemberRequest" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </input>
     <output>
-      <soap:header use="literal" message="tns:AddDistributionListMemberResponse" part="AddDistributionListMemberResponse" />
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
       <soap:body use="literal"/>
     </output>
   </operation>
