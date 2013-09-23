@@ -67,6 +67,50 @@ class ZimbraAdminClientTests(unittest.TestCase):
             zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 9999)
             zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
+class ZimbraAdminReturnTypes(unittest.TestCase):
+    def setUp(self):
+        self.username = 'admin@zimbratest.oasiswork.fr'
+        self.password = 'admintest'
+        self.server = 'zimbratest.oasiswork.fr'
+
+        self.obj_type = pysimplesoap.client.SoapClient.WSDL_OBJECT_RETURN_TYPE
+        self.dict_type = pysimplesoap.client.SoapClient.WSDL_DICT_RETURN_TYPE
+
+        # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+
+    def login(self, zc):
+        zc.login(self.username, self.password)
+
+    def init_default_client(self):
+        zc = ZimbraAdminClient(self.server)
+        self.login(zc)
+        return zc
+
+    def testDictReturnType(self):
+        zc = self.init_default_client()
+        resp = zc.GetAllDomainsRequest(wsdl_return_type=self.dict_type)
+        self.assertIsInstance(resp, list)
+
+    def testObjectReturnType(self):
+        zc = self.init_default_client()
+        resp = zc.GetAllDomainsRequest(wsdl_return_type=self.obj_type)
+        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
+
+    def testDefaultReturnTypeIsObj(self):
+        zc = self.init_default_client()
+        obj_type = pysimplesoap.client.SoapClient.WSDL_OBJECT_RETURN_TYPE
+        resp = zc.GetAllDomainsRequest(wsdl_return_type=obj_type)
+        resp2 = zc.GetAllDomainsRequest()
+        self.assertEqual(repr(resp), repr(resp2))
+
+    def testBadWSDLTypeFails(self):
+        zc = self.init_default_client()
+        bad_type = 42
+        with self.assertRaises(TypeError) as cm:
+            resp = zc.GetAllDomainsRequest(
+                wsdl_return_type=42)
+
 
 class ZimbraAdminClientRequests(unittest.TestCase):
     def setUp(self):
@@ -75,15 +119,15 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
     def testGetAllAccountsReturnsSomething(self):
         resp = self.zc.GetAllAccountsRequest()
-        self.assertIsInstance(resp, list)
+        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
 
     def testGetAllAccountsReturnsSomething(self):
         resp = self.zc.GetAllAccountsRequest()
-        self.assertIsInstance(resp, list)
+        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
 
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.GetAllDomainsRequest()
-        self.assertIsInstance(resp, list)
+        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
 
 
 def main():

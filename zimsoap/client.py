@@ -23,7 +23,10 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         WSDL_PATH = abspath(join(dirname(dirname(abspath(__file__))),
                                  'share/zimbra.wsdl'))
 
-        super(ZimbraAdminClient, self).__init__(wsdl=WSDL_PATH, *args, **kwargs)
+        super(ZimbraAdminClient, self).__init__(
+            wsdl=WSDL_PATH,
+            wsdl_return_type=self.WSDL_OBJECT_RETURN_TYPE,
+            *args, **kwargs)
 
         # Set service location as it cannot be mentioned in static wsdl
         self.services['ZimbraService']['ports']['ZimbraServicePort']['location'] = \
@@ -47,7 +50,8 @@ class ZimbraAPISession:
              - prepare an authentification header with the received authtoken
                for subsequent requests.
         """
-        response = self.client.AuthRequest(username, password)
+        response = self.client.AuthRequest(username, password,
+                                           wsdl_return_type=self.client.WSDL_DICT_RETURN_TYPE)
         self.authToken = response[0]['authToken']
         lifetime = int(response[1]['lifetime'])
         self.end_date = (datetime.datetime.now() +
