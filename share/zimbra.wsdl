@@ -66,8 +66,9 @@ targetNamespace="urn:zimbraAdmin">
 
     <complexType name="ldapRecord">
       <sequence>
-        <element ref="tns:a" maxOccurs="unbounded"/>
-        <element name="dlm" type="xsd:string" maxOccurs="unbounded"/>
+        <!-- <element name="dlm" type="xsd:string" maxOccurs="unbounded"/> -->
+        <!-- <element ref="tns:a" maxOccurs="unbounded"/> -->
+        <element name="a" type="xsd:string"/>
       </sequence>
       <attribute name="name" type="xsd:string"/>
       <attribute name="id" type="xsd:string"/>
