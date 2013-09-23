@@ -129,6 +129,11 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.GetAllDomainsRequest()
         self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
 
+    def testGetAllDomainsReturnsDomains(self):
+        resp = self.zc.GetAllDomainsRequest()
+        for tag in resp.children():
+            self.assertEqual(tag.get_name(), 'domain')
+
 
 def main():
     unittest.main()
