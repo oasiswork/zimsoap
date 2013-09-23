@@ -134,6 +134,17 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         for tag in resp.children():
             self.assertEqual(tag.get_name(), 'domain')
 
+    # def testCountAccount(self):
+    #     """Count accounts on the first of domains"""
+    #     domains = self.zc.GetAllDomainsRequest()
+    #     first_domain_name = domains.children()[0]['name']
+
+    #     resp = self.zc.CountAccountRequest(
+    #         {'domain'},
+    #         request_mangle=zc.DomainSelectorByName()
+    #         )
+    #     print resp.as_xml(pretty=True)
+
 
 def main():
     unittest.main()

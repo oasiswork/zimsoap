@@ -82,6 +82,17 @@ targetNamespace="urn:zimbraAdmin">
       </simpleContent>
     </complexType>
 
+	<!-- Oasiswork -->
+    <complexType name="cos">
+      <simpleContent>
+        <extension base="xsd:string">
+          <attribute name="name" type="xsd:string" use="required"/>
+          <attribute name="id" type="xsd:string" use="required"/>
+        </extension>
+      </simpleContent>
+    </complexType>
+
+
     <complexType name="domainRequest">
       <simpleContent>
         <extension base="xsd:string">
@@ -321,6 +332,22 @@ targetNamespace="urn:zimbraAdmin">
       <complexType>
         <sequence>
           <element name="dl" type="tns:ldapRecord" maxOccurs="unbounded"/>
+        </sequence>
+      </complexType>
+    </element>
+
+	<!-- OasisWork -->
+    <element name="CountAccountRequest">
+      <complexType>
+        <sequence>
+          <element name="domain" type="tns:domainRequest" minOccurs="0"/>
+        </sequence>
+      </complexType>
+    </element>
+    <element name="CountAccountResponse">
+      <complexType>
+        <sequence>
+          <element name="cos" type="tns:cos" maxOccurs="unbounded"/>
         </sequence>
       </complexType>
     </element>
@@ -587,6 +614,15 @@ targetNamespace="urn:zimbraAdmin">
    <part name="GetAllAccountsResponse" element="tns:GetAllAccountsResponse"/>
 </message>
 
+<!-- OasisWork -->
+<message name="CountAccountRequest">
+   <part name="CountAccountRequest" element="tns:CountAccountRequest"/>
+</message>
+<message name="CountAccountResponse">
+   <part name="CountAccountResponse" element="tns:CountAccountResponse"/>
+</message>
+
+
 <message name="GetAllDistributionListsRequest">
    <part name="GetAllDistributionListsRequest" element="tns:GetAllDistributionListsRequest"/>
 </message>
@@ -739,6 +775,13 @@ targetNamespace="urn:zimbraAdmin">
     <input message="tns:GetAllAccountsRequest"/>
     <output message="tns:GetAllAccountsResponse"/>
   </operation>
+
+  <!-- OasisWork -->
+  <operation name="CountAccountRequest">
+    <input message="tns:CountAccountRequest"/>
+    <output message="tns:CountAccountResponse"/>
+  </operation>
+
 
   <operation name="GetAllDistributionListsRequest">
     <input message="tns:GetAllDistributionListsRequest"/>
@@ -951,6 +994,20 @@ targetNamespace="urn:zimbraAdmin">
       <soap:body use="literal"/>
     </output>
   </operation>
+
+  <!-- OasisWork -->
+  <operation name="CountAccountRequest">
+    <soap:operation soapAction="/service/admin/soap/CountAccountRequest"/>
+    <input>
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
+      <soap:body use="literal" message="tns:CountAccountRequest" part="CountAccountRequest"/>
+    </input>
+    <output>
+      <soap:header use="literal" message="tns:context" namespace="urn:zimbra" />
+      <soap:body use="literal"/>
+    </output>
+  </operation>
+
 
   <operation name="GetAllDistributionListsRequest">
     <soap:operation soapAction="/service/admin/soap/GetAllDistributionListsRequest"/>
