@@ -7,6 +7,8 @@ import datetime
 
 import pysimplesoap
 
+import zimsoap.utils
+
 class ShouldAuthenticateFirst(Exception):
     """ Error fired when an operation requiring auth is intented before the auth
     is done.
@@ -20,17 +22,26 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     """
     def __init__(self, server_host, server_port='7071',
                  *args, **kwargs):
-        WSDL_PATH = abspath(join(dirname(dirname(abspath(__file__))),
-                                 'share/zimbra.wsdl'))
+        #WSDL_PATH = abspath(join(dirname(dirname(abspath(__file__))),
+        #'share/zimbra.wsdl'))
 
+        # super(ZimbraAdminClient, self).__init__(
+        #     wsdl=WSDL_PATH,
+        #     wsdl_return_type=self.WSDL_OBJECT_RETURN_TYPE,
+        #     *args, **kwargs)
+
+        loc = "https://%s:%s/service/admin/soap" % (server_host, server_port)
         super(ZimbraAdminClient, self).__init__(
-            wsdl=WSDL_PATH,
-            wsdl_return_type=self.WSDL_OBJECT_RETURN_TYPE,
+            location = loc,
+            action = loc,
+            namespace = 'urn:zimbraAdmin',
             *args, **kwargs)
 
+
+
         # Set service location as it cannot be mentioned in static wsdl
-        self.services['ZimbraService']['ports']['ZimbraServicePort']['location'] = \
-            "https://%s:%s/service/admin/soap" % (server_host, server_port)
+        # self.services['ZimbraService']['ports']['ZimbraServicePort']['location'] = \
+        #     "https://%s:%s/service/admin/soap" % (server_host, server_port)
 
         self._session = ZimbraAPISession(self)
 
@@ -50,12 +61,12 @@ class ZimbraAPISession:
              - prepare an authentification header with the received authtoken
                for subsequent requests.
         """
-        response = self.client.AuthRequest(username, password,
-                                           wsdl_return_type=self.client.WSDL_DICT_RETURN_TYPE)
-        self.authToken = response[0]['authToken']
-        lifetime = int(response[1]['lifetime'])
+        response = self.client.AuthRequest(name=username, password=password)
+        self.authToken, lifetime = zimsoap.utils.extractResponses(response)
+        lifetime = int(lifetime)
+        self.authToken = str(self.authToken)
         self.end_date = (datetime.datetime.now() +
-                             datetime.timedelta(0, lifetime))
+                         datetime.timedelta(0, lifetime))
 
     def get_context_header(self):
         """ Builds the XML <context> element to be tied to SOAP requests. It
