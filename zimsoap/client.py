@@ -22,26 +22,12 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     """
     def __init__(self, server_host, server_port='7071',
                  *args, **kwargs):
-        #WSDL_PATH = abspath(join(dirname(dirname(abspath(__file__))),
-        #'share/zimbra.wsdl'))
-
-        # super(ZimbraAdminClient, self).__init__(
-        #     wsdl=WSDL_PATH,
-        #     wsdl_return_type=self.WSDL_OBJECT_RETURN_TYPE,
-        #     *args, **kwargs)
-
         loc = "https://%s:%s/service/admin/soap" % (server_host, server_port)
         super(ZimbraAdminClient, self).__init__(
             location = loc,
             action = loc,
             namespace = 'urn:zimbraAdmin',
             *args, **kwargs)
-
-
-
-        # Set service location as it cannot be mentioned in static wsdl
-        # self.services['ZimbraService']['ports']['ZimbraServicePort']['location'] = \
-        #     "https://%s:%s/service/admin/soap" % (server_host, server_port)
 
         self._session = ZimbraAPISession(self)
 
