@@ -23,7 +23,7 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         WSDL_PATH = abspath(join(dirname(dirname(abspath(__file__))),
                                  'share/zimbra.wsdl'))
 
-        super(ZimbraAdminClient, self ).__init__(wsdl=WSDL_PATH)
+        super(ZimbraAdminClient, self).__init__(wsdl=WSDL_PATH, *args, **kwargs)
 
         # Set service location as it cannot be mentioned in static wsdl
         self.services['ZimbraService']['ports']['ZimbraServicePort']['location'] = \
