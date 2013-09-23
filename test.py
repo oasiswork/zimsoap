@@ -6,10 +6,12 @@ from os.path import dirname, abspath, join
 
 
 import pysimplesoap
+from pysimplesoap.client import SimpleXMLElement
+
 import zimsoap.utils
-
-
+from zimsoap.tests import samples
 from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst
+from zimsoap.zobjects import *
 
 
 class ZimbraAPISessionTests(unittest.TestCase):
@@ -80,15 +82,15 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
     def testGetAllAccountsReturnsSomething(self):
         resp = self.zc.GetAllAccountsRequest()
-        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
+        self.assertIsInstance(resp, SimpleXMLElement)
 
     def testGetAllAccountsReturnsSomething(self):
         resp = self.zc.GetAllAccountsRequest()
-        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
+        self.assertIsInstance(resp, SimpleXMLElement)
 
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.GetAllDomainsRequest()
-        self.assertIsInstance(resp, pysimplesoap.simplexml.SimpleXMLElement)
+        self.assertIsInstance(resp, SimpleXMLElement)
 
     def testGetAllDomainsReturnsDomains(self):
         resp = zimsoap.utils.extractResponses(self.zc.GetAllDomainsRequest())
@@ -107,10 +109,26 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 #     #     print resp.as_xml(pretty=True)
 
 
+class ZObjectsTests(unittest.TestCase):
+    def setUp(self):
+        self.simple_domain = SimpleXMLElement(samples.SIMPLE_DOMAIN)
+        self.misnamed_domain = SimpleXMLElement(samples.MISNAMED_DOMAIN)
+
+    def testDomainFromXML(self):
+        d = Domain.from_xml(self.simple_domain)
+        self.assertIsInstance(d, Domain)
+        self.assertIsInstance(d.id, str)
+        self.assertIsInstance(d.name, str)
+        self.assertEqual(d.id, "b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac")
+        self.assertEqual(d.name, "client1.unbound.oasiswork.fr")
+
+    def testDomainWithWrongTagNameFails(self):
+        with self.assertRaises(TypeError) as cm:
+            d = Domain.from_xml(self.misnamed_domain)
+
+
 def main():
     unittest.main()
-
-
 
 if __name__ == '__main__':
     main()
