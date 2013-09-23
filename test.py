@@ -16,14 +16,10 @@ from zimsoap.zobjects import *
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        # WSDL_PATH = abspath(join(dirname(abspath(__file__)),
-        #                          'share/zimbra.wsdl'))
 
         loc = "https://zimbratest.oasiswork.fr:7071/service/admin/soap"
         self.cli = pysimplesoap.client.SoapClient(location=loc, action=loc,
                                                   namespace='urn:zimbraAdmin', ns=False)
-        # self.cli.services['ZimbraService']['ports']['ZimbraServicePort']['location']\
-        #     =
         self.session = ZimbraAPISession(self.cli)
 
     def testInit(self):
