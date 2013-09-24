@@ -94,4 +94,14 @@ class Mailbox(ZObject):
     """
     TAG_NAME = 'mbox'
 
+    def to_xml_selector(self):
+        try:
+            xml = '<%s id="%s" />' %\
+                (self.TAG_NAME, self.id)
+
+        except AttributeError:
+            raise ValueError("Mailbox should define attribute \"id\".")
+
+
+        return SimpleXMLElement(xml)
 

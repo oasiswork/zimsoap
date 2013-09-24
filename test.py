@@ -115,6 +115,16 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # will fail if not convertible to int
         self.assertIsInstance(int(first_cos), int)
 
+    def testGetMailboxRequest(self):
+        xml_node = SimpleXMLElement(
+            '<l><mbox id="d78fd9c9-f000-440b-bce6-ea938d40fa2d" /></l>')
+
+        resp = self.zc.GetMailboxRequest(self.zc, xml_node)
+        first_mbox = zimsoap.utils.extractResponses(resp)[0]
+        self.assertEqual(first_mbox.get_name(), 'mbox')
+        self.assertTrue(first_mbox.attributes().has_key('mbxid'))
+
+
     def testGetAllMailboxes(self):
         resp = self.zc.GetAllMailboxesRequest()
         mailboxes = zimsoap.utils.extractResponses(resp)
@@ -203,6 +213,15 @@ class PythonicAPITests(unittest.TestCase):
         mboxes = self.zc.get_all_mailboxes()
         self.assertIsInstance(mboxes, list)
         self.assertIsInstance(mboxes[0], Mailbox)
+
+
+    def test_account_mailbox(self):
+        # First, fetch an existing account_id
+        first_account_id = self.zc.get_all_mailboxes()[0].accountId
+
+        mbox = self.zc.get_account_mailbox(first_account_id)
+        self.assertTrue(hasattr(mbox, 'mbxid'))
+        self.assertTrue(hasattr(mbox, 's')) # size
 
 
 def main():

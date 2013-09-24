@@ -90,6 +90,23 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         xml_mailboxes = utils.extractResponses(resp)
         return [zobjects.Mailbox.from_xml(i) for i in xml_mailboxes]
 
+    def get_account_mailbox(self, account_id):
+        """ Returns a Mailbox corresponding to an account. Usefull to get the
+        size (attribute 's'), and the mailbox ID, returns nothing appart from
+        that.
+        """
+        # This is a hack... TODO: fix it upstream  (pysimplesoap)
+        selector = zobjects.Mailbox(id=account_id).to_xml_selector()
+
+        tag = pysimplesoap.client.SimpleXMLElement('<l/>')
+        tag.import_node(selector)
+        resp = self.GetMailboxRequest(self, tag)
+
+        xml_mbox = utils.extractSingleResponse(resp)
+        return zobjects.Mailbox.from_xml(xml_mbox)
+
+
+
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
