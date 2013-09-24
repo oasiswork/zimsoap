@@ -71,3 +71,14 @@ class Domain(ZObject):
             (self.TAG_NAME, selector, getattr(self, selector), self.TAG_NAME)
 
         return SimpleXMLElement(xml)
+
+
+class ClassOfService(ZObject):
+    """ Represents a Class of Service (COS)
+
+    Example:
+        <cos id="e00-..a2a" name="default">2</cos>
+    """
+    TAG_NAME = 'cos'
+
+

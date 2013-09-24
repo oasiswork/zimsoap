@@ -65,6 +65,27 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
         return ret
 
+    def count_account(self, domain):
+        """ Count the number of accounts for a given domain, sorted by cos
+
+        @returns a list of pairs <ClassOfService object>,count
+        """
+        selector = domain.to_xml_selector()
+        # This is a hack... TODO: fix it upstream  (pysimplesoap)
+        tag = pysimplesoap.client.SimpleXMLElement('<l/>')
+        tag.import_node(selector)
+        resp = self.CountAccountRequest(self, tag)
+        cos_list = utils.extractResponses(resp)
+
+        ret = []
+
+        for i in cos_list:
+            ret.append( ( zobjects.ClassOfService.from_xml(i), int(i) ) )
+
+        return list(ret)
+
+
+
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
        authentification header.

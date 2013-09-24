@@ -100,7 +100,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.GetMailboxStatsRequest()
         self.assertIsInstance(resp, SimpleXMLElement)
 
-    def testCountAccount(self):
+    def testCountAccountReturnsSomething(self):
         """Count accounts on the first of domains"""
         first_domain_name = self.zc.get_all_domains()[0].name
 
@@ -114,6 +114,8 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
         # will fail if not convertible to int
         self.assertIsInstance(int(first_cos), int)
+
+
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
@@ -175,6 +177,17 @@ class PythonicAPITests(unittest.TestCase):
         self.assertIsInstance(stats, dict)
         self.assertIsInstance(stats['numMboxes'], int)
         self.assertIsInstance(stats['totalSize'], int)
+
+    def test_count_account(self):
+        d = Domain(name="client1.unbound.oasiswork.fr")
+
+        # ex return: list: ((<ClassOfService object>, <int>), ...)
+        cos_counts = self.zc.count_account(d)
+
+        self.assertIsInstance(cos_counts, list)
+        self.assertIsInstance(cos_counts[0], tuple)
+        self.assertIsInstance(cos_counts[0][0], ClassOfService)
+        self.assertIsInstance(cos_counts[0][1], int)
 
 
 def main():
