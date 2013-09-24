@@ -13,7 +13,7 @@ import pysimplesoap
 from pysimplesoap.client import SimpleXMLElement
 
 import zimsoap.utils
-from zimsoap.tests import samples
+from tests import samples
 from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst
 from zimsoap.zobjects import *
 
