@@ -123,6 +123,23 @@ class ZObjectsTests(unittest.TestCase):
             d = Domain.from_xml(self.misnamed_domain)
 
 
+class PythonicAPITests(unittest.TestCase):
+    def setUp(self):
+        self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+
+    def test_get_all_domains(self):
+        doms = self.zc.get_all_domains()
+        self.assertIsInstance(doms, list)
+        self.assertIsInstance(doms[0], Domain)
+
+        found = False
+        for i in doms:
+            if i.name == "client1.unbound.oasiswork.fr":
+                found = True
+
+        self.assertTrue(found)
+
 def main():
     unittest.main()
 

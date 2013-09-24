@@ -8,6 +8,7 @@ import datetime
 import pysimplesoap
 
 import zimsoap.utils
+import zobjects
 
 class ShouldAuthenticateFirst(Exception):
     """ Error fired when an operation requiring auth is intented before the auth
@@ -34,6 +35,11 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     def login(self, admin_user, admin_password):
         self._session.login(admin_user, admin_password)
         self['context'] = self._session.get_context_header()
+
+    def get_all_domains(self):
+        obj_domains = []
+        xml_doms = zimsoap.utils.extractResponses(self.GetAllDomainsRequest())
+        return [zobjects.Domain.from_xml(d) for d in xml_doms]
 
 
 class ZimbraAPISession:
