@@ -6,6 +6,8 @@
 # Note that they do *not* handle themselves communication with
 # zimbra API. It is left to ZimbraAdminClient.
 
+from pysimplesoap.client import SimpleXMLElement
+
 class ZObject(object):
     """ An abstract class to handle Zimbra Concepts
 
@@ -25,10 +27,19 @@ class ZObject(object):
 
         obj = cls()
         # import attributes
-        for k, v in xml.attributes().items():
-            setattr(obj, k, str(v))
+        obj._import_attributes(xml.attributes())
 
         return obj
+
+    def __init__(self, *args, **kwargs):
+        """ By default, import the attributes of kwargs as attributes
+        """
+        self._import_attributes(kwargs)
+
+    def _import_attributes(self, attrdict):
+        for k, v in attrdict.items():
+            setattr(self, k, str(v))
+
 
 
 class Domain(ZObject):
@@ -44,3 +55,19 @@ class Domain(ZObject):
 
     def __str__(self):
         return "<ZimbraDomain:%s>" % self.name
+
+    def to_xml_selector(self):
+        selectors = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
+        selector = None
+        for s in selectors:
+            if hasattr(self, s):
+                selector = s
+
+        if selector is None:
+            raise ValueError("At least one %s has to be set as attr."\
+                    % str(selectors))
+
+        xml = '<%s by="%s" >%s</%s>' %\
+            (self.TAG_NAME, selector, getattr(self, selector), self.TAG_NAME)
+
+        return SimpleXMLElement(xml)

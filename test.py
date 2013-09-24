@@ -103,12 +103,17 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     def testCountAccount(self):
         """Count accounts on the first of domains"""
         first_domain_name = self.zc.get_all_domains()[0].name
-        resp = self.zc.CountAccountRequest(
-            {'domain'},
-            request_mangle=zc.DomainSelectorByName()
-            )
-        print resp.as_xml(pretty=True)
 
+        # FIXME: the <l> is a total workarround
+        xml_node = SimpleXMLElement(
+            '<l><domain by="name">client1.unbound.oasiswork.fr</domain></l>')
+        resp = self.zc.CountAccountRequest(self.zc,xml_node)
+        first_cos = zimsoap.utils.extractResponses(resp)[0]
+        self.assertEqual(first_cos.get_name(), 'cos')
+        self.assertTrue(first_cos.attributes().has_key('id'))
+
+        # will fail if not convertible to int
+        self.assertIsInstance(int(first_cos), int)
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
@@ -126,6 +131,21 @@ class ZObjectsTests(unittest.TestCase):
     def testDomainWithWrongTagNameFails(self):
         with self.assertRaises(TypeError) as cm:
             d = Domain.from_xml(self.misnamed_domain)
+
+    def testDomainSelector(self):
+        d = Domain(name='foo')
+        s = d.to_xml_selector()
+        s.get_name() == 'domain'
+        self.assertEqual(s['by'], 'name')
+        self.assertEqual(str(s), 'foo')
+
+    def testInvalidDomainSelector(self):
+        with self.assertRaises(ValueError) as cm:
+            Domain().to_xml_selector()
+
+        # Should not produce a selector with spamattr
+        with self.assertRaises(ValueError) as cm:
+            Domain(spamattr='eggvalue').to_xml_selector()
 
 
 class PythonicAPITests(unittest.TestCase):
@@ -152,7 +172,6 @@ class PythonicAPITests(unittest.TestCase):
 
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
-        print(stats)
         self.assertIsInstance(stats, dict)
         self.assertIsInstance(stats['numMboxes'], int)
         self.assertIsInstance(stats['totalSize'], int)
