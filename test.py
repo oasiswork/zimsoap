@@ -100,16 +100,14 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.GetMailboxStatsRequest()
         self.assertIsInstance(resp, SimpleXMLElement)
 
-#     # def testCountAccount(self):
-#     #     """Count accounts on the first of domains"""
-#     #     domains = self.zc.GetAllDomainsRequest()
-#     #     first_domain_name = domains.children()[0]['name']
-
-#     #     resp = self.zc.CountAccountRequest(
-#     #         {'domain'},
-#     #         request_mangle=zc.DomainSelectorByName()
-#     #         )
-#     #     print resp.as_xml(pretty=True)
+    def testCountAccount(self):
+        """Count accounts on the first of domains"""
+        first_domain_name = self.zc.get_all_domains()[0].name
+        resp = self.zc.CountAccountRequest(
+            {'domain'},
+            request_mangle=zc.DomainSelectorByName()
+            )
+        print resp.as_xml(pretty=True)
 
 
 class ZObjectsTests(unittest.TestCase):
@@ -158,6 +156,7 @@ class PythonicAPITests(unittest.TestCase):
         self.assertIsInstance(stats, dict)
         self.assertIsInstance(stats['numMboxes'], int)
         self.assertIsInstance(stats['totalSize'], int)
+
 
 def main():
     unittest.main()
