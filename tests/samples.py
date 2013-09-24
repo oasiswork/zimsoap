@@ -143,3 +143,18 @@ SIMPLE_DOMAIN="""<domain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1
 """
 
 MBOX = """<mbox accountId="d78fd9c9-f000-440b-bce6-ea938d40fa2d" changeCheckPoint="4000" contactCount="0" groupId="6" id="6" indexVolumeId="2" itemIdCheckPoint="256" lastSoapAccess="0" newMessages="0" sizeCheckPoint="0" trackingImap="0" trackingSync="0"/>"""
+
+DISTRIBUTION_LIST = """
+<dl dynamic="0" id="4d97616d-53fd-4744-8535-64e6a0776df1" name="newlist@client1.unbound.oasiswork.fr">
+	<a n="uid">newlist</a>
+	<a n="mail">newlist@client1.unbound.oasiswork.fr</a>
+	<a n="zimbraMailStatus">enabled</a>
+	<a n="zimbraMailHost">zimbratest.saas.oasiswork.fr</a>
+	<a n="zimbraId">4d97616d-53fd-4744-8535-64e6a0776df1</a>
+	<a n="zimbraCreateTimestamp">20130924150950Z</a>
+	<a n="objectClass">zimbraDistributionList</a>
+	<a n="objectClass">zimbraMailRecipient</a>
+	<a n="zimbraMailAlias">newlist@client1.unbound.oasiswork.fr</a>
+</dl>
+
+"""

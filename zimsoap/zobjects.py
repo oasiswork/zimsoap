@@ -105,3 +105,6 @@ class Mailbox(ZObject):
 
         return SimpleXMLElement(xml)
 
+class DistributionList(ZObject):
+    TAG_NAME='dl'
+    SELECTORS = ('id', 'name')

@@ -130,6 +130,50 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         mailboxes = zimsoap.utils.extractResponses(resp)
         self.assertEqual(mailboxes[0].get_name(), 'mbox')
 
+    def testCreateGetDeleteDistributionList(self):
+        """ As Getting and deleting a list requires it to exist
+        a list to exist, we group the 3 tests together.
+        """
+
+        def createDistributionList(name):
+            resp = self.zc.CreateDistributionListRequest(
+                attributes={'name': name})
+            mailboxes = zimsoap.utils.extractResponses(resp)
+            self.assertEqual(mailboxes[0].get_name(), 'dl')
+
+        def getDistributionList(name):
+            xml_node = SimpleXMLElement(
+                '<l><dl by="name" >%s</dl></l>' % name)
+
+            resp = self.zc.GetDistributionListRequest(self.zc, xml_node)
+            xml_dl = zimsoap.utils.extractSingleResponse(resp)
+            self.assertEqual(xml_dl.get_name(), 'dl')
+            self.assertIsInstance(xml_dl['id'], unicode)
+            return xml_dl['id']
+
+        def deleteDistributionList(dl_id):
+            resp = self.zc.DeleteDistributionListRequest(
+                attributes={'id': dl_id})
+
+
+        name = 'unittest-test-listt@client1.unbound.oasiswork.fr'
+
+        # Should not exist
+        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+            getDistributionList(name)
+
+        createDistributionList(name)
+
+        # It should now exist
+        list_id = getDistributionList(name)
+
+        deleteDistributionList(list_id)
+
+        # Should no longer exists
+        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+            getDistributionList(name)
+
+
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
