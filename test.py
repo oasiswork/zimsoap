@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+#
+# Unit tests, using unittest module, bundled with python. It has to be tested
+# against a Zimbra server.
+#
 
 import unittest
 import urllib2
@@ -124,6 +128,10 @@ class ZObjectsTests(unittest.TestCase):
 
 
 class PythonicAPITests(unittest.TestCase):
+    """ Tests the pythonic API, the one that should be accessed by someone using
+    the library.
+    """
+
     def setUp(self):
         self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
@@ -133,6 +141,7 @@ class PythonicAPITests(unittest.TestCase):
         self.assertIsInstance(doms, list)
         self.assertIsInstance(doms[0], Domain)
 
+        # Look for client1.unbound.oasiswork.fr
         found = False
         for i in doms:
             if i.name == "client1.unbound.oasiswork.fr":
