@@ -41,6 +41,22 @@ class ZObject(object):
             setattr(self, k, str(v))
 
 
+    def to_xml_selector(self):
+        selector = None
+        for s in self.SELECTORS:
+            if hasattr(self, s):
+                selector = s
+
+        if selector is None:
+            raise ValueError("At least one %s has to be set as attr."\
+                    % str(self.SELECTORS))
+
+        xml = '<%s by="%s" >%s</%s>' %\
+            (self.TAG_NAME, selector, getattr(self, selector), self.TAG_NAME)
+
+        return SimpleXMLElement(xml)
+
+
 
 class Domain(ZObject):
     """A domain, matching something like:
@@ -49,28 +65,13 @@ class Domain(ZObject):
            ...
        </domain>"""
     TAG_NAME = 'domain'
+    SELECTORS = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
 
     def __repr__(self):
         return "<ZimbraDomain:%s>" % self.id
 
     def __str__(self):
         return "<ZimbraDomain:%s>" % self.name
-
-    def to_xml_selector(self):
-        selectors = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
-        selector = None
-        for s in selectors:
-            if hasattr(self, s):
-                selector = s
-
-        if selector is None:
-            raise ValueError("At least one %s has to be set as attr."\
-                    % str(selectors))
-
-        xml = '<%s by="%s" >%s</%s>' %\
-            (self.TAG_NAME, selector, getattr(self, selector), self.TAG_NAME)
-
-        return SimpleXMLElement(xml)
 
 
 class ClassOfService(ZObject):
