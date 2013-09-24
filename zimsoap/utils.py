@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Misc tools.
+
 def extractResponses(xml_response):
     """ A raw message is like:
         <?xml version="1.0" encoding="utf-16"?>

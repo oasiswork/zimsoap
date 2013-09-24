@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
+# This client has two usages:
+#
+#   - Fire SOAP methods (they are "CamelCameNames()" and end with 'Request'):
+#     they bind directly to sending the same-name message to the SOAP
+#     server. They return XML.
+#
+#   - Fire high-level methods (they are "pythonic_method_names()"), they return
+#     Python objects/list (see zobjects submodule for zimbra-specific Classes).
+#
 
 from os.path import dirname, abspath, join
 import datetime
@@ -18,6 +27,7 @@ class ShouldAuthenticateFirst(Exception):
 
 class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
+
     API ref is
     http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAdmin/service-summary.html
     """
@@ -43,15 +53,16 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
 
 class ZimbraAPISession:
+    """Handle the login, the session expiration and the generation of the
+       authentification header.
+    """
     def __init__(self, client):
         self.client = client
         self.authToken = None
 
     def login(self, username, password):
-        """ Performrs the login agains zimbra:
-             - performs an AuthRequest
-             - prepare an authentification header with the received authtoken
-               for subsequent requests.
+        """ Performs the login agains zimbra
+        (sends AuthRequest, receives AuthResponse).
         """
         response = self.client.AuthRequest(name=username, password=password)
         self.authToken, lifetime = zimsoap.utils.extractResponses(response)

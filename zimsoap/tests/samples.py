@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Zimbra XML samples, for unit-testing.
+
 MISNAMED_DOMAIN="""<demain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1.unbound.oasiswork.fr">
                 <a n="zimbraGalLdapPageSize">1000</a>
                 <a n="zimbraAggregateQuotaLastUsage">401</a>
