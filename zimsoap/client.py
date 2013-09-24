@@ -16,7 +16,7 @@ import datetime
 
 import pysimplesoap
 
-import zimsoap.utils
+import utils
 import zobjects
 
 class ShouldAuthenticateFirst(Exception):
@@ -48,9 +48,22 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
     def get_all_domains(self):
         obj_domains = []
-        xml_doms = zimsoap.utils.extractResponses(self.GetAllDomainsRequest())
+        xml_doms = utils.extractResponses(self.GetAllDomainsRequest())
         return [zobjects.Domain.from_xml(d) for d in xml_doms]
 
+    def get_mailbox_stats(self):
+        """ Get global stats about mailboxes
+
+        Parses <stats numMboxes="6" totalSize="141077"/>
+
+        @returns dict with stats
+        """
+        resp = utils.extractSingleResponse(self.GetMailboxStatsRequest())
+        ret = {}
+        for k,v in resp.attributes().items():
+            ret[k] = int(v)
+
+        return ret
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
@@ -65,7 +78,7 @@ class ZimbraAPISession:
         (sends AuthRequest, receives AuthResponse).
         """
         response = self.client.AuthRequest(name=username, password=password)
-        self.authToken, lifetime = zimsoap.utils.extractResponses(response)
+        self.authToken, lifetime = utils.extractResponses(response)
         lifetime = int(lifetime)
         self.authToken = str(self.authToken)
         self.end_date = (datetime.datetime.now() +

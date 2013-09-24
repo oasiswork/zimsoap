@@ -20,7 +20,6 @@ from zimsoap.zobjects import *
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-
         loc = "https://zimbratest.oasiswork.fr:7071/service/admin/soap"
         self.cli = pysimplesoap.client.SoapClient(location=loc, action=loc,
                                                   namespace='urn:zimbraAdmin', ns=False)
@@ -97,6 +96,10 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         for tag in resp:
             self.assertEqual(tag.get_name(), 'domain')
 
+    def testGetMailboxStatsReturnsSomething(self):
+        resp = self.zc.GetMailboxStatsRequest()
+        self.assertIsInstance(resp, SimpleXMLElement)
+
 #     # def testCountAccount(self):
 #     #     """Count accounts on the first of domains"""
 #     #     domains = self.zc.GetAllDomainsRequest()
@@ -148,6 +151,13 @@ class PythonicAPITests(unittest.TestCase):
                 found = True
 
         self.assertTrue(found)
+
+    def test_get_mailbox_stats(self):
+        stats = self.zc.get_mailbox_stats()
+        print(stats)
+        self.assertIsInstance(stats, dict)
+        self.assertIsInstance(stats['numMboxes'], int)
+        self.assertIsInstance(stats['totalSize'], int)
 
 def main():
     unittest.main()

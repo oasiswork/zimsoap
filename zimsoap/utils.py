@@ -22,3 +22,8 @@ def extractResponses(xml_response):
         @returns a SimpleXMLElement iterable
     """
     return xml_response.children()[1].children()[0].children()
+
+
+def extractSingleResponse(xml_response):
+    return extractResponses(xml_response)[0]
+
