@@ -85,6 +85,11 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         return list(ret)
 
 
+    def get_all_mailboxes(self):
+        resp = self.GetAllMailboxesRequest()
+        xml_mailboxes = utils.extractResponses(resp)
+        return [zobjects.Mailbox.from_xml(i) for i in xml_mailboxes]
+
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the

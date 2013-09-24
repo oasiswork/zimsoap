@@ -115,12 +115,17 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # will fail if not convertible to int
         self.assertIsInstance(int(first_cos), int)
 
+    def testGetAllMailboxes(self):
+        resp = self.zc.GetAllMailboxesRequest()
+        mailboxes = zimsoap.utils.extractResponses(resp)
+        self.assertEqual(mailboxes[0].get_name(), 'mbox')
 
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
         self.simple_domain = SimpleXMLElement(samples.SIMPLE_DOMAIN)
         self.misnamed_domain = SimpleXMLElement(samples.MISNAMED_DOMAIN)
+        self.mbox = SimpleXMLElement(samples.MBOX)
 
     def testDomainFromXML(self):
         d = Domain.from_xml(self.simple_domain)
@@ -148,6 +153,11 @@ class ZObjectsTests(unittest.TestCase):
         # Should not produce a selector with spamattr
         with self.assertRaises(ValueError) as cm:
             Domain(spamattr='eggvalue').to_xml_selector()
+
+    def testMailboxFromXML(self):
+        m = Mailbox.from_xml(self.mbox)
+        self.assertIsInstance(m, Mailbox)
+        self.assertIsInstance(m.newMessages, str)
 
 
 class PythonicAPITests(unittest.TestCase):
@@ -188,6 +198,11 @@ class PythonicAPITests(unittest.TestCase):
         self.assertIsInstance(cos_counts[0], tuple)
         self.assertIsInstance(cos_counts[0][0], ClassOfService)
         self.assertIsInstance(cos_counts[0][1], int)
+
+    def test_get_all_mailboxes(self):
+        mboxes = self.zc.get_all_mailboxes()
+        self.assertIsInstance(mboxes, list)
+        self.assertIsInstance(mboxes[0], Mailbox)
 
 
 def main():

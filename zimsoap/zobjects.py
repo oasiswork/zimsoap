@@ -82,3 +82,15 @@ class ClassOfService(ZObject):
     TAG_NAME = 'cos'
 
 
+class Mailbox(ZObject):
+    """ Zimbra Mailbox metadata
+
+        <mbox accountId="4cd3...815" changeCheckPoint="5000" contactCount="0"
+             groupId="1" id="1" indexVolumeId="2" itemIdCheckPoint="378"
+             lastSoapAccess="0" newMessages="63" sizeCheckPoint="140676"
+             trackingImap="0" trackingSync="0"
+       />
+    """
+    TAG_NAME = 'mbox'
+
+
