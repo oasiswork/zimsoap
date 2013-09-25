@@ -38,8 +38,8 @@ Code is covered by unit tests, you can run them (only Python needed):
 
 To run only some tests, use one of those two:
 
-    $ python -m unittest tests.MyTestClass
-    $ python -m unittest tests.MyTestClass.my_test_method
+    $ python -m unittest test.MyTestClass
+    $ python -m unittest test.MyTestClass.my_test_method
 
 
 Requirements

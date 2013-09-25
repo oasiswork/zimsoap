@@ -6,9 +6,12 @@
 # Note that they do *not* handle themselves communication with
 # zimbra API. It is left to ZimbraAdminClient.
 
+<<<<<<< HEAD
 from pysimplesoap.client import SimpleXMLElement
 import utils
 
+=======
+>>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 class ZObject(object):
     """ An abstract class to handle Zimbra Concepts
 
@@ -28,6 +31,7 @@ class ZObject(object):
 
         obj = cls()
         # import attributes
+<<<<<<< HEAD
         obj._import_attributes(xml.attributes())
 
         return obj
@@ -76,6 +80,13 @@ class ZObject(object):
         return SimpleXMLElement(xml)
 
 
+=======
+        for k, v in xml.attributes().items():
+            setattr(obj, k, str(v))
+
+        return obj
+
+>>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 
 class Domain(ZObject):
     """A domain, matching something like:
@@ -84,13 +95,17 @@ class Domain(ZObject):
            ...
        </domain>"""
     TAG_NAME = 'domain'
+<<<<<<< HEAD
     SELECTORS = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
+=======
+>>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 
     def __repr__(self):
         return "<ZimbraDomain:%s>" % self.id
 
     def __str__(self):
         return "<ZimbraDomain:%s>" % self.name
+<<<<<<< HEAD
 
 
 class ClassOfService(ZObject):
@@ -127,3 +142,5 @@ class Mailbox(ZObject):
 class DistributionList(ZObject):
     TAG_NAME='dl'
     SELECTORS = ('id', 'name')
+=======
+>>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86

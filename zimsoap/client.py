@@ -16,7 +16,11 @@ import datetime
 
 import pysimplesoap
 
+<<<<<<< HEAD
 import utils
+=======
+import zimsoap.utils
+>>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 import zobjects
 
 class ShouldAuthenticateFirst(Exception):
@@ -48,6 +52,7 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
     def get_all_domains(self):
         obj_domains = []
+<<<<<<< HEAD
         xml_doms = utils.extractResponses(self.GetAllDomainsRequest())
         return [zobjects.Domain.from_xml(d) for d in xml_doms]
 
@@ -136,6 +141,11 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         self.DeleteDistributionListRequest(attributes={'id': dl_id})
 
 
+=======
+        xml_doms = zimsoap.utils.extractResponses(self.GetAllDomainsRequest())
+        return [zobjects.Domain.from_xml(d) for d in xml_doms]
+
+>>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
