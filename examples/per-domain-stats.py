@@ -41,7 +41,7 @@ if __name__ == '__main__':
     args = parse_args()
     password = getpass.getpass('Password for %s: ' % args.username)
 
-    zc = zimsoap.client.ZimbraAdminClient(args.server)
+    zc = zimsoap.client.ZimbraAdminClient(args.server, args.port)
     try:
         zc.login(args.username, password)
     except (SoapFault, URLError) as sf:
