@@ -23,9 +23,11 @@ def extractResponses(xml_response):
 
         this functions extracts only the ResponseElementN elements as an iterable
 
-        @returns a SimpleXMLElement iterable
+        @returns a SimpleXMLElement iterable or an empty list
     """
-    return xml_response.children()[1].children()[0].children()
+    responses = xml_response.children()[1].children()[0].children()
+    # Returns an emptylist rather to "None"
+    return responses or []
 
 
 def extractSingleResponse(xml_response):

@@ -158,3 +158,27 @@ DISTRIBUTION_LIST = """
 </dl>
 
 """
+XML_MULTIPLE_RESPONSE_TAGS = """
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Header>
+    </soap:Header>
+    <soap:Body>
+<GetAllDomainsResponse xmlns="urn:zimbraAdmin">
+    <ResponseElement1>plif</ResponseElement1>
+    <ResponseElement2>plouf</ResponseElement2>
+</GetAllDomainsResponse>
+    </soap:Body>
+</soap:Envelope>
+"""
+
+XML_EMPTY_RESPONSE_TAGS = """
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Header>
+    </soap:Header>
+    <soap:Body>
+<GetAllDomainsResponse xmlns="urn:zimbraAdmin">
+</GetAllDomainsResponse>
+    </soap:Body>
+</soap:Envelope>
+
+"""

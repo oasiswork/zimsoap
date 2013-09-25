@@ -294,6 +294,17 @@ class ZObjectsTests(unittest.TestCase):
             d1 == m1
 
 class ZimsoapUtilsTests(unittest.TestCase):
+    def testExtractResponsesFilled(self):
+        xml = SimpleXMLElement(samples.XML_MULTIPLE_RESPONSE_TAGS)
+        response_content = zimsoap.utils.extractResponses(xml)
+        self.assertEqual(len(response_content), 2)
+
+    def testExtractResponsesEmpty(self):
+        xml = SimpleXMLElement(samples.XML_EMPTY_RESPONSE_TAGS)
+        response_content = zimsoap.utils.extractResponses(xml)
+        self.assertIsInstance(response_content, (list, tuple))
+        self.assertEqual(len(response_content), 0)
+
     def testValidZuuid(self):
         self.assertTrue(zimsoap.utils.is_zuuid(
                 'd78fd9c9-f000-440b-bce6-ea938d40fa2d'))
