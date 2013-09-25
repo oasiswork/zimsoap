@@ -4,6 +4,7 @@
 # Misc tools.
 
 import pysimplesoap
+import re
 
 def extractResponses(xml_response):
     """ A raw message is like:
@@ -43,3 +44,12 @@ def wrap_el(element):
     wrapper = pysimplesoap.client.SimpleXMLElement('<l/>')
     wrapper.import_node(element)
     return wrapper
+
+
+re_zuuid = re.compile(r'[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}')
+def is_zuuid(s):
+    """ Is it a zimbraUUID ?
+
+    example zimbra UUID : d78fd9c9-f000-440b-bce6-ea938d40fa2d
+    """
+    return re_zuuid.match(s)
