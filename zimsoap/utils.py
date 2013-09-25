@@ -3,12 +3,10 @@
 #
 # Misc tools.
 
-<<<<<<< HEAD
+
 import pysimplesoap
 import re
 
-=======
->>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 def extractResponses(xml_response):
     """ A raw message is like:
         <?xml version="1.0" encoding="utf-16"?>

@@ -13,21 +13,13 @@ import pysimplesoap
 from pysimplesoap.client import SimpleXMLElement
 
 import zimsoap.utils
-<<<<<<< HEAD
 from tests import samples
-=======
-from zimsoap.tests import samples
->>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst
 from zimsoap.zobjects import *
 
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-<<<<<<< HEAD
-=======
-
->>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
         loc = "https://zimbratest.oasiswork.fr:7071/service/admin/soap"
         self.cli = pysimplesoap.client.SoapClient(location=loc, action=loc,
                                                   namespace='urn:zimbraAdmin', ns=False)
@@ -301,8 +293,6 @@ class ZObjectsTests(unittest.TestCase):
         with self.assertRaises(TypeError) as cm:
             d1 == m1
 
-<<<<<<< HEAD
-
 class ZimsoapUtilsTests(unittest.TestCase):
     def testValidZuuid(self):
         self.assertTrue(zimsoap.utils.is_zuuid(
@@ -343,34 +333,6 @@ class PythonicAPITests(unittest.TestCase):
             self.zc.delete_distribution_list(DistributionList(name=self.TEST_DL_NAME))
         except pysimplesoap.client.SoapFault:
             pass
-=======
-class ZObjectsTests(unittest.TestCase):
-    def setUp(self):
-        self.simple_domain = SimpleXMLElement(samples.SIMPLE_DOMAIN)
-        self.misnamed_domain = SimpleXMLElement(samples.MISNAMED_DOMAIN)
-
-    def testDomainFromXML(self):
-        d = Domain.from_xml(self.simple_domain)
-        self.assertIsInstance(d, Domain)
-        self.assertIsInstance(d.id, str)
-        self.assertIsInstance(d.name, str)
-        self.assertEqual(d.id, "b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac")
-        self.assertEqual(d.name, "client1.unbound.oasiswork.fr")
-
-    def testDomainWithWrongTagNameFails(self):
-        with self.assertRaises(TypeError) as cm:
-            d = Domain.from_xml(self.misnamed_domain)
-
-
-class PythonicAPITests(unittest.TestCase):
-    """ Tests the pythonic API, the one that should be accessed by someone using
-    the library.
-    """
-
-    def setUp(self):
-        self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
->>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 
     def test_get_all_domains(self):
         doms = self.zc.get_all_domains()
@@ -380,16 +342,11 @@ class PythonicAPITests(unittest.TestCase):
         # Look for client1.unbound.oasiswork.fr
         found = False
         for i in doms:
-<<<<<<< HEAD
             if i.name == self.EXISTANT_DOMAIN:
-=======
-            if i.name == "client1.unbound.oasiswork.fr":
->>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
                 found = True
 
         self.assertTrue(found)
 
-<<<<<<< HEAD
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
         self.assertIsInstance(stats, dict)
@@ -456,8 +413,6 @@ class PythonicAPITests(unittest.TestCase):
             self.zc.get_distribution_list(dl_full)
 
 
-=======
->>>>>>> 7bb5daeac10c104e041b0f53110efb187283ef86
 def main():
     unittest.main()
 
