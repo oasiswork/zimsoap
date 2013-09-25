@@ -36,6 +36,11 @@ Code is covered by unit tests, you can run them (only Python needed):
 
     $ python test.py
 
+To run only some tests, use one of those two:
+
+    $ python -m unittest tests.MyTestClass
+    $ python -m unittest tests.MyTestClass.my_test_method
+
 
 Requirements
 ------------
