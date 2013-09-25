@@ -7,6 +7,7 @@
 # zimbra API. It is left to ZimbraAdminClient.
 
 from pysimplesoap.client import SimpleXMLElement
+import utils
 
 class ZObject(object):
     """ An abstract class to handle Zimbra Concepts
@@ -35,6 +36,24 @@ class ZObject(object):
         """ By default, import the attributes of kwargs as attributes
         """
         self._import_attributes(kwargs)
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            raise TypeError('Cannot compare %s with %s' %\
+                                (type(self), type(other)))
+
+        try:
+            if not utils.is_zuuid(self.id) or not utils.is_zuuid(other.id):
+                raise AttributeError()
+        except AttributeError:
+            raise ValueError(
+                'Both comparees should have a Zimbra UUID as "id" attribute')
+
+        return self.id == other.id
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
     def _import_attributes(self, attrdict):
         for k, v in attrdict.items():

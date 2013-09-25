@@ -241,6 +241,42 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIsInstance(m.newMessages, str)
 
 
+    def test_ZObjects_comparison_equals(self):
+        d1 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+        d2 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+        self.assertTrue(d1 == d2)
+        self.assertFalse(d1 != d2)
+
+    def test_ZObjects_comparison(self):
+        d1 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+        d2 = Domain(id='dddddddd-f000-440b-bce6-dddddddddddd')
+        self.assertTrue(d1 != d2)
+        self.assertFalse(d1 == d2)
+
+
+    def test_ZObjects_comparison_invalid_id_first(self):
+        d1 = Domain(id='123')
+        d2 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+
+        with self.assertRaises(ValueError) as cm:
+            d1 == d2
+
+    def test_ZObjects_comparison_invalid_id_second(self):
+        d1 = Domain(id='123')
+        d2 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+
+        with self.assertRaises(ValueError) as cm:
+            d2 == d1
+
+
+    def test_ZObjects_comparison_invalid_type(self):
+        d1 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+        m1 = Mailbox(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
+
+        with self.assertRaises(TypeError) as cm:
+            d1 == m1
+
+
 class ZimsoapUtilsTests(unittest.TestCase):
     def testValidZuuid(self):
         self.assertTrue(zimsoap.utils.is_zuuid(
