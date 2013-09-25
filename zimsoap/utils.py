@@ -3,6 +3,8 @@
 #
 # Misc tools.
 
+import pysimplesoap
+
 def extractResponses(xml_response):
     """ A raw message is like:
         <?xml version="1.0" encoding="utf-16"?>
@@ -27,3 +29,17 @@ def extractResponses(xml_response):
 def extractSingleResponse(xml_response):
     return extractResponses(xml_response)[0]
 
+def wrap_el(element):
+    """Workaround a pysimplesoap bug, to push a first-level child of the
+    request tag, we can't push it "as-is", so we wrap it inside some fake
+    <l></l> tag.
+
+    FIXME: should patch pysimplesoap instead
+
+    @param element a SimpleXMLElement
+    @returns       a SimpleXMLElement: the argument, wrapped in <l/>
+    """
+
+    wrapper = pysimplesoap.client.SimpleXMLElement('<l/>')
+    wrapper.import_node(element)
+    return wrapper

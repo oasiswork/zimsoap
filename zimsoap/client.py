@@ -71,10 +71,7 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         @returns a list of pairs <ClassOfService object>,count
         """
         selector = domain.to_xml_selector()
-        # This is a hack... TODO: fix it upstream  (pysimplesoap)
-        tag = pysimplesoap.client.SimpleXMLElement('<l/>')
-        tag.import_node(selector)
-        resp = self.CountAccountRequest(self, tag)
+        resp = self.CountAccountRequest(self, utils.wrap_el(selector))
         cos_list = utils.extractResponses(resp)
 
         ret = []
@@ -95,12 +92,8 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         size (attribute 's'), and the mailbox ID, returns nothing appart from
         that.
         """
-        # This is a hack... TODO: fix it upstream  (pysimplesoap)
         selector = zobjects.Mailbox(id=account_id).to_xml_selector()
-
-        tag = pysimplesoap.client.SimpleXMLElement('<l/>')
-        tag.import_node(selector)
-        resp = self.GetMailboxRequest(self, tag)
+        resp = self.GetMailboxRequest(self, utils.wrap_el(selector))
 
         xml_mbox = utils.extractSingleResponse(resp)
         return zobjects.Mailbox.from_xml(xml_mbox)
