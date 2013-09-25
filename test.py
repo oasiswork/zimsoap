@@ -138,8 +138,8 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         def createDistributionList(name):
             resp = self.zc.CreateDistributionListRequest(
                 attributes={'name': name})
-            mailboxes = zimsoap.utils.extractResponses(resp)
-            self.assertEqual(mailboxes[0].get_name(), 'dl')
+            dls = zimsoap.utils.extractSingleResponse(resp)
+            self.assertEqual(dls.get_name(), 'dl')
 
         def getDistributionList(name):
             xml_node = SimpleXMLElement(
@@ -155,8 +155,8 @@ class ZimbraAdminClientRequests(unittest.TestCase):
             resp = self.zc.DeleteDistributionListRequest(
                 attributes={'id': dl_id})
 
+        name = 'unittest-test-list-1@client1.unbound.oasiswork.fr'
 
-        name = 'unittest-test-listt@client1.unbound.oasiswork.fr'
 
         # Should not exist
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
@@ -214,6 +214,21 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIsInstance(m.newMessages, str)
 
 
+class ZimsoapUtilsTests(unittest.TestCase):
+    def testValidZuuid(self):
+        self.assertTrue(zimsoap.utils.is_zuuid(
+                'd78fd9c9-f000-440b-bce6-ea938d40fa2d'))
+
+    def testEmptyZuuid(self):
+        self.assertFalse(zimsoap.utils.is_zuuid(''))
+
+    def testInvalidZuuid(self):
+        # Just missing a char
+        self.assertFalse(zimsoap.utils.is_zuuid(
+                'd78fd9c9-f000-440b-bce6-ea938d40fa2'))
+
+
+
 class PythonicAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
     the library.
@@ -266,6 +281,40 @@ class PythonicAPITests(unittest.TestCase):
         mbox = self.zc.get_account_mailbox(first_account_id)
         self.assertTrue(hasattr(mbox, 'mbxid'))
         self.assertTrue(hasattr(mbox, 's')) # size
+
+
+    def test_create_get_delete_distribution_list(self):
+        name = 'unittest-test-list-2@client1.unbound.oasiswork.fr'
+        dl_req = DistributionList(name=name)
+
+        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+            self.zc.get_distribution_list(dl_req)
+
+        dl = self.zc.create_distribution_list(name)
+        self.assertIsInstance(dl, DistributionList)
+        self.assertEqual(dl.name, name)
+
+        dl_got = self.zc.get_distribution_list(dl_req)
+        self.assertIsInstance(dl_got, DistributionList)
+
+        self.zc.delete_distribution_list(dl_got)
+
+        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+            self.zc.get_distribution_list(dl)
+
+    def test_delete_by_name(self):
+        name = 'unittest-test-list-3@client1.unbound.oasiswork.fr'
+        dl_req = DistributionList(name=name)
+        dl_full = self.zc.create_distribution_list(name)
+        self.zc.delete_distribution_list(dl_req)
+
+        # List with such a name does not exist
+        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+            self.zc.get_distribution_list(dl_req)
+
+        # List with such an ID does not exist
+        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+            self.zc.get_distribution_list(dl_full)
 
 
 def main():

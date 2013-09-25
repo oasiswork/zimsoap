@@ -98,6 +98,42 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         xml_mbox = utils.extractSingleResponse(resp)
         return zobjects.Mailbox.from_xml(xml_mbox)
 
+    def get_distribution_list(self, dl_description):
+        """
+        @param   dl_description : a DistributionList specifying either :
+                   - id:   the account_id
+                   - name: the name of the list
+        @returns the DistributionList
+        """
+        selector = dl_description.to_xml_selector()
+
+        resp = self.GetDistributionListRequest(self, utils.wrap_el(selector))
+        dl = zobjects.DistributionList.from_xml(
+            utils.extractSingleResponse(resp))
+        return dl
+
+    def create_distribution_list(self, name, dynamic=0):
+        resp = self.CreateDistributionListRequest(attributes={
+                'name'   : name,
+                'dynamic': str(dynamic)
+                })
+
+        return zobjects.DistributionList.from_xml(
+            utils.extractSingleResponse(resp))
+
+
+    def delete_distribution_list(self, dl):
+        try:
+            dl_id = dl.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the dl first
+            try:
+                dl_id = self.get_distribution_list(dl).id
+            except AttributeError:
+                raise ValueError('Unqualified DistributionList')
+
+        self.DeleteDistributionListRequest(attributes={'id': dl_id})
 
 
 
