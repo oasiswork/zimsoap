@@ -44,40 +44,63 @@ class ZimbraAPISessionTests(unittest.TestCase):
 
 
 class ZimbraAdminClientTests(unittest.TestCase):
+    def setUp(self):
+        self.TEST_SERVER = 'zimbratest.oasiswork.fr'
+        self.TEST_LOGIN = 'admin@zimbratest.oasiswork.fr'
+        self.TEST_PASSWORD = 'admintest'
+
     def testLogin(self):
-        zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
+        zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
         self.assertTrue(zc._session.is_logged_in())
 
     def testBadLoginFailure(self):
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
-            zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-            zc.login('badlogin@zimbratest.oasiswork.fr', 'admintest')
+            zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
+            zc.login('badlogin@zimbratest.oasiswork.fr', self.TEST_PASSWORD)
 
         self.assertEqual(cm.exception.faultcode, 'soap:Client')
 
     def testBadPasswordFailure(self):
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
-            zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-            zc.login('admin@zimbratest.oasiswork.fr', 'badpassword')
+            zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
+            zc.login(self.TEST_LOGIN, 'badpassword')
 
         self.assertEqual(cm.exception.faultcode, 'soap:Client')
 
     def testBadHostFailure(self):
         with self.assertRaises(urllib2.URLError) as cm:
             zc = ZimbraAdminClient('nonexistenthost.oasiswork.fr', 7071)
-            zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+            zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
     def testBadPortFailure(self):
         with self.assertRaises(urllib2.URLError) as cm:
-            zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 9999)
-            zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+            zc = ZimbraAdminClient(self.TEST_SERVER, 9999)
+            zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
 
 class ZimbraAdminClientRequests(unittest.TestCase):
     def setUp(self):
         self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+
+        self.EXISTANT_DOMAIN = "client1.unbound.oasiswork.fr"
+        self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
+        # Should not exist before the tests
+        self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
+
+    def tearDown(self):
+        # Try to delete a relief test distribution list (if any)
+        try:
+            xml_node = SimpleXMLElement(
+                '<l><dl by="name" >%s</dl></l>' % self.TEST_DL_NAME)
+            resp = self.zc.GetDistributionListRequest(self.zc, xml_node)
+            xml_dl_id = zimsoap.utils.extractSingleResponse(resp)['id']
+            self.zc.DeleteDistributionListRequest(
+                attributes={'id': dl_id})
+
+        except pysimplesoap.client.SoapFault:
+            pass
 
     def testGetAllAccountsReturnsSomething(self):
         resp = self.zc.GetAllAccountsRequest()
@@ -106,7 +129,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
         # FIXME: the <l> is a total workarround
         xml_node = SimpleXMLElement(
-            '<l><domain by="name">client1.unbound.oasiswork.fr</domain></l>')
+            '<l><domain by="name">%s</domain></l>' % self.EXISTANT_DOMAIN)
         resp = self.zc.CountAccountRequest(self.zc,xml_node)
         first_cos = zimsoap.utils.extractResponses(resp)[0]
         self.assertEqual(first_cos.get_name(), 'cos')
@@ -117,7 +140,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
     def testGetMailboxRequest(self):
         xml_node = SimpleXMLElement(
-            '<l><mbox id="d78fd9c9-f000-440b-bce6-ea938d40fa2d" /></l>')
+            '<l><mbox id="%s" /></l>' % self.EXISTANT_MBOX_ID)
 
         resp = self.zc.GetMailboxRequest(self.zc, xml_node)
         first_mbox = zimsoap.utils.extractResponses(resp)[0]
@@ -155,23 +178,20 @@ class ZimbraAdminClientRequests(unittest.TestCase):
             resp = self.zc.DeleteDistributionListRequest(
                 attributes={'id': dl_id})
 
-        name = 'unittest-test-list-1@client1.unbound.oasiswork.fr'
-
-
         # Should not exist
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
-            getDistributionList(name)
+            getDistributionList(self.TEST_DL_NAME)
 
-        createDistributionList(name)
+        createDistributionList(self.TEST_DL_NAME)
 
         # It should now exist
-        list_id = getDistributionList(name)
+        list_id = getDistributionList(self.TEST_DL_NAME)
 
         deleteDistributionList(list_id)
 
         # Should no longer exists
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
-            getDistributionList(name)
+            getDistributionList(self.TEST_DL_NAME)
 
 
 
@@ -238,6 +258,17 @@ class PythonicAPITests(unittest.TestCase):
         self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
+        self.EXISTANT_DOMAIN = "client1.unbound.oasiswork.fr"
+        self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
+        # Should not exist before the tests
+        self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
+
+    def tearDown(self):
+        try:
+            self.zc.delete_distribution_list(DistributionList(name=self.TEST_DL_NAME))
+        except pysimplesoap.client.SoapFault:
+            pass
+
     def test_get_all_domains(self):
         doms = self.zc.get_all_domains()
         self.assertIsInstance(doms, list)
@@ -246,7 +277,7 @@ class PythonicAPITests(unittest.TestCase):
         # Look for client1.unbound.oasiswork.fr
         found = False
         for i in doms:
-            if i.name == "client1.unbound.oasiswork.fr":
+            if i.name == self.EXISTANT_DOMAIN:
                 found = True
 
         self.assertTrue(found)
@@ -258,7 +289,7 @@ class PythonicAPITests(unittest.TestCase):
         self.assertIsInstance(stats['totalSize'], int)
 
     def test_count_account(self):
-        d = Domain(name="client1.unbound.oasiswork.fr")
+        d = Domain(name=self.EXISTANT_DOMAIN)
 
         # ex return: list: ((<ClassOfService object>, <int>), ...)
         cos_counts = self.zc.count_account(d)
@@ -284,7 +315,7 @@ class PythonicAPITests(unittest.TestCase):
 
 
     def test_create_get_delete_distribution_list(self):
-        name = 'unittest-test-list-2@client1.unbound.oasiswork.fr'
+        name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
 
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
@@ -303,7 +334,7 @@ class PythonicAPITests(unittest.TestCase):
             self.zc.get_distribution_list(dl)
 
     def test_delete_by_name(self):
-        name = 'unittest-test-list-3@client1.unbound.oasiswork.fr'
+        name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
         dl_full = self.zc.create_distribution_list(name)
         self.zc.delete_distribution_list(dl_req)
