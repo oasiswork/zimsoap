@@ -201,6 +201,23 @@ class ZimbraAdminClientRequests(unittest.TestCase):
             getDistributionList(self.TEST_DL_NAME)
 
 
+    def testCheckDomainMXRecord(self):
+        xml_node = SimpleXMLElement(
+            '<l><domain by="name">%s</domain></l>' % self.EXISTANT_DOMAIN)
+
+        try:
+            resp = self.zc.CheckDomainMXRecordRequest(self.zc, xml_node)
+        except pysimplesoap.client.SoapFault as sf:
+            if not 'NameNotFoundException' in str(sf):
+                # Accept for the moment this exception as it's kind a response
+                # from server.
+                raise
+
+        # xml = zimsoap.utils.extractResponses(resp)
+        # self.assertEqual(xml_dl[0].get_name(), 'entry')
+        # self.assertEqual(xml_dl[0].get_name(), 'code')
+        # self.assertEqual(xml_dl[0].get_name(), 'message')
+
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
