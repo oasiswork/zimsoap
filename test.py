@@ -80,9 +80,16 @@ class ZimbraAdminClientTests(unittest.TestCase):
 
 
 class ZimbraAdminClientRequests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Login/connection is done at class initialization to reduce tests time
+        cls.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        cls.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+
+
     def setUp(self):
-        self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
         self.EXISTANT_DOMAIN = "client1.unbound.oasiswork.fr"
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
@@ -254,9 +261,15 @@ class PythonicAPITests(unittest.TestCase):
     the library.
     """
 
+    @classmethod
+    def setUpClass(cls):
+        # Login/connection is done at class initialization to reduce tests time
+        cls.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        cls.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+
     def setUp(self):
-        self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
+        # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
         self.EXISTANT_DOMAIN = "client1.unbound.oasiswork.fr"
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
