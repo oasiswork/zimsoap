@@ -17,10 +17,12 @@ from tests import samples
 from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst
 from zimsoap.zobjects import *
 
+TEST_HOST="192.168.33.10"
+TEST_PORT="7071"
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        loc = "https://zimbratest.oasiswork.fr:7071/service/admin/soap"
+        loc = "https://%s:%s/service/admin/soap" % (TEST_HOST, TEST_PORT)
         self.cli = pysimplesoap.client.SoapClient(location=loc, action=loc,
                                                   namespace='urn:zimbraAdmin', ns=False)
         self.session = ZimbraAPISession(self.cli)
@@ -30,12 +32,12 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.assertFalse(self.session.is_logged_in())
 
     def testSuccessfullLogin(self):
-        self.session.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        self.session.login('admin', 'admintest')
 
         self.assertTrue(self.session.is_logged_in())
 
     def testHeader(self):
-        self.session.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        self.session.login('admin', 'admintest')
         self.session.get_context_header()
 
     def testHeaderNotLogged(self):
@@ -45,12 +47,12 @@ class ZimbraAPISessionTests(unittest.TestCase):
 
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
-        self.TEST_SERVER = 'zimbratest.oasiswork.fr'
-        self.TEST_LOGIN = 'admin@zimbratest.oasiswork.fr'
+        self.TEST_SERVER = TEST_HOST
+        self.TEST_LOGIN = 'admin'
         self.TEST_PASSWORD = 'admintest'
 
     def testLogin(self):
-        zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
+        zc = ZimbraAdminClient(self.TEST_SERVER, TEST_PORT)
         zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
         self.assertTrue(zc._session.is_logged_in())
 
@@ -83,8 +85,8 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        cls.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        cls.zc.login('admin', 'admintest')
 
 
     def setUp(self):
@@ -327,8 +329,8 @@ class PythonicAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        cls.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        cls.zc.login('admin', 'admintest')
 
     def setUp(self):
         # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
