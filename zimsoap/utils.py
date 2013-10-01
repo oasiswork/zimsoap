@@ -38,7 +38,8 @@ def wrap_el(element):
     request tag, we can't push it "as-is", so we wrap it inside some fake
     <l></l> tag.
 
-    FIXME: should patch pysimplesoap instead
+    FIXME: should patch pysimplesoap instead. See
+           http://code.google.com/p/pysimplesoap/issues/detail?id=89
 
     @param element a SimpleXMLElement
     @returns       a SimpleXMLElement: the argument, wrapped in <l/>
