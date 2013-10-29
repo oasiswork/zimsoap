@@ -1,0 +1,3 @@
+[submodule "tests/machines/modules/puppet-zimbra"]
+	path = tests/machines/modules/puppet-zimbra
+	url = https://github.com/SamueldeSmet/puppet-zimbra.git
