@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Example tool to grab per-domains stats.
+# WARNING: NOT UP-TO-DATE.
+#
+# Remaining here as an example only, not as a tool.
+# Check oazim-tools at https://dev.oasiswork.fr/projects/oazim-tools for
+# up-to-date code.
 #
 
 import argparse
@@ -38,6 +42,7 @@ def parse_args():
 
 
 if __name__ == '__main__':
+    print 'WARNING: this is an example script, do not use in production'
     args = parse_args()
     password = getpass.getpass('Password for %s: ' % args.username)
 
