@@ -19,6 +19,12 @@ from zimsoap.zobjects import *
 
 TEST_HOST="192.168.33.10"
 TEST_PORT="7071"
+TEST_ADMIN_LOGIN="admin"
+TEST_ADMIN_PASSWORD="password"
+
+TEST_DOMAIN1="zimbratest.oasiswork.fr"
+TEST_DOMAIN2="zimbratest2.oasiswork.fr"
+TEST_DOMAIN13="zimbratest3.oasiswork.fr"
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
@@ -32,12 +38,12 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.assertFalse(self.session.is_logged_in())
 
     def testSuccessfullLogin(self):
-        self.session.login('admin', 'admintest')
+        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
         self.assertTrue(self.session.is_logged_in())
 
     def testHeader(self):
-        self.session.login('admin', 'admintest')
+        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
         self.session.get_context_header()
 
     def testHeaderNotLogged(self):
@@ -48,8 +54,8 @@ class ZimbraAPISessionTests(unittest.TestCase):
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
         self.TEST_SERVER = TEST_HOST
-        self.TEST_LOGIN = 'admin'
-        self.TEST_PASSWORD = 'admintest'
+        self.TEST_LOGIN = TEST_ADMIN_LOGIN
+        self.TEST_PASSWORD = TEST_ADMIN_PASSWORD
 
     def testLogin(self):
         zc = ZimbraAdminClient(self.TEST_SERVER, TEST_PORT)
@@ -86,14 +92,14 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
         cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
-        cls.zc.login('admin', 'admintest')
+        cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
 
     def setUp(self):
         # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
-        self.EXISTANT_DOMAIN = "client1.unbound.oasiswork.fr"
+        self.EXISTANT_DOMAIN = TEST_DOMAIN1
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
         self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
@@ -148,8 +154,13 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         self.assertIsInstance(int(first_cos), int)
 
     def testGetMailboxRequest(self):
+        try:
+            EXISTANT_MBOX_ID = self.testGetAllMailboxes()[0]['accountId']
+        except e:
+            raise e('failed in self.testGetAllMailboxes()')
+
         xml_node = SimpleXMLElement(
-            '<l><mbox id="%s" /></l>' % self.EXISTANT_MBOX_ID)
+            '<l><mbox id="%s" /></l>' % EXISTANT_MBOX_ID)
 
         resp = self.zc.GetMailboxRequest(self.zc, xml_node)
         first_mbox = zimsoap.utils.extractResponses(resp)[0]
@@ -161,6 +172,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.GetAllMailboxesRequest()
         mailboxes = zimsoap.utils.extractResponses(resp)
         self.assertEqual(mailboxes[0].get_name(), 'mbox')
+        return mailboxes
 
     def testCreateGetDeleteDistributionList(self):
         """ As Getting and deleting a list requires it to exist
@@ -232,8 +244,8 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIsInstance(d, Domain)
         self.assertIsInstance(d.id, str)
         self.assertIsInstance(d.name, str)
-        self.assertEqual(d.id, "b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac")
-        self.assertEqual(d.name, "client1.unbound.oasiswork.fr")
+        self.assertIsNotNone(d.id)
+        self.assertEqual(d.name, 'client1.unbound.oasiswork.fr')
 
     def testDomainWithWrongTagNameFails(self):
         with self.assertRaises(TypeError) as cm:
@@ -330,13 +342,13 @@ class PythonicAPITests(unittest.TestCase):
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
         cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
-        cls.zc.login('admin', 'admintest')
+        cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
     def setUp(self):
         # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
-        self.EXISTANT_DOMAIN = "client1.unbound.oasiswork.fr"
+        self.EXISTANT_DOMAIN = TEST_DOMAIN1
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
         self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
