@@ -14,7 +14,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "8.0.4p" do |that|
 		that.vm.box = "zimbra-8.0.4p"
-		that.vm.box_url = "http://localhost/vagrantboxes/zimbra8.04p.box"
+		that.vm.box_url = "http://localhost/vagrantboxes/zimbra-8.04p.box"
   end
 
   config.vm.define "8.0.5" do |that|
