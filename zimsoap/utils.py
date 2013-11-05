@@ -6,6 +6,8 @@
 
 import pysimplesoap
 import re
+import hmac
+import hashlib
 
 def extractResponses(xml_response):
     """ A raw message is like:
@@ -27,7 +29,11 @@ def extractResponses(xml_response):
     """
     responses = xml_response.children()[1].children()[0].children()
     # Returns an emptylist rather to "None"
-    return responses or []
+    if responses:
+        return [i for i in responses]
+    else:
+        return []
+
 
 
 def extractSingleResponse(xml_response):
@@ -46,7 +52,12 @@ def wrap_el(element):
     """
 
     wrapper = pysimplesoap.client.SimpleXMLElement('<l/>')
-    wrapper.import_node(element)
+    if type(element) in (list, tuple):
+        for i in element:
+            wrapper.import_node(i)
+    else:
+        wrapper.import_node(element)
+
     return wrapper
 
 
@@ -57,3 +68,7 @@ def is_zuuid(s):
     example zimbra UUID : d78fd9c9-f000-440b-bce6-ea938d40fa2d
     """
     return re_zuuid.match(s)
+
+def build_preauth_str(preauth_key, account_name, timestamp, expires):
+    s = '{}|name|{}|{}'.format(account_name, expires, timestamp)
+    return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()

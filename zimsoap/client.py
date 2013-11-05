@@ -15,7 +15,7 @@ from os.path import dirname, abspath, join
 import datetime
 
 import pysimplesoap
-
+import time
 
 import utils
 import zobjects
@@ -25,6 +25,20 @@ class ShouldAuthenticateFirst(Exception):
     is done.
     """
     pass
+
+
+class DomainHasNoPreAuthKey(Exception):
+    """ Error fired when the server has no preauth key
+    pass"""
+    def __init__(self, domain):
+        # Call the base class constructor with the parameters it needs
+        msg = '"{}" has no preauth key, make one first, see {}'.format(
+            domain.name,
+            'http://wiki.zimbra.com/wiki/Preauth#Preparing_a_domain_for_preauth'
+            )
+        Exception.__init__(self)
+
+
 
 class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
@@ -98,6 +112,11 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         xml_mbox = utils.extractSingleResponse(resp)
         return zobjects.Mailbox.from_xml(xml_mbox)
 
+    def get_domain(self, domain):
+        selector = domain.to_xml_selector()
+        resp = self.GetDomainRequest(self, utils.wrap_el(selector))
+        return zobjects.Domain.from_xml(utils.extractSingleResponse(resp))
+
     def get_distribution_list(self, dl_description):
         """
         @param   dl_description : a DistributionList specifying either :
@@ -121,7 +140,6 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         return zobjects.DistributionList.from_xml(
             utils.extractSingleResponse(resp))
 
-
     def delete_distribution_list(self, dl):
         try:
             dl_id = dl.id
@@ -135,6 +153,26 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
         self.DeleteDistributionListRequest(attributes={'id': dl_id})
 
+    def mk_auth_token(self, account, duration=0):
+        """ Builds an authentification token, using preauth mechanism.
+
+        http://wiki.zimbra.com/wiki/Preauth
+
+        @param duration, in seconds defaults to 0, which means "use account
+               default"
+
+        @param account : an account object to be used as a selector
+        """
+        domain = account.get_domain()
+        try:
+            preauth_key = self.get_domain(domain)['zimbraPreAuthKey']
+        except KeyError:
+            raise DomainHasNoPreAuthKey(domain)
+        timestamp = int(time.time())*1000
+        expires = duration*1000
+        return utils.build_preauth_str(preauth_key, account.name, timestamp, expires)
+
+
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
        authentification header.
@@ -143,12 +181,30 @@ class ZimbraAPISession:
         self.client = client
         self.authToken = None
 
-    def login(self, username, password):
+    def login(self, username, password, preauth=False, preauth_expires=0):
         """ Performs the login agains zimbra
         (sends AuthRequest, receives AuthResponse).
+
+        @param preauth if True, provide a preauth token instead of a password
+        @param preauth_expires in seconds
         """
-        response = self.client.AuthRequest(name=username, password=password)
-        self.authToken, lifetime = utils.extractResponses(response)
+        if preauth:
+            n = '<account by="name">{}</account>'.format(username)
+            p = '<preauth timestamp="{}" expires="{}">{}</preauth>'\
+                .format(int(time.time())*1000, preauth_expires*1000, password)
+
+            wrapped = utils.wrap_el((
+                pysimplesoap.client.SimpleXMLElement(n),
+                pysimplesoap.client.SimpleXMLElement(p),
+                ))
+            wrapped
+
+            response = self.client.AuthRequest(self.client, wrapped)
+        else:
+            response = self.client.AuthRequest(name=username, password=password)
+
+        # strip responses over the 2nd (useless informations such as skin...)
+        self.authToken, lifetime = utils.extractResponses(response)[:2]
         lifetime = int(lifetime)
         self.authToken = str(self.authToken)
         self.end_date = (datetime.datetime.now() +

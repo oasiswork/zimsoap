@@ -14,7 +14,7 @@ from pysimplesoap.client import SimpleXMLElement
 
 import zimsoap.utils
 from tests import samples
-from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst
+from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst, DomainHasNoPreAuthKey
 from zimsoap.zobjects import *
 
 TEST_HOST="192.168.33.10"
@@ -26,11 +26,13 @@ TEST_DOMAIN1="zimbratest.oasiswork.fr"
 TEST_DOMAIN2="zimbratest2.oasiswork.fr"
 TEST_DOMAIN13="zimbratest3.oasiswork.fr"
 
+
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        loc = "https://%s:%s/service/admin/soap" % (TEST_HOST, TEST_PORT)
-        self.cli = pysimplesoap.client.SoapClient(location=loc, action=loc,
-                                                  namespace='urn:zimbraAdmin', ns=False)
+        self.loc = "https://%s:%s/service/admin/soap" % (TEST_HOST, TEST_PORT)
+        self.cli = pysimplesoap.client.SoapClient(
+            location=self.loc, action=self.loc,
+            namespace='urn:zimbraAdmin', ns=False)
         self.session = ZimbraAPISession(self.cli)
 
     def testInit(self):
@@ -41,6 +43,28 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
         self.assertTrue(self.session.is_logged_in())
+
+    def testSuccessfullLoginWithPreauth(self):
+        self.cli = pysimplesoap.client.SoapClient(
+            location=self.loc, action=self.loc,
+            namespace='urn:zimbraAccount', ns=False)
+        self.session = ZimbraAPISession(self.cli)
+
+        parent_cli = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        parent_cli.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+
+        login = '{}@{}'.format(TEST_ADMIN_LOGIN, TEST_DOMAIN1)
+        account = Account(name=login)
+        tk = parent_cli.mk_auth_token(account)
+
+        try:
+            self.session.login(login, tk, preauth=True)
+        except:
+            # print self.cli.xml_request
+            print self.cli.xml_response
+            raise
+        self.assertTrue(self.session.is_logged_in())
+
 
     def testHeader(self):
         self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
@@ -360,6 +384,17 @@ class ZimsoapUtilsTests(unittest.TestCase):
         self.assertFalse(zimsoap.utils.is_zuuid(
                 'd78fd9c9-f000-440b-bce6-ea938d40fa2'))
 
+    def test_build_preauth_str(self):
+        """ Taken from http://wiki.zimbra.com/wiki/Preauth
+        """
+        res = zimsoap.utils.build_preauth_str(
+            preauth_key = '6b7ead4bd425836e8cf0079cd6c1a05acc127acd07c8ee4b61023e19250e929c',
+            account_name = 'john.doe@domain.com',
+            timestamp = 1135280708088,
+            expires = 0
+            )
+        self.assertIsInstance(res, str)
+        self.assertEqual(res, 'b248f6cfd027edd45c5369f8490125204772f844')
 
 
 class PythonicAPITests(unittest.TestCase):
@@ -400,6 +435,11 @@ class PythonicAPITests(unittest.TestCase):
                 found = True
 
         self.assertTrue(found)
+
+    def test_get_domain(self):
+        dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
+        self.assertIsInstance(dom, Domain)
+        self.assertEqual(dom.name, TEST_DOMAIN1)
 
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
@@ -466,6 +506,16 @@ class PythonicAPITests(unittest.TestCase):
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
             self.zc.get_distribution_list(dl_full)
 
+    def test_mk_auth_token_succeeds(self):
+        user = Account(name='admin@{}'.format(TEST_DOMAIN1))
+        tk = self.zc.mk_auth_token(user, 0)
+        self.assertIsInstance(tk, str)
+
+    def test_mk_auth_token_fails_if_no_key(self):
+        user = Account(name='admin@{}'.format(TEST_DOMAIN2))
+
+        with self.assertRaises(DomainHasNoPreAuthKey) as cm:
+            self.zc.mk_auth_token(user, 0)
 
 def main():
     unittest.main()

@@ -9,6 +9,11 @@
 from pysimplesoap.client import SimpleXMLElement
 import utils
 
+class NotEnoughInformation(Exception):
+    """Raised when we try to get information on an object but have too litle
+    data to infer it."""
+    pass
+
 class ZObject(object):
     """ An abstract class to handle Zimbra Concepts
 
@@ -127,6 +132,28 @@ class Domain(ZObject):
 
     def __str__(self):
         return "<ZimbraDomain:%s>" % self.name
+
+
+class Account(ZObject):
+    """An account object
+    """
+    TAG_NAME = 'account'
+    SELECTORS = ('adminName','appAdminName','id',
+                 'foreignPrincipal','name','krb5Principal')
+
+    def get_domain(self):
+        try:
+            domain_name = self.name.split('@')[1]
+            return Domain(name=domain_name)
+        except AttributeError, e:
+            raise NotEnoughInformation(
+                'Cannot get domain without self.name filled')
+
+    def __repr__(self):
+        return "<ZimbraAccount:%s>" % self.id
+
+    def __str__(self):
+        return "<ZimbraAccount:%s>" % self.name
 
 
 class ClassOfService(ZObject):
