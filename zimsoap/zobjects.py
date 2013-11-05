@@ -14,7 +14,7 @@ class ZObject(object):
 
     A ZObject map to a tag name (subclasses have to define cls.TAG_NAME) :
     A ZObject can be parsed from XML ;
-    XML tag attributegs are mapped to ZObject attributes named identically and
+    XML tag attributes are mapped to ZObject attributes named identically and
     typed to str.
     """
     @classmethod
@@ -30,12 +30,17 @@ class ZObject(object):
         # import attributes
         obj._import_attributes(xml.attributes())
 
+        # import <a> child tags as dict items, see __getitem__()
+        if xml.children():
+            obj._a_tags = obj._parse_a_tags(xml)
+
         return obj
 
     def __init__(self, *args, **kwargs):
         """ By default, import the attributes of kwargs as attributes
         """
         self._import_attributes(kwargs)
+        self._a_tags = {}
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -54,10 +59,42 @@ class ZObject(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __getitem__(self, k):
+        """ Returns an item which is one of the <a> tags (if any). Attributes
+        are parsed oportunisticly at the first __getitem__ call.
+        """
+        return self._a_tags[k]
 
     def _import_attributes(self, attrdict):
         for k, v in attrdict.items():
             setattr(self, k, str(v))
+
+    @staticmethod
+    def _parse_a_tags(xml):
+        """ Iterates over all <a> tags and builds a dict with those.
+        If a tag with same "n" attributes appears several times, the
+        dict value is a list with the tags values, else it's a string.
+
+        @param xml a SimpleXMLElement
+        @returns   a dict
+        """
+        props = {}
+        for child in xml.children():
+            if child.get_name() == 'a':
+                k = child.attributes()['n'].value
+                v = str(child)
+
+                if props.has_key(k):
+                    prev_v = props[k]
+                    if type(prev_v) != list:
+                        props[k] = [prev_v,]
+
+                    props[k].append(v)
+
+                else:
+                    props[k] = v
+
+        return props
 
 
     def to_xml_selector(self):

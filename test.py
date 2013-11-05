@@ -272,6 +272,25 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIsInstance(m.newMessages, str)
 
 
+    def test_ZObjects_import_a_tags(self):
+        props = Domain._parse_a_tags(self.simple_domain)
+        self.assertIsInstance(props, dict)
+        # 53 is the number of unique "n" keys in the sample domain.
+        self.assertEqual(len(props), 53)
+        # Just check one of the <a> tags
+        self.assertEqual(props['zimbraAuthMech'], 'zimbra')
+
+    def test_ZObjects_import_a_tags_multivalue(self):
+        props = Domain._parse_a_tags(self.simple_domain)
+        self.assertIsInstance(props['objectClass'], list)
+        self.assertEqual(
+            props['objectClass'],
+            ['dcObject', 'organization', 'zimbraDomain', 'amavisAccount'])
+
+    def test_ZObjects_access_a_tag_as_item(self):
+        d = Domain.from_xml(self.simple_domain)
+        self.assertEqual(d['zimbraAuthMech'], 'zimbra')
+
     def test_ZObjects_comparison_equals(self):
         d1 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
         d2 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
