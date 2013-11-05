@@ -94,6 +94,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "puppet" do |puppet|
     puppet.module_path = "modules"
   end
+
+	# Adds a preauth key for the first domain if non-existant
+  config.vm.provision "shell",
+	inline: "sudo su - zimbra -c  'zmprov gdpak zimbratest.oasiswork.fr  > /dev/null 2>&1 ;/bin/true'"
+
   # Enable provisioning with chef solo, specifying a cookbooks path, roles
   # path, and data_bags path (all relative to this Vagrantfile), and adding
   # some recipes and/or roles.
