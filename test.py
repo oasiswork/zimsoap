@@ -134,6 +134,16 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         for tag in resp:
             self.assertEqual(tag.get_name(), 'domain')
 
+    def testGetDomainReturnsDomain(self):
+        xml_node = SimpleXMLElement(
+            '<l><domain by="name">{}</domain></l>'.format(
+                self.EXISTANT_DOMAIN))
+        resp = zimsoap.utils.extractSingleResponse(
+            self.zc.GetDomainRequest(self.zc,xml_node)
+            )
+        self.assertIsInstance(resp, SimpleXMLElement)
+        self.assertEqual(resp.get_name(), 'domain')
+
     def testGetMailboxStatsReturnsSomething(self):
         resp = self.zc.GetMailboxStatsRequest()
         self.assertIsInstance(resp, SimpleXMLElement)
