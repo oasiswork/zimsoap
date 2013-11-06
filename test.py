@@ -56,24 +56,6 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.authToken = '42'
         self.assertFalse(self.session.is_session_valid())
 
-
-    # def testSuccessfullLoginWithPreauth(self):
-    #     self.cli = pysimplesoap.client.SoapClient(
-    #         location=self.loc, action=self.loc,
-    #         namespace='urn:zimbraAccount', ns=False)
-    #     self.session = ZimbraAPISession(self.cli)
-
-    #     parent_cli = ZimbraAdminClient(TEST_HOST, TEST_PORT)
-    #     parent_cli.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
-
-    #     login = '{}@{}'.format(TEST_ADMIN_LOGIN, TEST_DOMAIN1)
-    #     account = Account(name=login)
-    #     tk = parent_cli.mk_auth_token(account)
-
-    #     self.session.login(login, tk, preauth=True)
-    #     self.assertTrue(self.session.is_logged_in())
-
-
     def testHeader(self):
         self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
         self.session.get_context_header()
