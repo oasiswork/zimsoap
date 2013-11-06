@@ -14,7 +14,7 @@ from pysimplesoap.client import SimpleXMLElement
 
 import zimsoap.utils
 from tests import samples
-from zimsoap.client import ZimbraAdminClient, ZimbraAPISession, ShouldAuthenticateFirst, DomainHasNoPreAuthKey
+from zimsoap.client import *
 from zimsoap.zobjects import *
 
 TEST_HOST="192.168.33.10"
@@ -45,6 +45,16 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
         self.assertTrue(self.session.is_logged_in())
+
+    def testGoodSessionValidates(self):
+        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        self.assertTrue(self.session.is_session_valid())
+
+    def testBadSessionFails(self):
+        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        self.session.authToken = '42'
+        self.assertFalse(self.session.is_session_valid())
+
 
     def testSuccessfullLoginWithPreauth(self):
         self.cli = pysimplesoap.client.SoapClient(
@@ -528,6 +538,46 @@ class PythonicAPITests(unittest.TestCase):
     #     doms = new_zc.get_all_domains()
     #     self.assertIsInstance(doms, list)
     #     self.assertIsInstance(doms[0], Domain)
+
+
+class RESTClientTest(unittest.TestCase):
+    @classmethod
+    def setUp(cls):
+        # Login/connection is done at class initialization to reduce tests time
+        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+
+        cls.lambda_account = Account(name=TEST_LAMBDA_USER)
+        domain_name = cls.lambda_account.get_domain()
+        cls.ph_key_domain1 = cls.zc.get_domain(domain_name)['zimbraPreAuthKey']
+
+
+    def test_user_preauth_without_key_fails(self):
+        with self.assertRaises(RESTClient.NoPreauthKeyProvided) as cm:
+            c = AccountRESTClient(TEST_HOST)
+            c.get_preauth_token(self.lambda_account.name)
+
+    def test_user_preauth_returns_something(self):
+        c = AccountRESTClient(TEST_HOST, preauth_key=self.ph_key_domain1)
+        token = c.get_preauth_token(self.lambda_account.name)
+        self.assertIsInstance(token, str)
+
+    def test_user_preauth_with_wrong_user_fails(self):
+        with self.assertRaises(RESTClient.RESTBackendError) as cm:
+            c = AccountRESTClient(TEST_HOST, preauth_key=self.ph_key_domain1)
+            c.get_preauth_token('idonotexist1234@'+TEST_DOMAIN1)
+
+    def test_admin_preauth_returns_something(self):
+        c = AdminRESTClient(TEST_HOST, preauth_key=self.ph_key_domain1)
+        token = c.get_preauth_token(TEST_ADMIN_LOGIN+'@'+TEST_DOMAIN1)
+        self.assertIsInstance(token, str)
+
+    def test_admin_preauth_is_valid(self):
+        c = AdminRESTClient(TEST_HOST, preauth_key=self.ph_key_domain1)
+        token = c.get_preauth_token(TEST_ADMIN_LOGIN+'@'+TEST_DOMAIN1)
+
+        self.zc._session.import_session(token)
+        self.assertTrue(self.zc._session.is_session_valid())
 
 
 def main():
