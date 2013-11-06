@@ -176,12 +176,13 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
 
-        http://wiki.zimbra.com/wiki/Preauth
+        See http://wiki.zimbra.com/wiki/Preauth
 
         @param duration, in seconds defaults to 0, which means "use account
                default"
 
         @param account : an account object to be used as a selector
+        @returns       the auth string
         """
         domain = account.get_domain()
         try:
