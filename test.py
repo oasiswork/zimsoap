@@ -19,12 +19,13 @@ from zimsoap.zobjects import *
 
 TEST_HOST="192.168.33.10"
 TEST_PORT="7071"
-TEST_ADMIN_LOGIN="admin"
-TEST_ADMIN_PASSWORD="password"
 
 TEST_DOMAIN1="zimbratest.oasiswork.fr"
 TEST_DOMAIN2="zimbratest2.oasiswork.fr"
 TEST_DOMAIN13="zimbratest3.oasiswork.fr"
+
+TEST_ADMIN_LOGIN="admin@"+TEST_DOMAIN1
+TEST_ADMIN_PASSWORD="password"
 
 TEST_LAMBDA_USER="albacore@zimbratest.oasiswork.fr"
 
@@ -56,21 +57,21 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.assertFalse(self.session.is_session_valid())
 
 
-    def testSuccessfullLoginWithPreauth(self):
-        self.cli = pysimplesoap.client.SoapClient(
-            location=self.loc, action=self.loc,
-            namespace='urn:zimbraAccount', ns=False)
-        self.session = ZimbraAPISession(self.cli)
+    # def testSuccessfullLoginWithPreauth(self):
+    #     self.cli = pysimplesoap.client.SoapClient(
+    #         location=self.loc, action=self.loc,
+    #         namespace='urn:zimbraAccount', ns=False)
+    #     self.session = ZimbraAPISession(self.cli)
 
-        parent_cli = ZimbraAdminClient(TEST_HOST, TEST_PORT)
-        parent_cli.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+    #     parent_cli = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+    #     parent_cli.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
-        login = '{}@{}'.format(TEST_ADMIN_LOGIN, TEST_DOMAIN1)
-        account = Account(name=login)
-        tk = parent_cli.mk_auth_token(account)
+    #     login = '{}@{}'.format(TEST_ADMIN_LOGIN, TEST_DOMAIN1)
+    #     account = Account(name=login)
+    #     tk = parent_cli.mk_auth_token(account)
 
-        self.session.login(login, tk, preauth=True)
-        self.assertTrue(self.session.is_logged_in())
+    #     self.session.login(login, tk, preauth=True)
+    #     self.assertTrue(self.session.is_logged_in())
 
 
     def testHeader(self):
@@ -524,20 +525,11 @@ class PythonicAPITests(unittest.TestCase):
         with self.assertRaises(DomainHasNoPreAuthKey) as cm:
             self.zc.mk_auth_token(user, 0)
 
-    def test_get_logged_in_by(self):
+    def test_admin_get_logged_in_by(self):
         new_zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
-        new_zc.get_logged_in_by(TEST_LAMBDA_USER, self.zc)
+        new_zc.get_logged_in_by(TEST_ADMIN_LOGIN, self.zc)
         self.assertTrue(new_zc._session.is_logged_in())
-
-    # def test_admin_get_logged_in_by(self):
-    #     child_username = 'admin@{}'.format(TEST_DOMAIN1)
-    #     new_zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
-    #     new_zc.get_logged_in_by(child_username, self.zc)
-    #     self.assertTrue(new_zc._session.is_logged_in())
-
-    #     doms = new_zc.get_all_domains()
-    #     self.assertIsInstance(doms, list)
-    #     self.assertIsInstance(doms[0], Domain)
+        self.assertTrue(new_zc._session.is_session_valid())
 
 
 class RESTClientTest(unittest.TestCase):
@@ -569,12 +561,12 @@ class RESTClientTest(unittest.TestCase):
 
     def test_admin_preauth_returns_something(self):
         c = AdminRESTClient(TEST_HOST, preauth_key=self.ph_key_domain1)
-        token = c.get_preauth_token(TEST_ADMIN_LOGIN+'@'+TEST_DOMAIN1)
+        token = c.get_preauth_token(TEST_ADMIN_LOGIN)
         self.assertIsInstance(token, str)
 
     def test_admin_preauth_is_valid(self):
         c = AdminRESTClient(TEST_HOST, preauth_key=self.ph_key_domain1)
-        token = c.get_preauth_token(TEST_ADMIN_LOGIN+'@'+TEST_DOMAIN1)
+        token = c.get_preauth_token(TEST_ADMIN_LOGIN)
 
         self.zc._session.import_session(token)
         self.assertTrue(self.zc._session.is_session_valid())

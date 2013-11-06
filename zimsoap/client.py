@@ -52,6 +52,8 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
     def __init__(self, server_host, server_port='7071',
                  *args, **kwargs):
         loc = "https://%s:%s/service/admin/soap" % (server_host, server_port)
+        self._server_host = server_host
+        self._server_port = server_port
         super(ZimbraAdminClient, self).__init__(
             location = loc,
             action = loc,
@@ -68,16 +70,15 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         """Use another client to get logged in via preauth mechanism by an
         already logged in admin.
         """
-        preauth_str = parent_zc.mk_auth_token(zobjects.Account(name=login))
+        domain_name = zobjects.Account(name=login).get_domain()
+        preauth_key = parent_zc.get_domain(domain_name)['zimbraPreAuthKey']
 
-        # workaround the fact delegatedauth is only available in
-        # zimbraAccoun. WARNING, this is not thread safe.
-        old_namespace = self.namespace
-        self.namespace = 'urn:zimbraAccount'
-        # self.location.replace('/admin/soap', '/preauth')
-        self._session.login(login, preauth_str, True, duration)
-        # self.location.replace('/preauth','/admin/soap')
-        #self.namespace = old_namespace
+        rc = AdminRESTClient(
+            self._server_host, self._server_port, preauth_key=preauth_key)
+
+        authToken = rc.get_preauth_token(login)
+
+        self._session.import_session(authToken)
 
 
     def get_all_domains(self):
@@ -201,27 +202,11 @@ class ZimbraAPISession:
         self.client = client
         self.authToken = None
 
-    def login(self, username, password, preauth=False, preauth_expires=0):
-        """ Performs the login agains zimbra
+    def login(self, username, password):
+        """ Performs the login against zimbra
         (sends AuthRequest, receives AuthResponse).
-
-        @param preauth if True, provide a preauth token instead of a password
-        @param preauth_expires in seconds
         """
-        if preauth:
-            n = '<account by="name">{}</account>'.format(username)
-            p = '<preauth timestamp="{}" expires="{}">{}</preauth>'\
-                .format(int(time.time())*1000, preauth_expires*1000, password)
-
-            wrapped = utils.wrap_el((
-                pysimplesoap.client.SimpleXMLElement(n),
-                pysimplesoap.client.SimpleXMLElement(p),
-                ))
-            wrapped
-
-            response = self.client.AuthRequest(self.client, wrapped)
-        else:
-            response = self.client.AuthRequest(name=username, password=password)
+        response = self.client.AuthRequest(name=username, password=password)
 
         # strip responses over the 2nd (useless informations such as skin...)
         self.authToken, lifetime = utils.extractResponses(response)[:2]
@@ -252,10 +237,14 @@ class ZimbraAPISession:
     def import_session(self, auth_token):
         self.authToken = auth_token
 
-    def is_logged_in(self):
+    def is_logged_in(self, force_check=False):
         if not self.authToken:
             return False
-        return self.end_date >= datetime.datetime.now()
+
+        try: # if it's delegated, we can't know the expiration date for sure
+            return self.end_date >= datetime.datetime.now()
+        except AttributeError:
+            return True
 
     def is_session_valid(self):
         try:
