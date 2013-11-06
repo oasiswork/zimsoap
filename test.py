@@ -26,6 +26,8 @@ TEST_DOMAIN1="zimbratest.oasiswork.fr"
 TEST_DOMAIN2="zimbratest2.oasiswork.fr"
 TEST_DOMAIN13="zimbratest3.oasiswork.fr"
 
+TEST_LAMBDA_USER="albacore@zimbratest.oasiswork.fr"
+
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
@@ -57,12 +59,7 @@ class ZimbraAPISessionTests(unittest.TestCase):
         account = Account(name=login)
         tk = parent_cli.mk_auth_token(account)
 
-        try:
-            self.session.login(login, tk, preauth=True)
-        except:
-            # print self.cli.xml_request
-            print self.cli.xml_response
-            raise
+        self.session.login(login, tk, preauth=True)
         self.assertTrue(self.session.is_logged_in())
 
 
@@ -516,6 +513,22 @@ class PythonicAPITests(unittest.TestCase):
 
         with self.assertRaises(DomainHasNoPreAuthKey) as cm:
             self.zc.mk_auth_token(user, 0)
+
+    def test_get_logged_in_by(self):
+        new_zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        new_zc.get_logged_in_by(TEST_LAMBDA_USER, self.zc)
+        self.assertTrue(new_zc._session.is_logged_in())
+
+    # def test_admin_get_logged_in_by(self):
+    #     child_username = 'admin@{}'.format(TEST_DOMAIN1)
+    #     new_zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+    #     new_zc.get_logged_in_by(child_username, self.zc)
+    #     self.assertTrue(new_zc._session.is_logged_in())
+
+    #     doms = new_zc.get_all_domains()
+    #     self.assertIsInstance(doms, list)
+    #     self.assertIsInstance(doms[0], Domain)
+
 
 def main():
     unittest.main()

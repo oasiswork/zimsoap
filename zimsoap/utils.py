@@ -69,6 +69,10 @@ def is_zuuid(s):
     """
     return re_zuuid.match(s)
 
-def build_preauth_str(preauth_key, account_name, timestamp, expires):
-    s = '{}|name|{}|{}'.format(account_name, expires, timestamp)
+def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False):
+    if admin:
+        s = '{}|1|name|{}|{}'.format(account_name, expires, timestamp)
+    else:
+        s = '{}|name|{}|{}'.format(account_name, expires, timestamp)
+
     return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()

@@ -61,6 +61,22 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         self._session.login(admin_user, admin_password)
         self['context'] = self._session.get_context_header()
 
+    def get_logged_in_by(self, login, parent_zc, duration=0):
+        """Use another client to get logged in via preauth mechanism by an
+        already logged in admin.
+        """
+        preauth_str = parent_zc.mk_auth_token(zobjects.Account(name=login))
+
+        # workaround the fact delegatedauth is only available in
+        # zimbraAccoun. WARNING, this is not thread safe.
+        old_namespace = self.namespace
+        self.namespace = 'urn:zimbraAccount'
+        # self.location.replace('/admin/soap', '/preauth')
+        self._session.login(login, preauth_str, True, duration)
+        # self.location.replace('/preauth','/admin/soap')
+        #self.namespace = old_namespace
+
+
     def get_all_domains(self):
         xml_doms = utils.extractResponses(self.GetAllDomainsRequest())
         return [zobjects.Domain.from_xml(d) for d in xml_doms]
@@ -153,7 +169,7 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
         self.DeleteDistributionListRequest(attributes={'id': dl_id})
 
-    def mk_auth_token(self, account, duration=0):
+    def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
 
         http://wiki.zimbra.com/wiki/Preauth
@@ -170,7 +186,8 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
             raise DomainHasNoPreAuthKey(domain)
         timestamp = int(time.time())*1000
         expires = duration*1000
-        return utils.build_preauth_str(preauth_key, account.name, timestamp, expires)
+        return utils.build_preauth_str(preauth_key, account.name, timestamp,
+                                       expires, admin)
 
 
 class ZimbraAPISession:
@@ -230,8 +247,16 @@ class ZimbraAPISession:
         return context
 
     def is_logged_in(self):
-        if not self.authToken:
+        if not self.authToken or not self.is_session_valid() or\
+                not self.is_session_valid():
             return False
         return self.end_date >= datetime.datetime.now()
+
+    def is_session_valid(self):
+        try:
+            self.client.AuthRequest(authToken=self.authToken)
+            return True
+        except pysimplesoap.client.SoapFault:
+            return False
 
 
