@@ -236,6 +236,9 @@ class ZimbraAPISession:
         return context
 
     def import_session(self, auth_token):
+        if not type(auth_token) == str:
+            raise TypeError('auth_token should be a string, not {}'.format(
+                    type(auth_token)))
         self.authToken = auth_token
 
     def is_logged_in(self, force_check=False):
