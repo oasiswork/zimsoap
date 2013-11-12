@@ -66,6 +66,10 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
         self._session.login(admin_user, admin_password)
         self['context'] = self._session.get_context_header()
 
+    def login_with_authToken(self, authToken):
+        self._session.import_session(authToken)
+        self['context'] = self._session.get_context_header()
+
     def get_logged_in_by(self, login, parent_zc, duration=0):
         """Use another client to get logged in via preauth mechanism by an
         already logged in admin.
@@ -78,7 +82,7 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
         authToken = rc.get_preauth_token(login)
 
-        self._session.import_session(authToken)
+        self.login_with_authToken(authToken)
 
 
     def get_all_domains(self):
