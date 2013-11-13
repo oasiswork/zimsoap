@@ -121,10 +121,67 @@ class ZimbraAccountClientTests(unittest.TestCase):
         cls.zc = ZimbraAccountClient(TEST_HOST)
         cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
 
+    def tearDown(self):
+        # Delete the test signature (if any)
+        try:
+            xml_node = SimpleXMLElement('<signature name="unittest" />')
+            self.zc.DeleteSignatureRequest(self.zc, utils.wrap_el(xml_node))
+        except pysimplesoap.client.SoapFault, e:
+            if 'no such signature' in str(e):
+                pass
+            else:
+                raise
+
     def testGetSignaturesReturnsSomething(self):
         resp = self.zc.GetSignaturesRequest()
         resp_tag = utils.extractResponseTag(resp)
+        signatures = utils.extractResponses(resp)
         self.assertEqual(resp_tag.get_name(), 'GetSignaturesResponse')
+
+        # Normally, the user has no signature by default
+        self.assertEqual(len(signatures), 0)
+
+    def testCreateSignatureReturnsSomething(self):
+        xml_node = utils.wrap_el(SimpleXMLElement(
+            '<signature name=\"unittest\">'+\
+              '<content type="text/plain">TEST SIGNATURE</content>'+\
+            '</signature>'))
+
+        resp = self.zc.CreateSignatureRequest(self.zc, xml_node)
+
+        sig = utils.extractSingleResponse(resp)
+        self.assertEqual(sig['name'], 'unittest')
+        return sig
+
+    def testDeleteSignatureReturnsProperly(self):
+        sig = self.testCreateSignatureReturnsSomething()
+        xml_node = SimpleXMLElement('<signature id="{}" />'.format(sig['id']))
+        resp = self.zc.DeleteSignatureRequest(self.zc, utils.wrap_el(xml_node))
+        self.assertEqual(
+            utils.extractResponseTag(resp).get_name(),
+            'DeleteSignatureResponse'
+            )
+
+    def testModifySignatureWorks(self):
+        sig = self.testCreateSignatureReturnsSomething()
+
+        xml_node = utils.wrap_el(SimpleXMLElement(
+            '<signature id="{}">'.format(sig['id'])+\
+                '<content type="text/plain">MODIFSIG</content>'+\
+            '</signature>'))
+        resp = self.zc.ModifySignatureRequest(self.zc, xml_node)
+        self.assertEqual(
+            utils.extractResponseTag(resp).get_name(),
+            'ModifySignatureResponse'
+            )
+
+        list_resp = self.zc.GetSignaturesRequest()
+        sigs = utils.extractResponses(list_resp)
+
+        self.assertEqual(len(sigs), 1)
+        self.assertIn('MODIFSIG', repr(sigs[0]))
+
+
 
 
 class ZimbraAdminClientRequests(unittest.TestCase):
