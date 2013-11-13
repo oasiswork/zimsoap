@@ -92,7 +92,49 @@ class ZimbraAccountClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    def create_signature(self, name, content, contenttype="text/html"):
+        """
+        @param  name    verbose name of the signature
+        @param  content content of the signature, in html or plain-text
+        @param  type    can be "text/html" (default) or "text/plain"
+        @return a zobjects.Signature object
+        """
+        s = zobjects.Signature(name=name)
+        s.set_content(content, contenttype)
+        resp = self.CreateSignatureRequest(self,
+                                           utils.wrap_el(s.to_xml_creator()))
+        xml_sig = utils.extractSingleResponse(resp)
+        return zobjects.Signature.from_xml(xml_sig)
 
+    def get_signatures(self):
+        """ Get all signatures for the current user
+
+        @returns a list of zobjects.Signature
+        """
+        resp = self.GetSignaturesRequest()
+        return [zobjects.Signature.from_xml(i) for i in utils.extractResponses(resp)]
+
+    def get_signature(self, signature):
+        """Retrieve one signature, discriminated by name or id.
+
+        @param a zobjects.Signature describing the signature
+               like "Signature(name='my-sig')"
+
+        @returns a zobjects.Signature object, filled with the signature.
+        """
+
+        resp = self.GetSignaturesRequest(
+            self, utils.wrap_el(signature.to_xml_selector()))
+        return zobjects.Signature.from_xml(utils.extractSingleResponse(resp))
+
+
+    def delete_signature(self, signature):
+        """ Delete a signature by name or id
+
+        @param signature a Signature object with name or id defined
+        """
+        self.DeleteSignatureRequest(
+            self, utils.wrap_el(signature.to_xml_selector()))
 
 class ZimbraAdminClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
@@ -221,7 +263,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         expires = duration*1000
         return utils.build_preauth_str(preauth_key, account.name, timestamp,
                                        expires, admin)
-
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the

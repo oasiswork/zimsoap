@@ -198,3 +198,74 @@ class Mailbox(ZObject):
 class DistributionList(ZObject):
     TAG_NAME='dl'
     SELECTORS = ('id', 'name')
+
+
+class Signature(ZObject):
+    TAG_NAME='signature'
+    SELECTORS = ('id', 'name')
+
+    @classmethod
+    def from_xml(cls, xml):
+        """ Override default, adding the capture of content and contenttype.
+        """
+        o = super(Signature, cls).from_xml(xml)
+        if xml.children():
+            for node in xml.children():
+                if node.get_name() == 'content':
+                    o._content = str(node)
+                    o._contenttype = node['type']
+                    break
+        return o
+
+
+    def to_xml_selector(self):
+        """ For some reason, the selector for <signature> is
+
+            <signature id="1234" />
+
+        rather than
+
+            <signature by="id"></signature>
+        """
+
+        for i in self.SELECTORS:
+            if hasattr(self, i):
+                val = getattr(self, i)
+                selector = i
+                break
+        s = '<{} {}="{}" />'.format(self.TAG_NAME, selector, val)
+
+        return SimpleXMLElement(s)
+
+    def set_content(self, content, contenttype='text/html'):
+        self._content = content
+        self._contenttype = contenttype
+
+
+    def to_xml_creator(self):
+        """ Returns an XML object suitable for CreateSignatureRequest
+
+        A signature object for creation is like :
+
+            <signature name="unittest">
+              <content type="text/plain">My signature content</content>
+            </signature>
+
+            """
+
+        if not self._content or not self._contenttype:
+            raise AttributeError(
+                'too little information on signature, run setContent before')
+        content = SimpleXMLElement('<content type="{}">{}</content>'.format(
+                self._contenttype, self._content))
+
+        signature = self.to_xml_selector()
+        signature.import_node(content)
+
+        return signature
+
+    def get_content(self):
+        return self._content
+
+    def get_content_type(self):
+        return self._contenttype

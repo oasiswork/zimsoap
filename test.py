@@ -433,6 +433,59 @@ class ZObjectsTests(unittest.TestCase):
         with self.assertRaises(TypeError) as cm:
             d1 == m1
 
+    def test_Signature_to_xml_selector(self):
+        s = Signature(id='1234')
+        self.assertEqual(repr(s.to_xml_selector()), '<signature id="1234"/>')
+        self.assertIsInstance(s.to_xml_selector(), SimpleXMLElement)
+
+        s = Signature(name='jdoe')
+        self.assertEqual(repr(s.to_xml_selector()), '<signature name="jdoe"/>')
+
+        s = Signature(id='1234', name='jdoe')
+        self.assertEqual(repr(s.to_xml_selector()), '<signature id="1234"/>')
+
+    def test_Signature_xml_creator_fails_without_content(self):
+        s = Signature(name='unittest')
+        with self.assertRaises(AttributeError) as cm:
+            s.to_xml_creator()
+
+    def test_Signature_xml_creator_default_format(self):
+        s = Signature(name='unittest')
+        s.set_content('TEST_CONTENT')
+        self.assertEqual(s._contenttype, 'text/html')
+
+    def test_Signature_xml_set_content(self):
+        s = Signature(name='unittest')
+        s.set_content('TEST_CONTENT', contenttype='text/plain')
+
+        self.assertEqual(s._contenttype, 'text/plain')
+        self.assertEqual(s._content, 'TEST_CONTENT')
+
+    def test_Signature_xml_creator_success(self):
+        s = Signature(name='unittest')
+        s.set_content('TEST_CONTENT', contenttype='text/plain')
+        xml = s.to_xml_creator()
+        self.assertIsInstance(xml, SimpleXMLElement)
+        self.assertEqual(xml.get_name(), 'signature')
+        self.assertEqual(xml.children().get_name(), 'content')
+
+
+    def test_Signature_xml_creator_success(self):
+        s = Signature(name='unittest')
+        s.set_content('TEST_CONTENT', contenttype='text/plain')
+        xml = s.to_xml_creator()
+        self.assertIsInstance(xml, SimpleXMLElement)
+        self.assertEqual(xml.get_name(), 'signature')
+        self.assertEqual(xml.children().get_name(), 'content')
+
+    def test_Signature_xml_import(self):
+        xml = samples.SIGNATURE
+        s = Signature.from_xml(SimpleXMLElement(xml))
+        self.assertIsInstance(s, Signature)
+        self.assertIsInstance(s.get_content(), str)
+        self.assertEqual(s.get_content(), 'CONTENT')
+        self.assertEqual(s.get_content_type(), 'text/html')
+
 class ZimsoapUtilsTests(unittest.TestCase):
     def testExtractResponsesFilled(self):
         xml = SimpleXMLElement(samples.XML_MULTIPLE_RESPONSE_TAGS)
@@ -470,9 +523,95 @@ class ZimsoapUtilsTests(unittest.TestCase):
         self.assertEqual(res, 'b248f6cfd027edd45c5369f8490125204772f844')
 
 
-class PythonicAPITests(unittest.TestCase):
+class PythonicAccountAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
-    the library.
+    the library, zimbraAccount features.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        # Login/connection is done at class initialization to reduce tests time
+        cls.zc = ZimbraAccountClient(TEST_HOST)
+        cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
+
+    def tearDown(self):
+        # Delete the test signature (if any)
+        for i in ('unittest', 'unittest1'):
+            try:
+                xml_node = SimpleXMLElement('<signature name="{}" />'.format(i))
+                self.zc.DeleteSignatureRequest(self.zc, utils.wrap_el(xml_node))
+            except pysimplesoap.client.SoapFault, e:
+                if 'no such signature' in str(e):
+                    pass
+                else:
+                    raise
+
+    def test_create_signature(self):
+        sig_name = 'unittest'
+        sig_content = 'TEST CONTENT'
+        sig = self.zc.create_signature(sig_name, sig_content)
+
+        self.assertIsInstance(sig, Signature)
+        self.assertTrue(utils.is_zuuid(sig.id))
+        self.assertEqual(sig.name, sig_name)
+        return sig
+
+    def test_delete_signature_by_name(self):
+        sig = self.test_create_signature()
+        self.zc.delete_signature(Signature(id=sig.id))
+
+    def test_delete_signature_by_id(self):
+        sig = self.test_create_signature()
+        self.zc.delete_signature(Signature(name=sig.name))
+
+    def test_get_all_signatures_empty(self):
+        resp = self.zc.get_signatures()
+        self.assertIsInstance(resp, list)
+        self.assertEqual(len(resp), 0)
+
+    def test_get_all_signatures_nonempty(self):
+        self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        self.zc.create_signature('unittest1', 'CONTENT', "text/html")
+
+        resp = self.zc.get_signatures()
+        self.assertIsInstance(resp, list)
+        self.assertEqual(len(resp), 2)
+
+        a_sig = resp[0]
+        self.assertIsInstance(a_sig, Signature)
+        self.assertEqual(a_sig.name, 'unittest')
+        self.assertEqual(a_sig.get_content(), 'CONTENT')
+        self.assertEqual(a_sig.get_content_type(), 'text/html')
+
+    def test_get_a_signature_by_signature(self):
+        sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        sig2 = self.zc.create_signature('unittest1', 'CONTENT', "text/html")
+
+        resp = self.zc.get_signature(sig1)
+        self.assertIsInstance(resp, Signature)
+        self.assertEqual(resp, sig1)
+
+    def test_get_a_signature_by_name(self):
+        sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        sig2 = self.zc.create_signature('unittest1', 'CONTENT', "text/html")
+
+        resp = self.zc.get_signature(Signature(name='unittest'))
+        self.assertIsInstance(resp, Signature)
+        self.assertEqual(resp, sig1)
+
+    def test_get_a_signature_by_id(self):
+        sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        sig2 = self.zc.create_signature('unittest1', 'CONTENT', "text/html")
+
+        resp = self.zc.get_signature(Signature(id=sig1.id))
+        self.assertIsInstance(resp, Signature)
+        self.assertEqual(resp, sig1)
+
+
+
+class PythonicAdminAPITests(unittest.TestCase):
+    """ Tests the pythonic API, the one that should be accessed by someone using
+    the library, zimbraAdmin features.
     """
 
     @classmethod

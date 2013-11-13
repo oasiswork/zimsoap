@@ -182,3 +182,9 @@ XML_EMPTY_RESPONSE_TAGS = """
 </soap:Envelope>
 
 """
+
+SIGNATURE="""
+<signature id="a86c8118-2828-44d3-bd12-938892b3dcf4" name="unittest1">
+  <content type="text/html">CONTENT</content>
+</signature>
+"""
