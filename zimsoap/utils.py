@@ -69,13 +69,17 @@ def wrap_el(element):
     @param element a SimpleXMLElement or a list of SimpleXMLElement
     @returns       a SimpleXMLElement: the argument(s), wrapped in <l/>
     """
-
     wrapper = pysimplesoap.client.SimpleXMLElement('<l/>')
-    if type(element) in (list, tuple):
-        for i in element:
-            wrapper.import_node(i)
-    else:
-        wrapper.import_node(element)
+
+    if not type(element) in (list, tuple):
+        element = [element]
+
+    for i in element:
+        if not isinstance(i, pysimplesoap.client.SimpleXMLElement):
+            raise TypeError(
+                'expecting a SimpleXMLElement, not {}'.format(type(i)))
+
+        wrapper.import_node(i)
 
     return wrapper
 
