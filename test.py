@@ -18,7 +18,7 @@ from zimsoap.client import *
 from zimsoap.zobjects import *
 
 TEST_HOST="192.168.33.10"
-TEST_PORT="7071"
+TEST_ADMIN_PORT="7071"
 
 TEST_DOMAIN1="zimbratest.oasiswork.fr"
 TEST_DOMAIN2="zimbratest2.oasiswork.fr"
@@ -27,12 +27,12 @@ TEST_DOMAIN13="zimbratest3.oasiswork.fr"
 TEST_ADMIN_LOGIN="admin@"+TEST_DOMAIN1
 TEST_ADMIN_PASSWORD="password"
 
-TEST_LAMBDA_USER="albacore@zimbratest.oasiswork.fr"
-
+TEST_LAMBDA_USER="albacore@"+TEST_DOMAIN1
+TEST_LAMBDA_PASSWORD="albacore"
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        self.loc = "https://%s:%s/service/admin/soap" % (TEST_HOST, TEST_PORT)
+        self.loc = "https://%s:%s/service/admin/soap" % (TEST_HOST, TEST_ADMIN_PORT)
         self.cli = pysimplesoap.client.SoapClient(
             location=self.loc, action=self.loc,
             namespace='urn:zimbraAdmin', ns=False)
@@ -72,7 +72,7 @@ class ZimbraAdminClientTests(unittest.TestCase):
         self.TEST_PASSWORD = TEST_ADMIN_PASSWORD
 
     def testLogin(self):
-        zc = ZimbraAdminClient(self.TEST_SERVER, TEST_PORT)
+        zc = ZimbraAdminClient(self.TEST_SERVER, TEST_ADMIN_PORT)
         zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
         self.assertTrue(zc._session.is_logged_in())
 
@@ -105,7 +105,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
         cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
 
@@ -395,7 +395,7 @@ class PythonicAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
         cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
     def setUp(self):
@@ -508,7 +508,7 @@ class PythonicAPITests(unittest.TestCase):
             self.zc.mk_auth_token(user, 0)
 
     def test_admin_get_logged_in_by(self):
-        new_zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        new_zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
         new_zc.get_logged_in_by(TEST_ADMIN_LOGIN, self.zc)
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc._session.is_session_valid())
@@ -518,7 +518,7 @@ class RESTClientTest(unittest.TestCase):
     @classmethod
     def setUp(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_PORT)
+        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
         cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
 
         cls.lambda_account = Account(name=TEST_LAMBDA_USER)
