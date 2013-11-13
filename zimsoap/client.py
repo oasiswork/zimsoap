@@ -42,28 +42,25 @@ class DomainHasNoPreAuthKey(Exception):
         Exception.__init__(self)
 
 
+class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
+    """ Factorized abstract code for SOAP API access.
 
-class ZimbraAdminClient(pysimplesoap.client.SoapClient):
-    """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
-
-    API ref is
-    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAdmin/service-summary.html
+    Provides common ground for zimbraAdmin and zimbraAccount.
     """
-    def __init__(self, server_host, server_port='7071',
-                 *args, **kwargs):
-        loc = "https://%s:%s/service/admin/soap" % (server_host, server_port)
+    def __init__(self, server_host, server_port, *args, **kwargs):
+        loc = 'https://%s:%s/%s' % (server_host, server_port, self.LOCATION)
         self._server_host = server_host
         self._server_port = server_port
-        super(ZimbraAdminClient, self).__init__(
+        super(ZimbraAbstractClient, self).__init__(
             location = loc,
             action = loc,
-            namespace = 'urn:zimbraAdmin',
+            namespace = self.NAMESPACE,
             *args, **kwargs)
 
         self._session = ZimbraAPISession(self)
 
-    def login(self, admin_user, admin_password):
-        self._session.login(admin_user, admin_password)
+    def login(self, user, password):
+        self._session.login(user, password)
         self['context'] = self._session.get_context_header()
 
     def login_with_authToken(self, authToken):
@@ -84,6 +81,22 @@ class ZimbraAdminClient(pysimplesoap.client.SoapClient):
 
         self.login_with_authToken(authToken)
 
+
+
+class ZimbraAdminClient(ZimbraAbstractClient):
+    """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
+
+    API ref is
+    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAdmin/service-summary.html
+    """
+    NAMESPACE='urn:zimbraAdmin'
+    LOCATION='service/admin/soap'
+
+    def __init__(self, server_host, server_port='7071',
+                 *args, **kwargs):
+        super(ZimbraAdminClient, self).__init__(
+            server_host, server_port,
+            *args, **kwargs)
 
     def get_all_domains(self):
         xml_doms = utils.extractResponses(self.GetAllDomainsRequest())
