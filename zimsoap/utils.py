@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Misc tools.
-
+""" Misc tool functions """
 
 import pysimplesoap
 import re
@@ -37,9 +35,27 @@ def extractResponses(xml_response):
 
 
 def extractSingleResponse(xml_response):
+    """ Same as extractResponses but returns the first response instead of a list
+    """
     return extractResponses(xml_response)[0]
 
 def extractResponseTag(xml_response):
+    """ A raw message is like:
+        <?xml version="1.0" encoding="utf-16"?>
+        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+            <soap:Header>
+            </soap:Header>
+            <soap:Body>
+                <MyResponseEnvelope xmlns="urn:zimbraAdmin">
+                ...
+                </GetAllDomainsResponse>
+            </soap:Body>
+        </soap:Envelope>
+
+        this functions extracts the MyResponseEnvelope tag.
+
+        @returns a SimpleXMLElement, which name is likely to be "SomethingResponse"
+    """
     return xml_response.children()[1].children()[0]
 
 def wrap_el(element):
@@ -50,8 +66,8 @@ def wrap_el(element):
     FIXME: should patch pysimplesoap instead. See
            http://code.google.com/p/pysimplesoap/issues/detail?id=89
 
-    @param element a SimpleXMLElement
-    @returns       a SimpleXMLElement: the argument, wrapped in <l/>
+    @param element a SimpleXMLElement or a list of SimpleXMLElement
+    @returns       a SimpleXMLElement: the argument(s), wrapped in <l/>
     """
 
     wrapper = pysimplesoap.client.SimpleXMLElement('<l/>')
@@ -73,6 +89,10 @@ def is_zuuid(s):
     return re_zuuid.match(s)
 
 def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False):
+    """ Builds the preauthentification string and hmac it, following the zimbra spec.
+
+    spec and examples are here http://wiki.zimbra.com/wiki/Preauth
+    """
     if admin:
         s = '{}|1|name|{}|{}'.format(account_name, expires, timestamp)
     else:

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Zimbra specific objects, they handle parsing and unparsing to/from XML and
-# other glue-code.
-# Note that they do *not* handle themselves communication with
-# zimbra API. It is left to ZimbraAdminClient.
+
+""" Zimbra specific objects, handle (un)parsing to/from XML and other glue-code.
+
+Note that they do *not* handle themselves communication with
+zimbra API. It is left to ZimbraAdminClient.
+"""
 
 from pysimplesoap.client import SimpleXMLElement
 import utils
@@ -42,7 +43,7 @@ class ZObject(object):
         return obj
 
     def __init__(self, *args, **kwargs):
-        """ By default, import the attributes of kwargs as attributes
+        """ By default, import the attributes of kwargs as object attributes
         """
         self._import_attributes(kwargs)
         self._a_tags = {}
@@ -103,6 +104,13 @@ class ZObject(object):
 
 
     def to_xml_selector(self):
+        """ Returns something usefull for an XML SOAP request, to select an
+        object by a property.
+
+        it simply uses the first property usable filled-in the object as selector.
+
+        @return SimpleXMLElement
+        """
         selector = None
         for s in self.SELECTORS:
             if hasattr(self, s):

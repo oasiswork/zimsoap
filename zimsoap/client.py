@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# This client has two usages:
-#
-#   - Fire SOAP methods (they are "CamelCameNames()" and end with 'Request'):
-#     they bind directly to sending the same-name message to the SOAP
-#     server. They return XML.
-#
-#   - Fire high-level methods (they are "pythonic_method_names()"), they return
-#     Python objects/list (see zobjects submodule for zimbra-specific Classes).
-#
+
+""" Zimbra SOAP client pythonic abstraction
+
+core classes for SOAP clients, there are also REST clients here, but used only
+for pre-authentification.
+"""
+
 
 from os.path import dirname, abspath, join
 import datetime
