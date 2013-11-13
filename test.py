@@ -65,6 +65,19 @@ class ZimbraAPISessionTests(unittest.TestCase):
             self.session.get_context_header()
 
 
+class ZimbraAccountClientTests(unittest.TestCase):
+    """ Is pretty uncomplete as it's testing code common to admin, see class after this one.
+    """
+    def setUp(self):
+        self.TEST_SERVER = TEST_HOST
+        self.TEST_LOGIN = TEST_LAMBDA_USER
+        self.TEST_PASSWORD = TEST_LAMBDA_PASSWORD
+
+    def testLogin(self):
+        zc = ZimbraAccountClient(self.TEST_SERVER)
+        zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
+        self.assertTrue(zc._session.is_logged_in())
+
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
         self.TEST_SERVER = TEST_HOST
@@ -99,6 +112,19 @@ class ZimbraAdminClientTests(unittest.TestCase):
         with self.assertRaises(urllib2.URLError) as cm:
             zc = ZimbraAdminClient(self.TEST_SERVER, 9999)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
+
+
+class ZimbraAccountClientTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Login/connection is done at class initialization to reduce tests time
+        cls.zc = ZimbraAccountClient(TEST_HOST)
+        cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
+
+    def testGetSignaturesReturnsSomething(self):
+        resp = self.zc.GetSignaturesRequest()
+        resp_tag = utils.extractResponseTag(resp)
+        self.assertEqual(resp_tag.get_name(), 'GetSignaturesResponse')
 
 
 class ZimbraAdminClientRequests(unittest.TestCase):

@@ -39,6 +39,9 @@ def extractResponses(xml_response):
 def extractSingleResponse(xml_response):
     return extractResponses(xml_response)[0]
 
+def extractResponseTag(xml_response):
+    return xml_response.children()[1].children()[0]
+
 def wrap_el(element):
     """Workaround a pysimplesoap bug, to push a first-level child of the
     request tag, we can't push it "as-is", so we wrap it inside some fake

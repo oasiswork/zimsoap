@@ -81,6 +81,20 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
 
         self.login_with_authToken(authToken)
 
+class ZimbraAccountClient(ZimbraAbstractClient):
+    """ Specialized Soap client to access zimbraAccount webservice.
+
+    API ref is
+    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAccount/service-summary.html
+    """
+    NAMESPACE='urn:zimbraAccount'
+    LOCATION='service/soap'
+
+    def __init__(self, server_host, server_port='443', *args, **kwargs):
+        super(ZimbraAccountClient, self).__init__(
+            server_host, server_port,
+            *args, **kwargs)
+
 
 
 class ZimbraAdminClient(ZimbraAbstractClient):
@@ -224,7 +238,14 @@ class ZimbraAPISession:
         """ Performs the login against zimbra
         (sends AuthRequest, receives AuthResponse).
         """
-        response = self.client.AuthRequest(name=username, password=password)
+        req_nodes = [
+            zobjects.Account(name=username).to_xml_selector(),
+            pysimplesoap.client.SimpleXMLElement(
+                '<password>{}</password>'.format(password)
+                )
+            ]
+
+        response = self.client.AuthRequest(self.client, utils.wrap_el(req_nodes))
 
         # strip responses over the 2nd (useless informations such as skin...)
         self.authToken, lifetime = utils.extractResponses(response)[:2]
