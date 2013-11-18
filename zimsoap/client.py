@@ -260,6 +260,16 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         self.DeleteDistributionListRequest(attributes={'id': dl_id})
 
+    def get_account(self, account):
+        """ Fetches an account with all its attributes.
+
+        @param account, an account object, with either id or name attribute set.
+        @return a zobjects.Account object, filled.
+        """
+        req_body = utils.wrap_el(account.to_xml_selector())
+        resp = self.GetAccountRequest(self, req_body)
+        return zobjects.Account.from_xml(utils.extractSingleResponse(resp))
+
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
 

@@ -345,8 +345,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.GetAccountRequest(self.zc, xml)
         account = zimsoap.utils.extractSingleResponse(resp)
         self.assertEqual(account.get_name(), 'account')
-        print self.zc.xml_response
-
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
@@ -753,6 +751,17 @@ class PythonicAdminAPITests(unittest.TestCase):
         # List with such an ID does not exist
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
             self.zc.get_distribution_list(dl_full)
+
+    def test_get_account(self):
+        account = self.zc.get_account(Account(name=TEST_LAMBDA_USER))
+        self.assertIsInstance(account, Account)
+        self.assertEqual(account.name, TEST_LAMBDA_USER)
+
+        # Now grab it by ID
+        account_by_id = self.zc.get_account(Account(id=account.id))
+        self.assertIsInstance(account_by_id, Account)
+        self.assertEqual(account_by_id.name, TEST_LAMBDA_USER)
+        self.assertEqual(account_by_id.id, account.id)
 
     def test_mk_auth_token_succeeds(self):
         user = Account(name='admin@{}'.format(TEST_DOMAIN1))
