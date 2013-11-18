@@ -607,6 +607,34 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(resp, Signature)
         self.assertEqual(resp, sig1)
 
+    def test_modify_signature_content(self):
+        sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        sig1.set_content('NEW-CONTENT', "text/plain")
+        self.zc.modify_signature(sig1)
+        modified_sig1 = self.zc.get_signature(sig1)
+        self.assertEqual(modified_sig1.name, 'unittest')
+        self.assertEqual(modified_sig1.get_content(), 'NEW-CONTENT')
+        self.assertEqual(modified_sig1._contenttype, 'text/plain')
+
+
+    def test_modify_signature_name(self):
+        sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        sig1.name = 'renamed-unittest'
+        self.zc.modify_signature(sig1)
+        modified_sig1 = self.zc.get_signature(sig1)
+        self.assertEqual(modified_sig1.name, 'renamed-unittest')
+        self.assertEqual(modified_sig1.get_content(), 'CONTENT')
+        self.assertEqual(modified_sig1._contenttype, 'text/html')
+
+        # Rename it back to be sure it gets deleted in tearDown
+        modified_sig1.name = 'unittest'
+        self.zc.modify_signature(modified_sig1)
+
+    def test_modify_signature_without_id_attribute_error(self):
+        sig1 = Signature(name='foo')
+        sig1.set_content('NEW-CONTENT', "text/plain")
+        with self.assertRaises(AttributeError) as cm:
+            self.zc.modify_signature(sig1)
 
 
 class PythonicAdminAPITests(unittest.TestCase):

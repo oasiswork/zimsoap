@@ -136,6 +136,23 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         self.DeleteSignatureRequest(
             self, utils.wrap_el(signature.to_xml_selector()))
 
+    def modify_signature(self, signature):
+        """ Modify an existing signature
+
+        Can modify the content, contenttype and name. An unset attribute will not
+        delete the attribute but leave it untouched.
+        @param signature a zobject.Signature object, with modified
+                         content/contentype/name, the id should be present and
+                          valid, the name does not allows to identify the
+                         signature for that operation.
+        """
+
+        # if no content is specified, just use a selector (id/name)
+        xml = signature.to_xml_creator(for_modify=True)
+
+        self.ModifySignatureRequest(self, utils.wrap_el(xml))
+
+
 class ZimbraAdminClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
 

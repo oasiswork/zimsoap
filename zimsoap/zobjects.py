@@ -242,7 +242,7 @@ class Signature(ZObject):
         self._contenttype = contenttype
 
 
-    def to_xml_creator(self):
+    def to_xml_creator(self, for_modify=False):
         """ Returns an XML object suitable for CreateSignatureRequest
 
         A signature object for creation is like :
@@ -251,21 +251,55 @@ class Signature(ZObject):
               <content type="text/plain">My signature content</content>
             </signature>
 
-            """
+        Note that if the contenttype is text/plain, the content with text/html
+        will be cleared by the request (for consistency).
+        """
+        signature = SimpleXMLElement('<{}/>'.format(self.TAG_NAME))
 
-        if not self._content or not self._contenttype:
-            raise AttributeError(
-                'too little information on signature, run setContent before')
-        content = SimpleXMLElement('<content type="{}">{}</content>'.format(
-                self._contenttype, self._content))
+        if for_modify:
+            try:
+                # we should have an ID
+                signature['id'] = self.id
+            except AttributeError:
+                raise AttributeError('a modify request should specify an ID')
+            # Case where we change or set a name
+            if hasattr(self, 'name'):
+                signature['name'] = self.name
 
-        signature = self.to_xml_selector()
-        signature.import_node(content)
+        else:
+            # a new signature should have a name
+            signature['name'] = self.name
+
+        if self.has_content():
+            # Set one, flush the other (otherwise, we let relief behind...)
+            if self._contenttype == 'text/plain':
+                plain_text = self._content
+                html_text = ''
+            else:
+                html_text = self._content
+                plain_text = ''
+
+            content_plain = SimpleXMLElement(
+                '<content type="text/plain">{}</content>'.format(plain_text))
+            content_html = SimpleXMLElement(
+                '<content type="text/html">{}</content>'.format(html_text))
+
+            signature.import_node(content_plain)
+            signature.import_node(content_html)
+
+        else:
+            # A creation request should have a content
+            if not for_modify:
+                raise AttributeError(
+                    'too little information on signature, run setContent before')
 
         return signature
 
     def get_content(self):
         return self._content
+
+    def has_content(self):
+        return (hasattr(self, '_content') and hasattr(self, '_contenttype'))
 
     def get_content_type(self):
         return self._contenttype
