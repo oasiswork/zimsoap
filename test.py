@@ -195,6 +195,11 @@ class ZimbraAccountClientTests(unittest.TestCase):
         self.assertEqual(len(prefs), 1)
         self.assertEqual(pref['name'], 'zimbraPrefMailFlashTitle')
 
+    def testGetIdentities(self):
+        identities = utils.extractSingleResponse(self.zc.GetIdentitiesRequest())
+        self.assertEqual(identities[0].get_name(), 'identity')
+        print self.zc.xml_response
+
 class ZimbraAdminClientRequests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -553,6 +558,12 @@ class ZimsoapUtilsTests(unittest.TestCase):
         self.assertIsInstance(utils.auto_type('TRUE'), bool)
         self.assertIsInstance(utils.auto_type('FALSE'), bool)
 
+    def test_auto_untype_bool(self):
+        self.assertEqual(utils.auto_untype(True), 'TRUE')
+        self.assertEqual(utils.auto_untype(False), 'FALSE')
+
+    def test_auto_untype_any(self):
+        self.assertEqual(utils.auto_untype('foo'), 'foo')
 
 class PythonicAccountAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
@@ -681,6 +692,13 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(prefs['zimbraPrefMailFlashTitle'], bool)
         self.assertIsInstance(prefs['zimbraPrefComposeFormat'], str)
         self.assertIsInstance(prefs['zimbraPrefCalendarDayHourEnd'], int)
+
+    def test_get_identities(self):
+        identities = self.zc.get_identities()
+        self.assertIsInstance(identities, list)
+        self.assertIsInstance(identities[0], Identity)
+        self.assertEqual(identities[0].name, 'DEFAULT')
+        self.assertTrue(utils.is_zuuid(identities[0]['zimbraPrefIdentityId']))
 
 class PythonicAdminAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using

@@ -23,6 +23,8 @@ class ZObject(object):
     XML tag attributes are mapped to ZObject attributes named identically and
     typed to str.
     """
+    # In <a name="zimbraPrefForwardReply">&gt;</a> it would be 'name'
+    ATTRNAME_PROPERTY='n'
     @classmethod
     def from_xml(cls, xml):
         """ Given a pysimplesoap.SimpleXMLElement, generate a Python Object
@@ -75,8 +77,8 @@ class ZObject(object):
         for k, v in attrdict.items():
             setattr(self, k, str(v))
 
-    @staticmethod
-    def _parse_a_tags(xml):
+    @classmethod
+    def _parse_a_tags(cls, xml):
         """ Iterates over all <a> tags and builds a dict with those.
         If a tag with same "n" attributes appears several times, the
         dict value is a list with the tags values, else it's a string.
@@ -87,7 +89,7 @@ class ZObject(object):
         props = {}
         for child in xml.children():
             if child.get_name() == 'a':
-                k = child.attributes()['n'].value
+                k = child.attributes()[cls.ATTRNAME_PROPERTY].value
                 v = str(child)
 
                 if props.has_key(k):
@@ -163,6 +165,18 @@ class Account(ZObject):
     def __str__(self):
         return "<ZimbraAccount:%s>" % self.name
 
+
+class Identity(ZObject):
+    """An account object
+    """
+    TAG_NAME = 'identity'
+    ATTRNAME_PROPERTY='name'
+
+    def __repr__(self):
+        return "<ZimbraIdentity:%s>" % gettattr(self,'id', self.name)
+
+    def __str__(self):
+        return "<ZimbraIdentity:%s>" % gettattr(self,'name', self.id)
 
 class ClassOfService(ZObject):
     """ Represents a Class of Service (COS)

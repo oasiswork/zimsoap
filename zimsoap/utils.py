@@ -105,6 +105,8 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False
     return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()
 
 def auto_type(s):
+    """ Get a XML response and tries to convert it to Python base object
+    """
     if s == 'TRUE':
         return True
     elif s == 'FALSE':
@@ -118,3 +120,14 @@ def auto_type(s):
 
         except ValueError:
             return s
+
+def auto_untype(arg):
+    """ The oposite of auto_type : takes a python base object and tries to
+    convert it to XML typed string.
+    """
+    if arg == True:
+        return 'TRUE'
+    elif arg == False:
+        return 'FALSE'
+    else:
+        return arg

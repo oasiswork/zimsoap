@@ -176,6 +176,14 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         resp = self.GetPrefsRequest(self, utils.wrap_el(xml))
         return utils.auto_type(str(utils.extractSingleResponse(resp)))
 
+    def get_identities(self):
+        """ Get all the identities of the user, as a list
+
+        @returns list of zobjects.Identity
+        """
+        resps = utils.extractResponses(self.GetIdentitiesRequest())
+        return [zobjects.Identity.from_xml(i) for i in resps]
+
 class ZimbraAdminClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
 
