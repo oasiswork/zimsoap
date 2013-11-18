@@ -339,6 +339,14 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # self.assertEqual(xml_dl[0].get_name(), 'code')
         # self.assertEqual(xml_dl[0].get_name(), 'message')
 
+    def testGetAccount(self):
+        xml = utils.wrap_el(SimpleXMLElement(
+                '<account by="name">{}</account>'.format(TEST_LAMBDA_USER)))
+        resp = self.zc.GetAccountRequest(self.zc, xml)
+        account = zimsoap.utils.extractSingleResponse(resp)
+        self.assertEqual(account.get_name(), 'account')
+        print self.zc.xml_response
+
 
 class ZObjectsTests(unittest.TestCase):
     def setUp(self):
