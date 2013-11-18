@@ -73,6 +73,9 @@ class ZObject(object):
         """
         return self._a_tags[k]
 
+    def __setitem__(self, k, v):
+        self._a_tags[k] = v
+
     def _import_attributes(self, attrdict):
         for k, v in attrdict.items():
             setattr(self, k, str(v))
@@ -177,6 +180,22 @@ class Identity(ZObject):
 
     def __str__(self):
         return "<ZimbraIdentity:%s>" % gettattr(self,'name', self.id)
+
+    def to_xml_creator(self):
+        """ Returns the XML suitable for CreateIdentity or ModifyIdentity
+        """
+
+        o = SimpleXMLElement('<{}/>'.format(self.TAG_NAME))
+
+        for prop in ('name', 'id'):
+            if hasattr(self, prop):
+                o[prop] = getattr(self, prop)
+        for k, v in self._a_tags.items():
+            node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
+                    self.ATTRNAME_PROPERTY, k, v))
+            o.import_node(node)
+        return o
+
 
 class ClassOfService(ZObject):
     """ Represents a Class of Service (COS)

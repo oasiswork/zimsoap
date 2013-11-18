@@ -188,3 +188,24 @@ SIGNATURE="""
   <content type="text/html">CONTENT</content>
 </signature>
 """
+
+IDENTITY="""
+<identity id="6baba381-86b3-48e6-a5bb-88fc29bdbc64" name="DEFAULT">
+    <a name="zimbraPrefIdentityId">6baba381-86b3-48e6-a5bb-88fc29bdbc64</a>
+    <a name="zimbraPrefSaveToSent">TRUE</a>
+    <a name="zimbraPrefForwardReplyPrefixChar">&gt;</a>
+    <a name="zimbraPrefSentMailFolder">sent</a>
+    <a name="zimbraPrefForwardReplySignatureId">3560b35a-bea8-410e-9632-74eff288fc37</a>
+    <a name="zimbraPrefForwardIncludeOriginalText">includeBody</a>
+    <a name="zimbraPrefForwardReplyFormat">same</a>
+    <a name="zimbraPrefMailSignatureStyle">outlook</a>
+    <a name="zimbraPrefIdentityName">DEFAULT</a>
+    <a name="zimbraPrefWhenInFoldersEnabled">FALSE</a>
+    <a name="zimbraPrefReplyToEnabled">FALSE</a>
+    <a name="zimbraPrefReplyIncludeOriginalText">includeBody</a>
+    <a name="zimbraPrefMailSignature">glglou</a>
+    <a name="zimbraPrefFromAddress">albacore@zimbratest.oasiswork.fr</a>
+    <a name="zimbraPrefDefaultSignatureId">3560b35a-bea8-410e-9632-74eff288fc37</a>
+    <a name="zimbraPrefWhenSentToEnabled">FALSE</a>
+</identity>
+"""

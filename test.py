@@ -198,7 +198,26 @@ class ZimbraAccountClientTests(unittest.TestCase):
     def testGetIdentities(self):
         identities = utils.extractSingleResponse(self.zc.GetIdentitiesRequest())
         self.assertEqual(identities[0].get_name(), 'identity')
-        print self.zc.xml_response
+
+    def modifyIdentity(self):
+        xml_set = utils.wrap_el(SimpleXMLElement(
+                '<identity name="DEFAULT"><a name="zimbraPrefSaveToSent">FALSE</a></identity>'
+                ))
+        xml_unset = utils.wrap_el(SimpleXMLElement(
+                '<identity name="DEFAULT"><a name="zimbraPrefSaveToSent">TRUE</a></identity>'
+                ))
+        try:
+            resp1 = self.zc.ModifyIdentityRequest(self.zc, xml_set)
+            resp2 = self.zc.ModifyIdentityRequest(self.zc, xml_unset)
+        except:
+            print(self.zc.xml_request)
+            raise
+
+        self.assertEqual(
+            utils.extractResponseTag(resp1).get_name(), 'ModifyIdentityResponse')
+        self.assertEqual(
+            utils.extractResponseTag(resp2).get_name(), 'ModifyIdentityResponse')
+
 
 class ZimbraAdminClientRequests(unittest.TestCase):
     @classmethod
@@ -508,6 +527,15 @@ class ZObjectsTests(unittest.TestCase):
         self.assertEqual(s.get_content(), 'CONTENT')
         self.assertEqual(s.get_content_type(), 'text/html')
 
+    def test_Identity_to_xml_creator(self):
+        xml = samples.IDENTITY
+        test_attr = 'zimbraPrefForwardReplyPrefixChar'
+
+        i = Identity.from_xml(SimpleXMLElement(xml))
+        xml_creator = Identity.from_xml(i.to_xml_creator())
+        self.assertEqual(i[test_attr], xml_creator[test_attr])
+
+
 class ZimsoapUtilsTests(unittest.TestCase):
     def testExtractResponsesFilled(self):
         xml = SimpleXMLElement(samples.XML_MULTIPLE_RESPONSE_TAGS)
@@ -699,6 +727,27 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(identities[0], Identity)
         self.assertEqual(identities[0].name, 'DEFAULT')
         self.assertTrue(utils.is_zuuid(identities[0]['zimbraPrefIdentityId']))
+
+    def test_modify_identity(self):
+        test_attr = 'zimbraPrefForwardReplyPrefixChar'
+
+        # First get the default identity id
+        def_identity = self.zc.get_identities()[0]
+
+        # Test if it's in initial state
+        initial_attrval = def_identity[test_attr]
+        self.assertEqual(initial_attrval, '>')
+
+        i = Identity(id=def_identity.id)
+        i[test_attr] = '&lt;'
+        self.zc.modify_identity(i)
+
+        modified_i = self.zc.get_identities()[0]
+        self.assertEqual(modified_i[test_attr], '<')
+
+        # Revert it back
+        i[test_attr] = '&gt;'
+        self.zc.modify_identity(i)
 
 class PythonicAdminAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using

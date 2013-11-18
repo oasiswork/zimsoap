@@ -184,6 +184,17 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         resps = utils.extractResponses(self.GetIdentitiesRequest())
         return [zobjects.Identity.from_xml(i) for i in resps]
 
+    def modify_identity(self, identity):
+        """ Modify some attributes of an identity or its name.
+
+        @param identity a zobjects.Identity with `id` set (mandatory). Also set
+               items you want to modify/set and/or the `name` attribute to
+               rename the identity.
+        """
+        xml = identity.to_xml_creator()
+        self.ModifyIdentityRequest(self, utils.wrap_el(xml))
+
+
 class ZimbraAdminClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
 
