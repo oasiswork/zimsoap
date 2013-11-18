@@ -152,6 +152,29 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
         self.ModifySignatureRequest(self, utils.wrap_el(xml))
 
+    def get_preferences(self):
+        """ Gets all the preferences of the current user
+
+        @returns a dict presenting the preferences by name, values are
+                 typed to str/bool/int/float regarding their content.
+        """
+        pref_list = utils.extractResponses(self.GetPrefsRequest())
+
+        out = {}
+        for i in pref_list:
+            out[i['name']] = utils.auto_type(str(i))
+
+        return out
+
+    def get_preference(self, pref_name):
+        """ Gets a single named preference
+
+        @returns the value, typed to str/bool/int/float regarding its content.
+        """
+        xml = pysimplesoap.client.SimpleXMLElement(
+            '<pref name="{}" />'.format(pref_name))
+        resp = self.GetPrefsRequest(self, utils.wrap_el(xml))
+        return utils.auto_type(str(utils.extractSingleResponse(resp)))
 
 class ZimbraAdminClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.

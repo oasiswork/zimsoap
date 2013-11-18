@@ -103,3 +103,18 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False
         s = '{}|name|{}|{}'.format(account_name, expires, timestamp)
 
     return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()
+
+def auto_type(s):
+    if s == 'TRUE':
+        return True
+    elif s == 'FALSE':
+        return False
+    else:
+        try:
+            try:
+                return int(s)
+            except ValueError:
+                return float(s)
+
+        except ValueError:
+            return s

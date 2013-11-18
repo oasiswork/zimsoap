@@ -181,8 +181,19 @@ class ZimbraAccountClientTests(unittest.TestCase):
         self.assertEqual(len(sigs), 1)
         self.assertIn('MODIFSIG', repr(sigs[0]))
 
+    def testGetAllPreferences(self):
+        resp = self.zc.GetPrefsRequest()
+        prefs = utils.extractResponses(resp)
+        self.assertEqual(prefs[0].get_name(), 'pref')
 
-
+    def testGetAPreference(self):
+        xml = utils.wrap_el(SimpleXMLElement(
+                '<pref name="zimbraPrefMailFlashTitle" />'))
+        resp = self.zc.GetPrefsRequest(self.zc, xml)
+        prefs = utils.extractResponses(resp)
+        pref = utils.extractSingleResponse(resp)
+        self.assertEqual(len(prefs), 1)
+        self.assertEqual(pref['name'], 'zimbraPrefMailFlashTitle')
 
 class ZimbraAdminClientRequests(unittest.TestCase):
     @classmethod
@@ -529,6 +540,20 @@ class ZimsoapUtilsTests(unittest.TestCase):
         self.assertEqual(res, 'b248f6cfd027edd45c5369f8490125204772f844')
 
 
+    def test_auto_type_int(self):
+        self.assertIsInstance(utils.auto_type('42'), int)
+
+    def test_auto_type_float(self):
+        self.assertIsInstance(utils.auto_type('4.2'), float)
+
+    def test_auto_type_str(self):
+        self.assertIsInstance(utils.auto_type('forty-two'), str)
+
+    def test_auto_type_bool(self):
+        self.assertIsInstance(utils.auto_type('TRUE'), bool)
+        self.assertIsInstance(utils.auto_type('FALSE'), bool)
+
+
 class PythonicAccountAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
     the library, zimbraAccount features.
@@ -642,6 +667,20 @@ class PythonicAccountAPITests(unittest.TestCase):
         with self.assertRaises(AttributeError) as cm:
             self.zc.modify_signature(sig1)
 
+    def test_get_preference(self):
+        resp = self.zc.get_preference('zimbraPrefMailFlashTitle')
+        self.assertIsInstance(resp, bool)
+        resp = self.zc.get_preference('zimbraPrefComposeFormat')
+        self.assertIsInstance(resp, str)
+        resp = self.zc.get_preference('zimbraPrefCalendarDayHourEnd')
+        self.assertIsInstance(resp, int)
+
+    def test_get_preferences(self):
+        prefs = self.zc.get_preferences()
+        self.assertIsInstance(prefs, dict)
+        self.assertIsInstance(prefs['zimbraPrefMailFlashTitle'], bool)
+        self.assertIsInstance(prefs['zimbraPrefComposeFormat'], str)
+        self.assertIsInstance(prefs['zimbraPrefCalendarDayHourEnd'], int)
 
 class PythonicAdminAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
