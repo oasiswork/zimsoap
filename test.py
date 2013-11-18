@@ -740,7 +740,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
             self.zc.get_distribution_list(dl)
 
-    def test_delete_by_name(self):
+    def test_delete_distribution_list_by_name(self):
         name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
         dl_full = self.zc.create_distribution_list(name)
