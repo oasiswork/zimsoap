@@ -20,6 +20,77 @@ import pysimplesoap
 import utils
 import zobjects
 
+
+class RESTClient:
+    """ Abstract Classe, RESTClient defines a REST client for some operations we
+    can't do with SOAP API, such as admin preauth.
+    """
+    class NoPreauthKeyProvided(Exception):
+        pass
+
+    class RESTBackendError(Exception):
+        def __init__(self, e):
+            self.parent = e
+            self.msg = 'Zimbra issued HTTP error : '+e.msg
+            Exception.__init__(self, self.msg)
+
+    def __init__(self, server_host, server_port=None, preauth_key=None):
+        if server_port:
+            self.preauth_url = 'https://{}:{}/service/preauth?'.format(
+                server_host, server_port)
+        else:
+            self.preauth_url = 'https://{}/service/preauth?'.format(server_host)
+
+        self.set_preauth_key(preauth_key)
+
+    def set_preauth_key(self, preauth_key):
+        self.preauth_key = preauth_key
+
+    def get_preauth_token(self, account_name, expires=0):
+        if not self.preauth_key:
+            raise self.NoPreauthKeyProvided
+
+        ts = int(time.time())*1000
+
+        preauth_str = utils.build_preauth_str(self.preauth_key, account_name,
+                                              ts, expires, admin=self.isadmin)
+
+        args = urllib.urlencode({
+                'account'   : account_name,
+                'by'        : 'name',
+                'timestamp' : ts,
+                'expires'   : expires*1000,
+                'admin'     : "1" if self.isadmin else "0",
+                'preauth'   : preauth_str
+                })
+
+        cj = cookielib.CookieJar()
+        browser = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+
+        try:
+            browser.open(self.preauth_url+args)
+            for cookie in cj:
+                if cookie.name == self.TOKEN_COOKIE:
+                    return cookie.value
+
+        except urllib2.HTTPError, e:
+            raise self.RESTBackendError(e)
+
+
+class AdminRESTClient(RESTClient):
+    TOKEN_COOKIE = 'ZM_ADMIN_AUTH_TOKEN'
+    def __init__(self, server_host, server_port=7071, preauth_key=None):
+        self.isadmin = True
+        RESTClient.__init__(self,server_host, server_port, preauth_key)
+
+
+class AccountRESTClient(RESTClient):
+    TOKEN_COOKIE = 'ZM_AUTH_TOKEN'
+    def __init__(self, *args, **kwargs):
+        self.isadmin = False
+        RESTClient.__init__(self, *args, **kwargs)
+
+
 class ShouldAuthenticateFirst(Exception):
     """ Error fired when an operation requiring auth is intented before the auth
     is done.
@@ -71,8 +142,8 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
         domain_name = zobjects.Account(name=login).get_domain()
         preauth_key = parent_zc.get_domain(domain_name)['zimbraPreAuthKey']
 
-        rc = AdminRESTClient(
-            self._server_host, self._server_port, preauth_key=preauth_key)
+        rc = self.REST_PREAUTH(
+            self._server_host, parent_zc._server_port, preauth_key=preauth_key)
 
         authToken = rc.get_preauth_token(login)
 
@@ -86,6 +157,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     """
     NAMESPACE='urn:zimbraAccount'
     LOCATION='service/soap'
+    REST_PREAUTH=AccountRESTClient
 
     def __init__(self, server_host, server_port='443', *args, **kwargs):
         super(ZimbraAccountClient, self).__init__(
@@ -203,6 +275,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     """
     NAMESPACE='urn:zimbraAdmin'
     LOCATION='service/admin/soap'
+    REST_PREAUTH=AdminRESTClient
 
     def __init__(self, server_host, server_port='7071',
                  *args, **kwargs):
@@ -426,73 +499,3 @@ class ZimbraAPISession:
             return True
         except pysimplesoap.client.SoapFault:
             return False
-
-
-class RESTClient:
-    """ Abstract Classe, RESTClient defines a REST client for some operations we
-    can't do with SOAP API, such as admin preauth.
-    """
-    class NoPreauthKeyProvided(Exception):
-        pass
-
-    class RESTBackendError(Exception):
-        def __init__(self, e):
-            self.parent = e
-            self.msg = 'Zimbra issued HTTP error : '+e.msg
-            Exception.__init__(self, self.msg)
-
-    def __init__(self, server_host, server_port=None, preauth_key=None):
-        if server_port:
-            self.preauth_url = 'https://{}:{}/service/preauth?'.format(
-                server_host, server_port)
-        else:
-            self.preauth_url = 'https://{}/service/preauth?'.format(server_host)
-
-        self.set_preauth_key(preauth_key)
-
-    def set_preauth_key(self, preauth_key):
-        self.preauth_key = preauth_key
-
-    def get_preauth_token(self, account_name, expires=0):
-        if not self.preauth_key:
-            raise self.NoPreauthKeyProvided
-
-        ts = int(time.time())*1000
-
-        preauth_str = utils.build_preauth_str(self.preauth_key, account_name,
-                                              ts, expires, admin=self.isadmin)
-
-        args = urllib.urlencode({
-                'account'   : account_name,
-                'by'        : 'name',
-                'timestamp' : ts,
-                'expires'   : expires*1000,
-                'admin'     : "1" if self.isadmin else "0",
-                'preauth'   : preauth_str
-                })
-
-        cj = cookielib.CookieJar()
-        browser = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-
-        try:
-            browser.open(self.preauth_url+args)
-            for cookie in cj:
-                if cookie.name == self.TOKEN_COOKIE:
-                    return cookie.value
-
-        except urllib2.HTTPError, e:
-            raise self.RESTBackendError(e)
-
-
-class AdminRESTClient(RESTClient):
-    TOKEN_COOKIE = 'ZM_ADMIN_AUTH_TOKEN'
-    def __init__(self, server_host, server_port=7071, preauth_key=None):
-        self.isadmin = True
-        RESTClient.__init__(self,server_host, server_port, preauth_key)
-
-
-class AccountRESTClient(RESTClient):
-    TOKEN_COOKIE = 'ZM_AUTH_TOKEN'
-    def __init__(self, *args, **kwargs):
-        self.isadmin = False
-        RESTClient.__init__(self, *args, **kwargs)

@@ -787,6 +787,18 @@ class PythonicAccountAPITests(unittest.TestCase):
         i[test_attr] = '&gt;'
         self.zc.modify_identity(i)
 
+
+    def test_account_get_logged_in_by(self):
+        admin_zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
+        admin_zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+
+        new_zc = ZimbraAccountClient(TEST_HOST)
+        new_zc.get_logged_in_by(TEST_LAMBDA_USER, admin_zc)
+
+        self.assertTrue(new_zc._session.is_logged_in())
+        self.assertTrue(new_zc._session.is_session_valid())
+
+
 class PythonicAdminAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
     the library, zimbraAdmin features.
@@ -900,11 +912,8 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_all_mailboxes(self):
         mboxes = self.zc.get_all_mailboxes()
-        for i in mboxes:
-            print i
         self.assertIsInstance(mboxes, list)
         self.assertIsInstance(mboxes[0], Mailbox)
-
 
     def test_account_mailbox(self):
         # First, fetch an existing account_id
