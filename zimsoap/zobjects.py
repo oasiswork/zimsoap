@@ -136,7 +136,7 @@ class ZObject(object):
         prop_tags = []
         for k, v in attrs_dict.items():
             node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
-                    cls.ATTRNAME_PROPERTY, k, v))
+                    cls.ATTRNAME_PROPERTY, k, utils.auto_untype(v)))
             prop_tags.append(node)
 
         return prop_tags
