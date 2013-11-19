@@ -76,6 +76,25 @@ class ZObject(object):
     def __setitem__(self, k, v):
         self._a_tags[k] = v
 
+    def __repr__(self):
+        most_significant_id = getattr(self, 'id',
+                                      hex(id(self)))
+        return '<%s.%s:%s>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            most_significant_id
+            )
+
+    def __str__(self):
+        most_significant_id = getattr(self, 'name',
+                                      getattr(self, 'id',
+                                              hex(id(self))))
+        return '<%s.%s:%s>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            most_significant_id
+            )
+
     def _import_attributes(self, attrdict):
         for k, v in attrdict.items():
             setattr(self, k, str(v))
@@ -140,12 +159,6 @@ class Domain(ZObject):
     TAG_NAME = 'domain'
     SELECTORS = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
 
-    def __repr__(self):
-        return "<ZimbraDomain:%s>" % self.id
-
-    def __str__(self):
-        return "<ZimbraDomain:%s>" % self.name
-
 
 class Account(ZObject):
     """An account object
@@ -162,24 +175,12 @@ class Account(ZObject):
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
-    def __repr__(self):
-        return "<ZimbraAccount:%s>" % self.id
-
-    def __str__(self):
-        return "<ZimbraAccount:%s>" % self.name
-
 
 class Identity(ZObject):
     """An account object
     """
     TAG_NAME = 'identity'
     ATTRNAME_PROPERTY='name'
-
-    def __repr__(self):
-        return "<ZimbraIdentity:%s>" % gettattr(self,'id', self.name)
-
-    def __str__(self):
-        return "<ZimbraIdentity:%s>" % gettattr(self,'name', self.id)
 
     def to_xml_creator(self):
         """ Returns the XML suitable for CreateIdentity or ModifyIdentity

@@ -382,10 +382,31 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         self.assertEqual(account.get_name(), 'account')
 
 class ZObjectsTests(unittest.TestCase):
+    class NullZObject(ZObject):
+        ATTRNAME_PROPERTY='n'
+        TAG_NAME = 'TestObject'
+
     def setUp(self):
         self.simple_domain = SimpleXMLElement(samples.SIMPLE_DOMAIN)
         self.misnamed_domain = SimpleXMLElement(samples.MISNAMED_DOMAIN)
         self.mbox = SimpleXMLElement(samples.MBOX)
+
+    def testZobjectNeverFailsToPrint(self):
+        zo = self.NullZObject()
+        self.assertIn(self.NullZObject.__name__, str(zo))
+        zo.id = 'myid'
+        self.assertIn('myid', str(zo))
+        zo.name = 'myname'
+        self.assertIn('myname', str(zo))
+
+    def testZobjectNeverFailsToRepr(self):
+        zo = self.NullZObject()
+        self.assertIn(self.NullZObject.__name__, repr(zo))
+        self.assertIn(hex(id(zo)), repr(zo))
+        zo.id = 'myid'
+        self.assertIn('myid', repr(zo))
+        zo.name = 'myname'
+        self.assertIn('myid', repr(zo))
 
     def testDomainFromXML(self):
         d = Domain.from_xml(self.simple_domain)
