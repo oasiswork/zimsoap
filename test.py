@@ -253,10 +253,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.GetAllAccountsRequest()
         self.assertIsInstance(resp, SimpleXMLElement)
 
-    def testGetAllAccountsReturnsSomething(self):
-        resp = self.zc.GetAllAccountsRequest()
-        self.assertIsInstance(resp, SimpleXMLElement)
-
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.GetAllDomainsRequest()
         self.assertIsInstance(resp, SimpleXMLElement)
