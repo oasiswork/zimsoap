@@ -131,9 +131,12 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
         self._session.login(user, password)
         self['context'] = self._session.get_context_header()
 
-    def login_with_authToken(self, authToken):
+    def login_with_authToken(self, authToken, lifetime=None):
         self._session.import_session(authToken)
         self['context'] = self._session.get_context_header()
+        if lifetime:
+            self._session.set_end_date(int(lifetime))
+
 
     def get_logged_in_by(self, login, parent_zc, duration=0):
         """Use another client to get logged in via preauth mechanism by an
@@ -431,6 +434,17 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return utils.build_preauth_str(preauth_key, account.name, timestamp,
                                        expires, admin)
 
+    def delegate_auth(self, account):
+        """ Uses the DelegateAuthRequest to provide a ZimbraAccountClient
+        already logged with the provided account.
+        """
+        xml = account.to_xml_selector()
+        resp = self.DelegateAuthRequest(self, utils.wrap_el(xml))
+        authToken, lifetime  = [str(i) for i in utils.extractResponses(resp)]
+        zc = ZimbraAccountClient(self._server_host)
+        zc.login_with_authToken(authToken, lifetime)
+        return zc
+
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
        authentification header.
@@ -438,6 +452,12 @@ class ZimbraAPISession:
     def __init__(self, client):
         self.client = client
         self.authToken = None
+
+    def set_end_date(self, lifetime):
+        """Computes and store an absolute end_date session according to the
+        lifetime of the session"""
+        self.end_date = (datetime.datetime.now() +
+                         datetime.timedelta(0, lifetime))
 
     def login(self, username, password):
         """ Performs the login against zimbra
@@ -456,8 +476,7 @@ class ZimbraAPISession:
         self.authToken, lifetime = utils.extractResponses(response)[:2]
         lifetime = int(lifetime)
         self.authToken = str(self.authToken)
-        self.end_date = (datetime.datetime.now() +
-                         datetime.timedelta(0, lifetime))
+        self.set_end_date(lifetime)
 
     def get_context_header(self):
         """ Builds the XML <context> element to be tied to SOAP requests. It
@@ -488,7 +507,8 @@ class ZimbraAPISession:
         if not self.authToken:
             return False
 
-        try: # if it's delegated, we can't know the expiration date for sure
+        # if it's logged-in by preauth, we can't know the exp. date for sure
+        try:
             return self.end_date >= datetime.datetime.now()
         except AttributeError:
             return True

@@ -985,6 +985,10 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc._session.is_session_valid())
 
+    def test_admin_delegate_auth(self):
+        zc_account = self.zc.delegate_auth(Account(name=TEST_LAMBDA_USER))
+        self.assertTrue(zc_account._session.is_logged_in())
+        self.assertTrue(zc_account._session.is_session_valid())
 
 class RESTClientTest(unittest.TestCase):
     @classmethod
