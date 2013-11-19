@@ -242,6 +242,11 @@ class Identity(ZObject):
             o.import_node(node)
         return o
 
+    def is_default(self):
+        """ Is it the default identity ? """
+        return self.id == self._a_tags['zimbraPrefIdentityId']
+
+
 
 class ClassOfService(ZObject):
     """ Represents a Class of Service (COS)
