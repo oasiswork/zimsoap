@@ -214,6 +214,31 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         xml_doms = utils.extractResponses(self.GetAllDomainsRequest())
         return [zobjects.Domain.from_xml(d) for d in xml_doms]
 
+    def get_all_accounts(self, domain=None, server=None,
+                         include_system_accounts=False,
+                         include_admin_accounts=True):
+        selectors = []
+        if domain:
+            selectors.append(domain.to_xml_selector())
+        if server:
+            selectors.append(server.to_xml_selector())
+
+        resp = self.GetAllAccountsRequest(self, utils.wrap_el(selectors))
+        xml_accounts = utils.extractResponses(resp)
+
+        accounts = []
+        for i in xml_accounts:
+            account = zobjects.Account.from_xml(i)
+
+            if not (
+                not include_system_accounts and account.is_system()
+                or
+                not include_admin_accounts and account.is_admin()
+                ):
+                accounts.append(account)
+
+        return accounts
+
     def get_mailbox_stats(self):
         """ Get global stats about mailboxes
 

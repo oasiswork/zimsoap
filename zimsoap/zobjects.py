@@ -112,7 +112,11 @@ class ZObject(object):
         for child in xml.children():
             if child.get_name() == 'a':
                 k = child.attributes()[cls.ATTRNAME_PROPERTY].value
-                v = utils.auto_type(str(child))
+                try:
+                    v = utils.auto_type(str(child))
+                except UnicodeEncodeError:
+                    # Some times, str() fails because of accents...
+                    v = utils.auto_type(unicode(child))
 
                 if props.has_key(k):
                     prev_v = props[k]
@@ -174,6 +178,12 @@ class Domain(ZObject):
     SELECTORS = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
 
 
+class Server(ZObject):
+    """ A Zimbra server object
+    """
+    TAG_NAME = 'server'
+    SELECTORS = ('id', 'name', 'serviceHostname')
+
 class Account(ZObject):
     """An account object
     """
@@ -188,6 +198,28 @@ class Account(ZObject):
         except AttributeError, e:
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
+
+    def is_admin(self):
+        """ Is it an admin account ?
+
+        No field present means False by default.
+        """
+        try:
+            return self._a_tags['zimbraIsAdminAccount']
+        except KeyError:
+            return False
+
+    def is_system(self):
+        """ Is it a system account ?
+
+        No field present means False by default.
+        """
+        try:
+            return self._a_tags['zimbraIsSystemAccount']
+        except KeyError:
+            return False
+
+
 
 
 class Identity(ZObject):

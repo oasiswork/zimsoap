@@ -8,7 +8,6 @@ import unittest
 import urllib2
 from os.path import dirname, abspath, join
 
-
 import pysimplesoap
 from pysimplesoap.client import SimpleXMLElement
 
@@ -386,6 +385,9 @@ class ZObjectsTests(unittest.TestCase):
         self.simple_domain = SimpleXMLElement(samples.SIMPLE_DOMAIN)
         self.misnamed_domain = SimpleXMLElement(samples.MISNAMED_DOMAIN)
         self.mbox = SimpleXMLElement(samples.MBOX)
+        self.admin_account = SimpleXMLElement(samples.ADMIN_ACCOUNT)
+        self.system_account = SimpleXMLElement(samples.SYSTEM_ACCOUNT)
+        self.normal_account = SimpleXMLElement(samples.NORMAL_ACCOUNT)
 
     def testZobjectNeverFailsToPrint(self):
         zo = self.NullZObject()
@@ -551,6 +553,25 @@ class ZObjectsTests(unittest.TestCase):
         i = Identity.from_xml(SimpleXMLElement(xml))
         xml_creator = Identity.from_xml(i.to_xml_creator())
         self.assertEqual(i[test_attr], xml_creator[test_attr])
+
+    def test_Account_system(self):
+        sys = Account.from_xml(self.system_account)
+        norm = Account.from_xml(self.normal_account)
+        adm = Account.from_xml(self.admin_account)
+
+        self.assertEqual(sys.is_system(), True)
+        self.assertEqual(adm.is_system(), False)
+        self.assertEqual(norm.is_system(), False)
+
+    def test_Account_admin(self):
+        sys = Account.from_xml(self.system_account)
+        norm = Account.from_xml(self.normal_account)
+        adm = Account.from_xml(self.admin_account)
+
+        self.assertEqual(sys.is_admin(), False)
+        self.assertEqual(adm.is_admin(), True)
+        self.assertEqual(norm.is_admin(), False)
+
 
 
 class ZimsoapUtilsTests(unittest.TestCase):
@@ -810,6 +831,56 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertIsInstance(dom, Domain)
         self.assertEqual(dom.name, TEST_DOMAIN1)
 
+    def test_get_all_accounts(self):
+        accounts = self.zc.get_all_accounts()
+        self.assertIsInstance(accounts[0], Account)
+        self.assertEqual(len(accounts), 16)
+
+    def test_get_all_accounts_by_single_server(self):
+        test_server = Server(name='zimbratest.oasiswork.fr')
+        accounts = self.zc.get_all_accounts(server=test_server)
+        self.assertIsInstance(accounts[0], Account)
+        self.assertEqual(len(accounts), 16)
+
+    def test_get_all_accounts_by_single_domain(self):
+        test_domain = Domain(name=TEST_DOMAIN2)
+        accounts = self.zc.get_all_accounts(domain=test_domain)
+        self.assertIsInstance(accounts[0], Account)
+        self.assertEqual(len(accounts), 5)
+
+    def test_get_all_accounts_by_single_domain_and_server(self):
+        test_domain = Domain(name=TEST_DOMAIN2)
+        test_server = Server(name='zimbratest.oasiswork.fr')
+        accounts = self.zc.get_all_accounts(domain=test_domain,
+                                            server=test_server)
+        self.assertIsInstance(accounts[0], Account)
+        self.assertEqual(len(accounts), 5)
+
+    def test_get_all_accounts_exclusion_filters(self):
+        # The TEST_DOMAIN1 contains 5 user accounts, 1 system and 1 admin
+        test_domain = Domain(name=TEST_DOMAIN1)
+
+        accounts = self.zc.get_all_accounts(
+            domain=test_domain,
+            include_system_accounts=True, include_admin_accounts=True)
+        self.assertEqual(len(accounts), 10)
+
+        accounts_no_admin = self.zc.get_all_accounts(
+            domain=test_domain,
+            include_system_accounts=True, include_admin_accounts=False)
+        self.assertEqual(len(accounts_no_admin), 9)
+
+        accounts_no_system = self.zc.get_all_accounts(
+            domain=test_domain,
+            include_system_accounts=False, include_admin_accounts=True)
+        self.assertEqual(len(accounts_no_system), 6)
+
+        accounts_no_admin_no_system = self.zc.get_all_accounts(
+            domain=test_domain,
+            include_admin_accounts=False, include_system_accounts=False)
+        self.assertEqual(len(accounts_no_admin_no_system), 5)
+
+
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
         self.assertIsInstance(stats, dict)
@@ -829,6 +900,8 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_all_mailboxes(self):
         mboxes = self.zc.get_all_mailboxes()
+        for i in mboxes:
+            print i
         self.assertIsInstance(mboxes, list)
         self.assertIsInstance(mboxes[0], Mailbox)
 
