@@ -169,9 +169,9 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
     def create_signature(self, name, content, contenttype="text/html"):
         """
-        @param  name    verbose name of the signature
-        @param  content content of the signature, in html or plain-text
-        @param  type    can be "text/html" (default) or "text/plain"
+        @param  name        verbose name of the signature
+        @param  content     content of the signature, in html or plain-text
+        @param  contenttype can be "text/html" (default) or "text/plain"
         @return a zobjects.Signature object
         """
         s = zobjects.Signature(name=name)
@@ -437,6 +437,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def delegate_auth(self, account):
         """ Uses the DelegateAuthRequest to provide a ZimbraAccountClient
         already logged with the provided account.
+
+        It's the mechanism used with the "view email" button in admin console.
         """
         xml = account.to_xml_selector()
         resp = self.DelegateAuthRequest(self, utils.wrap_el(xml))
