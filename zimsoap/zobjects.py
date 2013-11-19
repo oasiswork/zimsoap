@@ -112,7 +112,7 @@ class ZObject(object):
         for child in xml.children():
             if child.get_name() == 'a':
                 k = child.attributes()[cls.ATTRNAME_PROPERTY].value
-                v = str(child)
+                v = utils.auto_type(str(child))
 
                 if props.has_key(k):
                     prev_v = props[k]
@@ -126,6 +126,20 @@ class ZObject(object):
 
         return props
 
+    @classmethod
+    def _unparse_a_tags(cls, attrs_dict):
+        """ Iterates over the dictionary
+
+        @param xml a dict of attributes
+        @returns   a SimpleXMLElement list containing <a> tags
+        """
+        prop_tags = []
+        for k, v in attrs_dict.items():
+            node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
+                    cls.ATTRNAME_PROPERTY, k, v))
+            prop_tags.append(node)
+
+        return prop_tags
 
     def to_xml_selector(self):
         """ Returns something usefull for an XML SOAP request, to select an
@@ -191,9 +205,8 @@ class Identity(ZObject):
         for prop in ('name', 'id'):
             if hasattr(self, prop):
                 o[prop] = getattr(self, prop)
-        for k, v in self._a_tags.items():
-            node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
-                    self.ATTRNAME_PROPERTY, k, v))
+
+        for node in self._unparse_a_tags(self._a_tags):
             o.import_node(node)
         return o
 
