@@ -104,6 +104,9 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False
 
     return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()
 
+def wrap_in_cdata(s):
+    return "<![CDATA[{}]]>".format(s)
+
 def auto_type(s):
     """ Get a XML response and tries to convert it to Python base object
     """

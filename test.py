@@ -664,6 +664,16 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertEqual(sig.name, sig_name)
         return sig
 
+    def test_create_signature_with_xml_content(self):
+        sig_name = 'unittest'
+        sig_content = '&nbsp;'
+        sig = self.zc.create_signature(sig_name, sig_content)
+
+        self.assertIsInstance(sig, Signature)
+        self.assertTrue(utils.is_zuuid(sig.id))
+        self.assertEqual(sig.name, sig_name)
+        return sig
+
     def test_delete_signature_by_name(self):
         sig = self.test_create_signature()
         self.zc.delete_signature(Signature(id=sig.id))

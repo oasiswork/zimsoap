@@ -355,12 +355,13 @@ class Signature(ZObject):
             signature['name'] = self.name
 
         if self.has_content():
+            escaped_content = utils.wrap_in_cdata(self._content)
             # Set one, flush the other (otherwise, we let relief behind...)
             if self._contenttype == 'text/plain':
-                plain_text = self._content
+                plain_text = escaped_content
                 html_text = ''
             else:
-                html_text = self._content
+                html_text = escaped_content
                 plain_text = ''
 
             content_plain = SimpleXMLElement(
