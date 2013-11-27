@@ -65,6 +65,34 @@ If you want up-to-date code example, look at unit tests...
 Testing
 -------
 
+### Setting your environment for tests ###
+
+
+#### Dependencies ####
+
+The first time you want to run tests, you have to grab submodules:
+
+    $ git submodule update --init
+
+The SOAP API tests are ran against a reference machine, so you have to grab,
+provision and run it, thanks to vagrant, it's pretty straightforward (but a bit
+of download time the first time) :
+
+    $ sudo apt-get install vagrant
+    $ cd zimsoap/tests/machines/
+    $ vagrant up 8.0.5
+    $ vagrant provision 8.0.5
+
+You have several zimbra versions available as VMs for testing (see vagrant
+status).
+
+*Warning*: the test VM requires 2GB RAM to function properly.
+
+
+### Testing ###
+
+Make sure your vagrant vm is running `vagrant status`.
+
 Code is covered by unit tests, you can run them (only Python needed):
 
     $ python test.py
@@ -73,6 +101,5 @@ To run only some tests, use one of those two:
 
     $ python -m unittest test.MyTestClass
     $ python -m unittest test.MyTestClass.my_test_method
-
 
 [^1]: http://code.google.com/p/pysimplesoap/issues/detail?id=115
