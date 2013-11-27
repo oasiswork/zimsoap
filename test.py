@@ -717,6 +717,10 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(resp, Signature)
         self.assertEqual(resp, sig1)
 
+    def test_get_a_signature_by_nonexistant_name_returns_none(self):
+        resp = self.zc.get_signature(Signature(name='idonotexist'))
+        self.assertEqual(resp, None)
+
     def test_get_a_signature_by_id(self):
         sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
         sig2 = self.zc.create_signature('unittest1', 'CONTENT', "text/html")

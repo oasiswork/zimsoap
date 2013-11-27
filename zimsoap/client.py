@@ -195,12 +195,19 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         @param a zobjects.Signature describing the signature
                like "Signature(name='my-sig')"
 
-        @returns a zobjects.Signature object, filled with the signature.
+        @returns a zobjects.Signature object, filled with the signature if no
+                 signature is matching, returns None.
         """
 
         resp = self.GetSignaturesRequest(
             self, utils.wrap_el(signature.to_xml_selector()))
-        return zobjects.Signature.from_xml(utils.extractSingleResponse(resp))
+        try:
+            sig = utils.extractSingleResponse(resp)
+        except IndexError:
+            return None
+        else:
+            return zobjects.Signature.from_xml(sig)
+
 
 
     def delete_signature(self, signature):
