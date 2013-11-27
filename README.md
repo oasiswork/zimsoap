@@ -24,20 +24,14 @@ Fullfill requirements, then simply :
 Requirements
 ------------
 
-pysimplesoap >= 0.11 (developpment version right now)
+pysimplesoap >= 0.11 (patched, see below)
 
-Install it from http://code.google.com/p/pysimplesoap
+Sadly, pysimplesoap has some blocking bugs, waiting for integration upstream,
+and you need for now to use a forked version.
 
-Sadly, pysimplesoap has a bug and requires as far as now a simple patch (waiting
-for integration upstream[^1]).
-
-    hg clone https://code.google.com/p/pysimplesoap/
-    wget 'http://goo.gl/4Ir9P1' -O emptybody_fix.diff
-	cd pysimplesoap
-	hg apply ../emptybody_fix.diff
-	sudo ./setup.py install
-
-
+    $ git clone git@github.com:oasiswork/pysimplesoap.git
+	$ cd pysimplesoap
+	$ sudo ./setup.py install
 
 API
 ---
