@@ -91,6 +91,15 @@ class AccountRESTClient(RESTClient):
         RESTClient.__init__(self, *args, **kwargs)
 
 
+
+class MailRESTClient(RESTClient):
+    TOKEN_COOKIE = 'ZM_MAIL_AUTH_TOKEN'
+    def __init__(self, *args, **kwargs):
+        self.isadmin = False
+        RESTClient.__init__(self, *args, **kwargs)
+
+
+
 class ShouldAuthenticateFirst(Exception):
     """ Error fired when an operation requiring auth is intented before the auth
     is done.
@@ -467,6 +476,60 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         resp = self.DelegateAuthRequest(self, utils.wrap_el(xml))
         authToken, lifetime = [str(i) for i in utils.extractResponses(resp)]
         return authToken, lifetime
+
+
+class ZimbraMailClient(ZimbraAbstractClient):
+    """ Specialized Soap client to access zimbraAccount webservice.
+
+    API ref is
+    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraMail/service-summary.html
+    """
+    NAMESPACE = 'urn:zimbraMail'
+    LOCATION = 'service/soap'
+    REST_PREAUTH = MailRESTClient
+
+    def __init__(self, server_host, server_port='443', *args, **kwargs):
+        super(ZimbraMailClient, self).__init__(
+            server_host, server_port,
+            *args, **kwargs)
+
+    def login(self, user, password):
+        # !!! We need to athenticathe with the 'urn:zimbraAccount' namespace
+        self.namespace = 'urn:zimbraAccount'
+        self._session.login(user, password)
+        self['context'] = self._session.get_context_header()
+        self.namespace = self.NAMESPACE
+
+    def create_task(self, subject, desc):
+        """Create a task
+
+        @param subject : the task's subject
+        @param desc : the task's content in plain-text
+        @return the task's id
+        """
+        task = zobjects.Task()
+        req_xml = task.to_xml_creator(subject, desc)
+        resp = self.CreateTaskRequest(self, req_xml)  # SimpleXMLElement
+        task_id = resp.CreateTaskResponse['calItemId']
+        return task_id
+
+    def get_task(self, task_id):
+        """Retrieve one task, discriminated by id.
+
+        @param task_id: the task id
+
+        @returns a zobjects.Task object ;
+                 if no task is matching, returns None.
+        """
+        resp = self.GetTaskRequest(id=task_id)
+        try:
+            task = utils.extractSingleResponse(resp)
+        except IndexError:
+            return None
+        else:
+            return zobjects.Task.from_xml(task)
+
+
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
        authentification header.

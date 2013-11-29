@@ -388,3 +388,52 @@ class Signature(ZObject):
 
     def get_content_type(self):
         return self._contenttype
+
+
+class Task(ZObject):
+    TAG_NAME = 'task'
+    ATTRNAME_PROPERTY = 'id'
+
+    def to_xml_creator(self, subject, desc):
+        """ Returns an XML object suitable for CreateTaskRequest
+
+        Example :
+        <CreateTaskRequest>
+            <m su="Task subject">
+                <inv>
+                    <comp name="Task subject">
+                        <fr>Task comment</fr>
+                        <desc>Task comment</desc>
+                    </comp>
+                </inv>
+                <mp>
+                    <content/>
+                </mp>
+            </m>
+        </CreateTaskRequest>
+        """
+
+        base_xml = """
+        <CreateTaskRequest>
+            <m>
+                <inv>
+                    <comp percentComplete="0"></comp>
+                </inv>
+                <mp>
+                    <content></content>
+                </mp>
+            </m>
+        </CreateTaskRequest>
+        """
+
+        task = SimpleXMLElement(base_xml)
+        task.m['su'] = subject
+        comp = task.m.inv.comp
+        comp['name'] = subject
+        comp.fr = desc
+        comp.desc = desc
+
+        return task
+
+
+
