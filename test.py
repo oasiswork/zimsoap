@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # Unit tests, using unittest module, bundled with python. It has to be tested
 # against a Zimbra server.
@@ -1003,6 +1004,27 @@ class PythonicAdminAPITests(unittest.TestCase):
         zc_account = self.zc.delegate_auth(Account(name=TEST_LAMBDA_USER))
         self.assertTrue(zc_account._session.is_logged_in())
         self.assertTrue(zc_account._session.is_session_valid())
+
+    def test_admin_get_account_authToken1(self):
+        """ From an existing account """
+        authToken, lifetime = self.zc.get_account_authToken(
+            account=Account(name=TEST_LAMBDA_USER)
+        )
+        new_zc = ZimbraAccountClient(TEST_HOST)
+        new_zc.login_with_authToken(authToken, lifetime)
+        self.assertTrue(new_zc._session.is_logged_in())
+        self.assertTrue(new_zc._session.is_session_valid())
+
+    def test_admin_get_account_authToken2(self):
+        """ From an account name """
+        authToken, lifetime = self.zc.get_account_authToken(
+            account_name=TEST_LAMBDA_USER
+        )
+        new_zc = ZimbraAccountClient(TEST_HOST)
+        new_zc.login_with_authToken(authToken, lifetime)
+        self.assertTrue(new_zc._session.is_logged_in())
+        self.assertTrue(new_zc._session.is_session_valid())
+
 
 class RESTClientTest(unittest.TestCase):
     @classmethod

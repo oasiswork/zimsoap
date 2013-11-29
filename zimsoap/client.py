@@ -454,6 +454,19 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         zc.login_with_authToken(authToken, lifetime)
         return zc
 
+    def get_account_authToken(self, account=None, account_name=''):
+        """ Use the DelegateAuthRequest to provide a token and his lifetime
+        for the provided account.
+
+        If account is provided we use it,
+        else we retreive the account from the provided account_name.
+        """
+        if account is None:
+            account = self.get_account(zobjects.Account(name=account_name))
+        xml = account.to_xml_selector()
+        resp = self.DelegateAuthRequest(self, utils.wrap_el(xml))
+        authToken, lifetime = [str(i) for i in utils.extractResponses(resp)]
+        return authToken, lifetime
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
        authentification header.
