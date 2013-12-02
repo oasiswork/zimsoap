@@ -16,7 +16,10 @@ import cookielib
 import time
 
 import pysimplesoap
+import pythonzimbra
 import pythonzimbra.tools.auth
+from pythonzimbra.communication import Communication
+
 
 import utils
 import zobjects
@@ -127,7 +130,7 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
     """
     def __init__(self, server_host, server_port, *args, **kwargs):
         loc = 'https://%s:%s/%s' % (server_host, server_port, self.LOCATION)
-        self.com = pythonzimbra.comumnication.Communication(loc)
+        self.com = Communication(loc)
         self._server_host = server_host
         self._server_port = server_port
         super(ZimbraAbstractClient, self).__init__(
@@ -138,13 +141,32 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
 
         self._session = ZimbraAPISession(self)
 
+    def request(self, name, content):
+        """ Do a SOAP request and returns the result.
+
+        Simple wrapper arround pythonzimbra functions
+        @name ex: 'Auth' for performing an 'AuthRequest'
+        @content: a dict formatted pythonzimbra-style for request
+
+        @returns a dict with response
+        """
+        req_name = name+'Request'
+        resp_name = name+'Response'
+        req = auth_request = pythonzimbra.request_xml.RequestXml()
+        resp = pythonzimbra.response_xml.ResponseXml()
+
+        req.add_request(req_name, content, self.NAMESPACE)
+        self.com.send_request(req, resp)
+        return resp.get_response()[resp_name]
+
+
     def login(self, user, password):
         self._session.login(user, password)
-        self['context'] = self._session.get_context_header()
+        #self['context'] = self._session.get_context_header()
 
     def login_with_authToken(self, authToken, lifetime=None):
         self._session.import_session(authToken)
-        self['context'] = self._session.get_context_header()
+        #self['context'] = self._session.get_context_header()
         if lifetime:
             self._session.set_end_date(int(lifetime))
 
@@ -561,21 +583,13 @@ class ZimbraAPISession:
         # response = self.client.AuthRequest(self.client,
         # utils.wrap_el(req_nodes))
 
-        auth_request = pythonzimbra.request_xml.RequestXml()
-
-        auth_request.add_request(
-            'AuthRequest',
+        data = self.client.request(
+            'Auth',
             {
                 'account': zobjects.Account(name=username).to_selector(),
                 'password': {'_content': password}
-             },
-            'urn:zimbraAdmin')
-
-        auth_response = pythonzimbra.response_xml.ResponseXml()
-
-        self.client.com.send_request(auth_request, auth_response)
-
-        data =  auth_response.get_response()['AuthResponse']
+             }
+            )
         self.authToken = data['authToken']['_content']
         lifetime = int(data['lifetime']['_content'])
 

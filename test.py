@@ -35,11 +35,7 @@ TEST_LAMBDA_PASSWORD="albacore"
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        self.loc = "https://%s:%s/service/admin/soap" % (TEST_HOST, TEST_ADMIN_PORT)
-        self.cli = pysimplesoap.client.SoapClient(
-            location=self.loc, action=self.loc,
-            namespace='urn:zimbraAdmin', ns=False)
-        self.cli.com = Communication(self.loc)
+        self.cli = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
         self.session = ZimbraAPISession(self.cli)
 
     def testInit(self):
@@ -60,18 +56,18 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.authToken = '42'
         self.assertFalse(self.session.is_session_valid())
 
-class ZimbraAccountClientTests(unittest.TestCase):
-    """ Is pretty uncomplete as it's testing code common to admin, see class after this one.
-    """
-    def setUp(self):
-        self.TEST_SERVER = TEST_HOST
-        self.TEST_LOGIN = TEST_LAMBDA_USER
-        self.TEST_PASSWORD = TEST_LAMBDA_PASSWORD
+# class ZimbraAccountClientTests(unittest.TestCase):
+#     """ Is pretty uncomplete as it's testing code common to admin, see class after this one.
+#     """
+#     def setUp(self):
+#         self.TEST_SERVER = TEST_HOST
+#         self.TEST_LOGIN = TEST_LAMBDA_USER
+#         self.TEST_PASSWORD = TEST_LAMBDA_PASSWORD
 
-    def testLogin(self):
-        zc = ZimbraAccountClient(self.TEST_SERVER)
-        zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
-        self.assertTrue(zc._session.is_logged_in())
+#     def testLogin(self):
+#         zc = ZimbraAccountClient(self.TEST_SERVER)
+#         zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
+#         self.assertTrue(zc._session.is_logged_in())
 
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
