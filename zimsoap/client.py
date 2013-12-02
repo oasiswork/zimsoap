@@ -14,9 +14,12 @@ import urllib
 import urllib2
 import cookielib
 import time
+import re
+
 
 import pysimplesoap
 import pythonzimbra
+
 import pythonzimbra.tools.auth
 from pythonzimbra.communication import Communication
 
@@ -122,6 +125,19 @@ class DomainHasNoPreAuthKey(Exception):
             )
         Exception.__init__(self)
 
+class ZimbraSoapServerError(Exception):
+    r_soap_text = re.compile(r'<soap:Text>(.*)</soap:Text>')
+    def __init__(self, http_e, request, response):
+        self.http_e = http_e
+        self.request = request
+        self.response = response
+        self.http_msg = self.r_soap_text.search(self.http_e.read()).groups()[0]
+
+    def __str__(self):
+        return '{}: {}'.format(
+            self.http_e, self.http_msg)
+
+
 
 class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
     """ Factorized abstract code for SOAP API access.
@@ -141,7 +157,7 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
 
         self._session = ZimbraAPISession(self)
 
-    def request(self, name, content):
+    def request(self, name, content={}):
         """ Do a SOAP request and returns the result.
 
         Simple wrapper arround pythonzimbra functions
@@ -155,8 +171,16 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
         req = auth_request = pythonzimbra.request_xml.RequestXml()
         resp = pythonzimbra.response_xml.ResponseXml()
 
+        if self._session.is_logged_in():
+            req.set_auth_token(self._session.authToken)
+
         req.add_request(req_name, content, self.NAMESPACE)
-        self.com.send_request(req, resp)
+        try:
+            self.com.send_request(req, resp)
+        except urllib2.HTTPError, e:
+            if e.code == 500:
+                raise ZimbraSoapServerError(e, req, resp)
+
         return resp.get_response()[resp_name]
 
 

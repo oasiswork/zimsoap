@@ -56,18 +56,6 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.authToken = '42'
         self.assertFalse(self.session.is_session_valid())
 
-# class ZimbraAccountClientTests(unittest.TestCase):
-#     """ Is pretty uncomplete as it's testing code common to admin, see class after this one.
-#     """
-#     def setUp(self):
-#         self.TEST_SERVER = TEST_HOST
-#         self.TEST_LOGIN = TEST_LAMBDA_USER
-#         self.TEST_PASSWORD = TEST_LAMBDA_PASSWORD
-
-#     def testLogin(self):
-#         zc = ZimbraAccountClient(self.TEST_SERVER)
-#         zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
-#         self.assertTrue(zc._session.is_logged_in())
 
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
@@ -115,80 +103,79 @@ class ZimbraAccountClientTests(unittest.TestCase):
     def tearDown(self):
         # Delete the test signature (if any)
         try:
-            xml_node = SimpleXMLElement('<signature name="unittest" />')
-            self.zc.DeleteSignatureRequest(self.zc, utils.wrap_el(xml_node))
-        except pysimplesoap.client.SoapFault, e:
+            resp = self.zc.request('DeleteSignature', {
+                    'signature': {'name': 'unittest'}})
+
+        except ZimbraSoapServerError, e:
             if 'no such signature' in str(e):
                 pass
+
             else:
                 raise
 
     def testGetSignaturesReturnsSomething(self):
-        resp = self.zc.GetSignaturesRequest()
-        resp_tag = utils.extractResponseTag(resp)
-        signatures = utils.extractResponses(resp)
-        self.assertEqual(resp_tag.get_name(), 'GetSignaturesResponse')
+        resp = self.zc.request('GetSignatures')
+        self.assertEqual(resp['xmlns'], 'urn:zimbraAccount')
 
         # Normally, the user has no signature by default
-        self.assertEqual(len(signatures), 0)
+        self.assertFalse(resp.has_key('signature'))
 
     def testCreateSignatureReturnsSomething(self):
-        xml_node = utils.wrap_el(SimpleXMLElement(
-            '<signature name=\"unittest\">'+\
-              '<content type="text/plain">TEST SIGNATURE</content>'+\
-            '</signature>'))
+        resp = self.zc.request('CreateSignature', {
+                'signature': {
+                    'name': 'unittest',
+                    'content':
+                        {'type': 'text/plain', '_content': 'TEST SIGNATURE'}
+                    }
+                })
 
-        resp = self.zc.CreateSignatureRequest(self.zc, xml_node)
-
-        sig = utils.extractSingleResponse(resp)
+        sig = resp['signature']
         self.assertEqual(sig['name'], 'unittest')
         return sig
 
     def testDeleteSignatureReturnsProperly(self):
         sig = self.testCreateSignatureReturnsSomething()
-        xml_node = SimpleXMLElement('<signature id="{}" />'.format(sig['id']))
-        resp = self.zc.DeleteSignatureRequest(self.zc, utils.wrap_el(xml_node))
-        self.assertEqual(
-            utils.extractResponseTag(resp).get_name(),
-            'DeleteSignatureResponse'
-            )
+        resp = self.zc.request('DeleteSignature', {
+                'signature': {'name': 'unittest'}})
 
     def testModifySignatureWorks(self):
         sig = self.testCreateSignatureReturnsSomething()
 
-        xml_node = utils.wrap_el(SimpleXMLElement(
-            '<signature id="{}">'.format(sig['id'])+\
-                '<content type="text/plain">MODIFSIG</content>'+\
-            '</signature>'))
-        resp = self.zc.ModifySignatureRequest(self.zc, xml_node)
-        self.assertEqual(
-            utils.extractResponseTag(resp).get_name(),
-            'ModifySignatureResponse'
-            )
+        resp = self.zc.request('ModifySignature', {
+                'signature': {
+                    'id': sig['id'],
+                    'content': {'type': 'text/plain', '_content': 'MODIFSIG'}
+                }
+        })
 
-        list_resp = self.zc.GetSignaturesRequest()
-        sigs = utils.extractResponses(list_resp)
 
-        self.assertEqual(len(sigs), 1)
-        self.assertIn('MODIFSIG', repr(sigs[0]))
+        resp_getsig = self.zc.request('GetSignatures')
+        sig = resp_getsig['signature']
+
+        # is there only one signature
+        self.assertIsInstance(sig, dict)
+        self.assertEqual('MODIFSIG', sig['content']['_content'])
 
     def testGetAllPreferences(self):
-        resp = self.zc.GetPrefsRequest()
-        prefs = utils.extractResponses(resp)
-        self.assertEqual(prefs[0].get_name(), 'pref')
+        resp = self.zc.request('GetPrefs')
+        prefs = resp['pref']
+        self.assertTrue(resp.has_key('pref'))
+        self.assertIsInstance(resp['pref'], list)
 
     def testGetAPreference(self):
-        xml = utils.wrap_el(SimpleXMLElement(
-                '<pref name="zimbraPrefMailFlashTitle" />'))
-        resp = self.zc.GetPrefsRequest(self.zc, xml)
-        prefs = utils.extractResponses(resp)
-        pref = utils.extractSingleResponse(resp)
-        self.assertEqual(len(prefs), 1)
+        resp = self.zc.request('GetPrefs',
+                               {'pref': {'name': 'zimbraPrefMailFlashTitle'}})
+
+        pref = resp['pref']
+
+        self.assertIsInstance(pref, dict)
         self.assertEqual(pref['name'], 'zimbraPrefMailFlashTitle')
 
     def testGetIdentities(self):
-        identities = utils.extractSingleResponse(self.zc.GetIdentitiesRequest())
-        self.assertEqual(identities[0].get_name(), 'identity')
+        identities = self.zc.request('GetIdentities')
+
+        # only one
+        self.assertIsInstance(identities['identity'], dict)
 
     def modifyIdentity(self):
         xml_set = utils.wrap_el(SimpleXMLElement(
@@ -197,17 +184,17 @@ class ZimbraAccountClientTests(unittest.TestCase):
         xml_unset = utils.wrap_el(SimpleXMLElement(
                 '<identity name="DEFAULT"><a name="zimbraPrefSaveToSent">TRUE</a></identity>'
                 ))
-        try:
-            resp1 = self.zc.ModifyIdentityRequest(self.zc, xml_set)
-            resp2 = self.zc.ModifyIdentityRequest(self.zc, xml_unset)
-        except:
-            print(self.zc.xml_request)
-            raise
+        resp1 = self.zc.request('ModifyIdentity', {'identity': {
+                    'name': 'DEFAULT',
+                    'a': {'name': 'zimbraPrefSaveToSent', '_content': 'FALSE' }
+        }})
 
-        self.assertEqual(
-            utils.extractResponseTag(resp1).get_name(), 'ModifyIdentityResponse')
-        self.assertEqual(
-            utils.extractResponseTag(resp2).get_name(), 'ModifyIdentityResponse')
+        resp2 = self.zc.request('ModifyIdentity', {'identity': {
+                    'name': 'DEFAULT',
+                    'a': {'name': 'zimbraPrefSaveToSent', '_content': 'TRUE' }
+        }})
+
+        # just checks that it succeeds
 
 
 class ZimbraAdminClientRequests(unittest.TestCase):
