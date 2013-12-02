@@ -11,6 +11,9 @@ from os.path import dirname, abspath, join
 
 import pysimplesoap
 from pysimplesoap.client import SimpleXMLElement
+import pythonzimbra
+
+from pythonzimbra.communication import Communication
 
 import zimsoap.utils
 from tests import samples
@@ -36,6 +39,7 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.cli = pysimplesoap.client.SoapClient(
             location=self.loc, action=self.loc,
             namespace='urn:zimbraAdmin', ns=False)
+        self.cli.com = Communication(self.loc)
         self.session = ZimbraAPISession(self.cli)
 
     def testInit(self):
@@ -55,15 +59,6 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
         self.session.authToken = '42'
         self.assertFalse(self.session.is_session_valid())
-
-    def testHeader(self):
-        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
-        self.session.get_context_header()
-
-    def testHeaderNotLogged(self):
-        with self.assertRaises(ShouldAuthenticateFirst) as cm:
-            self.session.get_context_header()
-
 
 class ZimbraAccountClientTests(unittest.TestCase):
     """ Is pretty uncomplete as it's testing code common to admin, see class after this one.

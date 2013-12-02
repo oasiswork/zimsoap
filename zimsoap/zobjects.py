@@ -167,6 +167,21 @@ class ZObject(object):
 
         return SimpleXMLElement(xml)
 
+    def to_selector(self):
+        selector = None
+        for s in self.SELECTORS:
+            if hasattr(self, s):
+                selector = s
+
+        if selector is None:
+            raise ValueError("At least one %s has to be set as attr."\
+                    % str(self.SELECTORS))
+
+        val = getattr(self, selector)
+
+        return  {'by': selector,'_content': val}
+
+
 
 class Domain(ZObject):
     """A domain, matching something like:

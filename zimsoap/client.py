@@ -16,6 +16,7 @@ import cookielib
 import time
 
 import pysimplesoap
+import pythonzimbra.tools.auth
 
 import utils
 import zobjects
@@ -126,6 +127,7 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
     """
     def __init__(self, server_host, server_port, *args, **kwargs):
         loc = 'https://%s:%s/%s' % (server_host, server_port, self.LOCATION)
+        self.com = pythonzimbra.comumnication.Communication(loc)
         self._server_host = server_host
         self._server_port = server_port
         super(ZimbraAbstractClient, self).__init__(
@@ -548,39 +550,37 @@ class ZimbraAPISession:
         """ Performs the login against zimbra
         (sends AuthRequest, receives AuthResponse).
         """
-        req_nodes = [
-            zobjects.Account(name=username).to_xml_selector(),
-            pysimplesoap.client.SimpleXMLElement(
-                '<password>{}</password>'.format(password)
-                )
-            ]
 
-        response = self.client.AuthRequest(self.client, utils.wrap_el(req_nodes))
+        # req_nodes = [
+        #     zobjects.Account(name=username).to_xml_selector(),
+        #     pysimplesoap.client.SimpleXMLElement(
+        #         '<password>{}</password>'.format(password)
+        #         )
+        #     ]
 
-        # strip responses over the 2nd (useless informations such as skin...)
-        self.authToken, lifetime = utils.extractResponses(response)[:2]
-        lifetime = int(lifetime)
+        # response = self.client.AuthRequest(self.client,
+        # utils.wrap_el(req_nodes))
+
+        auth_request = pythonzimbra.request_xml.RequestXml()
+
+        auth_request.add_request(
+            'AuthRequest',
+            {
+                'account': zobjects.Account(name=username).to_selector(),
+                'password': {'_content': password}
+             },
+            'urn:zimbraAdmin')
+
+        auth_response = pythonzimbra.response_xml.ResponseXml()
+
+        self.client.com.send_request(auth_request, auth_response)
+
+        data =  auth_response.get_response()['AuthResponse']
+        self.authToken = data['authToken']['_content']
+        lifetime = int(data['lifetime']['_content'])
+
         self.authToken = str(self.authToken)
         self.set_end_date(lifetime)
-
-    def get_context_header(self):
-        """ Builds the XML <context> element to be tied to SOAP requests. It
-        contains the authentication string (authToken).
-
-        @return the context as a pysimplesoap.client.SimpleXMLElement
-        """
-
-        if not self.is_logged_in():
-            raise ShouldAuthenticateFirst
-
-        context = pysimplesoap.client.SimpleXMLElement("<context/>")
-        context['xmlns'] = "urn:zimbra"
-        context.authToken = self.authToken
-        context.authToken['xsi:type'] = "xsd:string"
-        context.add_child('sessionId')
-        context.sessionId['xsi:null'] = "1"
-
-        return context
 
     def import_session(self, auth_token):
         if not type(auth_token) == str:
