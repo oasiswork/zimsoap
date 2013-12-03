@@ -44,6 +44,21 @@ class ZObject(object):
 
         return obj
 
+    @classmethod
+    def from_dict(cls, d):
+        """ Given a dict in python-zimbra format or XML, generate
+        a Python object.
+        """
+        obj = cls()
+
+        # import attributes
+        obj._import_attributes(d)
+
+        # import <a> child tags as dict items, see __getitem__()
+        obj._a_tags = obj._parse_a_tags(d)
+
+        return obj
+
     def __init__(self, *args, **kwargs):
         """ By default, import the attributes of kwargs as object attributes
         """
@@ -95,9 +110,10 @@ class ZObject(object):
             most_significant_id
             )
 
-    def _import_attributes(self, attrdict):
-        for k, v in attrdict.items():
-            setattr(self, k, str(v))
+    def _import_attributes(self, dic):
+        for k, v in dic.items():
+            if (k != '_content') and (type(v) in (unicode, str)):
+                setattr(self, k, str(v))
 
     @classmethod
     def _parse_a_tags(cls, xml):
@@ -109,38 +125,54 @@ class ZObject(object):
         @returns   a dict
         """
         props = {}
-        for child in xml.children():
-            if child.get_name() == 'a':
+
+        if isinstance(xml, SimpleXMLElement):
+            childs = [i for i in xml.children() if i.get_name() == 'a']
+        else:
+            if xml.has_key('a'):
+                childs = xml['a']
+            else:
+                childs = []
+
+        for child in childs:
+            if isinstance(xml, SimpleXMLElement):
                 k = child.attributes()[cls.ATTRNAME_PROPERTY].value
-                try:
-                    v = utils.auto_type(str(child))
-                except UnicodeEncodeError:
-                    # Some times, str() fails because of accents...
-                    v = utils.auto_type(unicode(child))
+                v = child
+            else:
+                k = child[cls.ATTRNAME_PROPERTY]
+                v = child['_content']
+            try:
+                v = utils.auto_type(str(v))
+            except UnicodeEncodeError:
+                # Some times, str() fails because of accents...
+                v = utils.auto_type(unicode(v))
 
-                if props.has_key(k):
-                    prev_v = props[k]
-                    if type(prev_v) != list:
-                        props[k] = [prev_v,]
+            if props.has_key(k):
+                prev_v = props[k]
+                if type(prev_v) != list:
+                    props[k] = [prev_v,]
 
-                    props[k].append(v)
+                props[k].append(v)
 
-                else:
-                    props[k] = v
-
+            else:
+                props[k] = v
         return props
 
     @classmethod
-    def _unparse_a_tags(cls, attrs_dict):
+    def _unparse_a_tags(cls, attrs_dict, format='xml'):
         """ Iterates over the dictionary
 
         @param xml a dict of attributes
         @returns   a SimpleXMLElement list containing <a> tags
         """
         prop_tags = []
+
         for k, v in attrs_dict.items():
-            node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
-                    cls.ATTRNAME_PROPERTY, k, utils.auto_untype(v)))
+            if format == 'xml':
+                node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
+                        cls.ATTRNAME_PROPERTY, k, utils.auto_untype(v)))
+            else:
+                node = {cls.ATTRNAME_PROPERTY: k, '_content': utils.auto_type(v)}
             prop_tags.append(node)
 
         return prop_tags
@@ -257,6 +289,21 @@ class Identity(ZObject):
             o.import_node(node)
         return o
 
+    def to_creator(self):
+        """ Returns the dict suitable for CreateIdentity or ModifyIdentity
+        """
+        o = {}
+
+        for prop in ('name', 'id'):
+            if hasattr(self, prop):
+                o[prop] = getattr(self, prop)
+
+        if len(self._a_tags) > 0:
+            o['a'] = []
+            for node in self._unparse_a_tags(self._a_tags, format='FIXME'):
+                o['a'].append(node)
+        return o
+
     def is_default(self):
         """ Is it the default identity ? """
         return self.id == self._a_tags['zimbraPrefIdentityId']
@@ -291,8 +338,14 @@ class Mailbox(ZObject):
         except AttributeError:
             raise ValueError("Mailbox should define attribute \"id\".")
 
-
         return SimpleXMLElement(xml)
+
+    def to_selector(self):
+        try:
+            return {'id': self.id}
+        except AttributeError:
+            raise ValueError("Mailbox should define attribute \"id\".")
+
 
 class DistributionList(ZObject):
     TAG_NAME='dl'
@@ -316,6 +369,17 @@ class Signature(ZObject):
                     break
         return o
 
+    @classmethod
+    def from_dict(cls, d):
+        """ Override default, adding the capture of content and contenttype.
+        """
+        o = super(Signature, cls).from_dict(d)
+        if d.has_key('content'):
+            o._content = d['content']['_content']
+            o._contenttype = d['content']['type']
+
+        return o
+
 
     def to_xml_selector(self):
         """ For some reason, the selector for <signature> is
@@ -336,13 +400,32 @@ class Signature(ZObject):
 
         return SimpleXMLElement(s)
 
+    def to_selector(self):
+        """ For some reason, the selector for <signature> is
+
+            <signature id="1234" />
+
+        rather than
+
+            <signature by="id"></signature>
+        """
+
+        for i in self.SELECTORS:
+            if hasattr(self, i):
+                val = getattr(self, i)
+                selector = i
+                break
+
+        return {selector: val}
+
+
     def set_content(self, content, contenttype='text/html'):
         self._content = content
         self._contenttype = contenttype
 
 
-    def to_xml_creator(self, for_modify=False):
-        """ Returns an XML object suitable for CreateSignatureRequest
+    def to_creator(self, for_modify=False):
+        """ Returns a dict object suitable for a 'CreateSignature'.
 
         A signature object for creation is like :
 
@@ -350,10 +433,20 @@ class Signature(ZObject):
               <content type="text/plain">My signature content</content>
             </signature>
 
+        which is :
+
+            {
+             'name' : 'unittest',
+             'content': {
+               'type': 'text/plain',
+               '_content': 'My signature content'
+             }
+            }
+
         Note that if the contenttype is text/plain, the content with text/html
         will be cleared by the request (for consistency).
         """
-        signature = SimpleXMLElement('<{}/>'.format(self.TAG_NAME))
+        signature = {}
 
         if for_modify:
             try:
@@ -379,13 +472,10 @@ class Signature(ZObject):
                 html_text = escaped_content
                 plain_text = ''
 
-            content_plain = SimpleXMLElement(
-                '<content type="text/plain">{}</content>'.format(plain_text))
-            content_html = SimpleXMLElement(
-                '<content type="text/html">{}</content>'.format(html_text))
+            content_plain = {'type': 'text/plain', '_content': plain_text}
+            content_html = {'type': 'text/html', '_content': html_text}
 
-            signature.import_node(content_plain)
-            signature.import_node(content_html)
+            signature['content'] = [content_plain, content_html]
 
         else:
             # A creation request should have a content
