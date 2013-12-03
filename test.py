@@ -69,18 +69,19 @@ class ZimbraAdminClientTests(unittest.TestCase):
         self.assertTrue(zc._session.is_logged_in())
 
     def testBadLoginFailure(self):
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
             zc.login('badlogin@zimbratest.oasiswork.fr', self.TEST_PASSWORD)
 
-        self.assertEqual(cm.exception.faultcode, 'soap:Client')
+        self.assertIn('authentication failed', cm.exception.http_msg)
+
 
     def testBadPasswordFailure(self):
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
             zc.login(self.TEST_LOGIN, 'badpassword')
 
-        self.assertEqual(cm.exception.faultcode, 'soap:Client')
+        self.assertIn('authentication failed', cm.exception.http_msg)
 
     def testBadHostFailure(self):
         with self.assertRaises(urllib2.URLError) as cm:
@@ -217,45 +218,43 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     def tearDown(self):
         # Try to delete a relief test distribution list (if any)
         try:
-            xml_node = SimpleXMLElement(
-                '<l><dl by="name" >%s</dl></l>' % self.TEST_DL_NAME)
-            resp = self.zc.GetDistributionListRequest(self.zc, xml_node)
-            xml_dl_id = zimsoap.utils.extractSingleResponse(resp)['id']
-            self.zc.DeleteDistributionListRequest(
-                attributes={'id': dl_id})
+            resp = self.zc.request('GetDistributionList', {
+                    'dl': {'by': 'name', '_content': self.TEST_DL_NAME}
+            })
 
-        except pysimplesoap.client.SoapFault:
+            dl_id = resp['dl']['id']
+            self.zc.request('DeleteDistributionList', {'id': dl_id})
+
+        except ZimbraSoapServerError:
             pass
 
     def testGetAllAccountsReturnsSomething(self):
-        resp = self.zc.GetAllAccountsRequest()
-        self.assertIsInstance(resp, SimpleXMLElement)
+        resp = self.zc.request('GetAllAccounts')
+        self.assertTrue(resp.has_key('account'), list)
+        self.assertIsInstance(resp['account'], list)
 
     def testGetAllDomainsReturnsSomething(self):
-        resp = self.zc.GetAllDomainsRequest()
-        self.assertIsInstance(resp, SimpleXMLElement)
-
-    def testGetAllDomainsReturnsDomains(self):
-        resp = zimsoap.utils.extractResponses(self.zc.GetAllDomainsRequest())
-        for tag in resp:
-            self.assertEqual(tag.get_name(), 'domain')
+        resp = self.zc.request('GetAllDomains')
+        self.assertTrue(resp.has_key('domain'), list)
+        self.assertIsInstance(resp['domain'], list)
 
     def testGetDomainReturnsDomain(self):
-        xml_node = SimpleXMLElement(
-            '<l><domain by="name">{}</domain></l>'.format(
-                self.EXISTANT_DOMAIN))
-        resp = zimsoap.utils.extractSingleResponse(
-            self.zc.GetDomainRequest(self.zc,xml_node)
-            )
-        self.assertIsInstance(resp, SimpleXMLElement)
-        self.assertEqual(resp.get_name(), 'domain')
+        resp = self.zc.request('GetDomain', {'domain' : {
+                    'by': 'name',
+                    '_content': self.EXISTANT_DOMAIN
+        }})
+        self.assertIsInstance(resp, dict)
+        self.assertTrue(resp.has_key('domain'))
+        self.assertIsInstance(resp['domain'], dict)
 
     def testGetMailboxStatsReturnsSomething(self):
-        resp = self.zc.GetMailboxStatsRequest()
-        self.assertIsInstance(resp, SimpleXMLElement)
+        resp = self.zc.request('GetMailboxStats')
+        self.assertTrue(resp.has_key('stats'))
+        self.assertIsInstance(resp['stats'], dict)
 
     def testCountAccountReturnsSomething(self):
         """Count accounts on the first of domains"""
+        # TODO Once client methods are converted
         first_domain_name = self.zc.get_all_domains()[0].name
 
         # FIXME: the <l> is a total workarround
@@ -278,16 +277,15 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         xml_node = SimpleXMLElement(
             '<l><mbox id="%s" /></l>' % EXISTANT_MBOX_ID)
 
-        resp = self.zc.GetMailboxRequest(self.zc, xml_node)
-        first_mbox = zimsoap.utils.extractResponses(resp)[0]
-        self.assertEqual(first_mbox.get_name(), 'mbox')
-        self.assertTrue(first_mbox.attributes().has_key('mbxid'))
+        resp = self.zc.request('GetMailbox', {'mbox': {'id': EXISTANT_MBOX_ID}})
+        self.assertIsInstance(resp['mbox'], dict)
+        self.assertTrue(resp['mbox'].has_key('mbxid'))
 
 
     def testGetAllMailboxes(self):
-        resp = self.zc.GetAllMailboxesRequest()
-        mailboxes = zimsoap.utils.extractResponses(resp)
-        self.assertEqual(mailboxes[0].get_name(), 'mbox')
+        resp = self.zc.request('GetAllMailboxes')
+        mailboxes = resp['mbox']
+        self.assertIsInstance(resp['mbox'], list)
         return mailboxes
 
     def testCreateGetDeleteDistributionList(self):
@@ -296,27 +294,23 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         """
 
         def createDistributionList(name):
-            resp = self.zc.CreateDistributionListRequest(
-                attributes={'name': name})
-            dls = zimsoap.utils.extractSingleResponse(resp)
-            self.assertEqual(dls.get_name(), 'dl')
+            resp = self.zc.request('CreateDistributionList', {'name': name})
+
+            self.assertIsInstance(resp['dl'], dict)
 
         def getDistributionList(name):
-            xml_node = SimpleXMLElement(
-                '<l><dl by="name" >%s</dl></l>' % name)
+            resp = self.zc.request('GetDistributionList',
+                                   {'dl': {'by': 'name', '_content': name}})
 
-            resp = self.zc.GetDistributionListRequest(self.zc, xml_node)
-            xml_dl = zimsoap.utils.extractSingleResponse(resp)
-            self.assertEqual(xml_dl.get_name(), 'dl')
-            self.assertIsInstance(xml_dl['id'], unicode)
-            return xml_dl['id']
+            self.assertIsInstance(resp['dl'], dict)
+            self.assertIsInstance(resp['dl']['id'], unicode)
+            return resp['dl']['id']
 
         def deleteDistributionList(dl_id):
-            resp = self.zc.DeleteDistributionListRequest(
-                attributes={'id': dl_id})
+            resp = self.zc.request('DeleteDistributionList', {'id': dl_id})
 
         # Should not exist
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             getDistributionList(self.TEST_DL_NAME)
 
         createDistributionList(self.TEST_DL_NAME)
@@ -327,17 +321,17 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         deleteDistributionList(list_id)
 
         # Should no longer exists
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             getDistributionList(self.TEST_DL_NAME)
 
 
     def testCheckDomainMXRecord(self):
-        xml_node = SimpleXMLElement(
-            '<l><domain by="name">%s</domain></l>' % self.EXISTANT_DOMAIN)
 
+        domain = {'by': 'name', '_content': self.EXISTANT_DOMAIN}
         try:
-            resp = self.zc.CheckDomainMXRecordRequest(self.zc, xml_node)
-        except pysimplesoap.client.SoapFault as sf:
+            resp = self.zc.request('CheckDomainMXRecord', {'domain': domain})
+
+        except ZimbraSoapServerError as sf:
             if not 'NameNotFoundException' in str(sf):
                 # Accept for the moment this exception as it's kind a response
                 # from server.
@@ -349,11 +343,9 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # self.assertEqual(xml_dl[0].get_name(), 'message')
 
     def testGetAccount(self):
-        xml = utils.wrap_el(SimpleXMLElement(
-                '<account by="name">{}</account>'.format(TEST_LAMBDA_USER)))
-        resp = self.zc.GetAccountRequest(self.zc, xml)
-        account = zimsoap.utils.extractSingleResponse(resp)
-        self.assertEqual(account.get_name(), 'account')
+        account = {'by': 'name', '_content': TEST_LAMBDA_USER}
+        resp = self.zc.request('GetAccount', {'account': account})
+        self.assertIsInstance(resp['account'], dict)
 
 class ZObjectsTests(unittest.TestCase):
     class NullZObject(ZObject):
@@ -627,7 +619,7 @@ class PythonicAccountAPITests(unittest.TestCase):
             try:
                 xml_node = SimpleXMLElement('<signature name="{}" />'.format(i))
                 self.zc.DeleteSignatureRequest(self.zc, utils.wrap_el(xml_node))
-            except pysimplesoap.client.SoapFault, e:
+            except ZimbraSoapServerError, e:
                 if 'no such signature' in str(e):
                     pass
                 else:
@@ -815,7 +807,7 @@ class PythonicAdminAPITests(unittest.TestCase):
     def tearDown(self):
         try:
             self.zc.delete_distribution_list(DistributionList(name=self.TEST_DL_NAME))
-        except pysimplesoap.client.SoapFault:
+        except ZimbraSoapServerError:
             pass
 
     def test_get_all_domains(self):
@@ -921,7 +913,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
 
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_distribution_list(dl_req)
 
         dl = self.zc.create_distribution_list(name)
@@ -933,7 +925,7 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         self.zc.delete_distribution_list(dl_got)
 
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_distribution_list(dl)
 
     def test_delete_distribution_list_by_name(self):
@@ -943,11 +935,11 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.zc.delete_distribution_list(dl_req)
 
         # List with such a name does not exist
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_distribution_list(dl_req)
 
         # List with such an ID does not exist
-        with self.assertRaises(pysimplesoap.client.SoapFault) as cm:
+        with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_distribution_list(dl_full)
 
     def test_get_account(self):
