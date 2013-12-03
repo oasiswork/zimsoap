@@ -148,15 +148,20 @@ class ZimbraAbstractClient(object):
 
         self._session = ZimbraAPISession(self)
 
-    def request(self, name, content={}):
+    def request(self, name, content={}, namespace=None):
         """ Do a SOAP request and returns the result.
 
         Simple wrapper arround pythonzimbra functions
-        @name ex: 'Auth' for performing an 'AuthRequest'
-        @content: a dict formatted pythonzimbra-style for request
+        @param name ex: 'Auth' for performing an 'AuthRequest'
+        @param content: a dict formatted pythonzimbra-style for request
+        @param namespace: (optional), the namespace, if different from the
+                          client's
 
         @returns a dict with response
         """
+        if not namespace:
+            namespace = self.NAMESPACE
+
         req_name = name+'Request'
         resp_name = name+'Response'
         req = auth_request = pythonzimbra.request_xml.RequestXml()
@@ -165,7 +170,7 @@ class ZimbraAbstractClient(object):
         if self._session.is_logged_in():
             req.set_auth_token(self._session.authToken)
 
-        req.add_request(req_name, content, self.NAMESPACE)
+        req.add_request(req_name, content, namespace)
         try:
             self.com.send_request(req, resp)
         except urllib2.HTTPError, e:
@@ -544,9 +549,13 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         """
         if account is None:
             account = self.get_account(zobjects.Account(name=account_name))
-        xml = account.to_xml_selector()
-        resp = self.DelegateAuthRequest(self, utils.wrap_el(xml))
-        authToken, lifetime = [str(i) for i in utils.extractResponses(resp)]
+        selector = account.to_selector()
+
+        resp = self.request('DelegateAuth', {'account': selector})
+
+        authToken = resp['authToken']['_content']
+        lifetime = int(resp['lifetime']['_content'])
+
         return authToken, lifetime
 
 
@@ -567,10 +576,7 @@ class ZimbraMailClient(ZimbraAbstractClient):
 
     def login(self, user, password):
         # !!! We need to athenticathe with the 'urn:zimbraAccount' namespace
-        self.namespace = 'urn:zimbraAccount'
-        self._session.login(user, password)
-        self['context'] = self._session.get_context_header()
-        self.namespace = self.NAMESPACE
+        self._session.login(user, password, 'urn:zimbraAccount')
 
     def create_task(self, subject, desc):
         """Create a task
@@ -580,9 +586,9 @@ class ZimbraMailClient(ZimbraAbstractClient):
         @return the task's id
         """
         task = zobjects.Task()
-        req_xml = task.to_xml_creator(subject, desc)
-        resp = self.CreateTaskRequest(self, req_xml)  # SimpleXMLElement
-        task_id = resp.CreateTaskResponse['calItemId']
+        task_creator = task.to_creator(subject, desc)
+        resp = self.request('CreateTask', {'m': task_creator})
+        task_id = resp['calItemId']
         return task_id
 
     def get_task(self, task_id):
@@ -593,13 +599,12 @@ class ZimbraMailClient(ZimbraAbstractClient):
         @returns a zobjects.Task object ;
                  if no task is matching, returns None.
         """
-        resp = self.GetTaskRequest(id=task_id)
-        try:
-            task = utils.extractSingleResponse(resp)
-        except IndexError:
-            return None
+        task = self.request_single('GetTask', {'id': task_id})
+
+        if task:
+            return zobjects.Task.from_dict(task)
         else:
-            return zobjects.Task.from_xml(task)
+            return None
 
 
 class ZimbraAPISession:
@@ -616,10 +621,17 @@ class ZimbraAPISession:
         self.end_date = (datetime.datetime.now() +
                          datetime.timedelta(0, lifetime))
 
-    def login(self, username, password):
+    def login(self, username, password, namespace=None):
         """ Performs the login against zimbra
         (sends AuthRequest, receives AuthResponse).
+
+        @param namespace if specified, the namespace used for authetication (if
+                         the client namespace is not suitable for
+                         authentication).
         """
+
+        if namespace == None:
+            namespace = self.client.NAMESPACE
 
         data = self.client.request(
             'Auth',
@@ -627,7 +639,7 @@ class ZimbraAPISession:
                 'account': zobjects.Account(name=username).to_selector(),
                 'password': {'_content': password}
              }
-            )
+            , namespace)
         self.authToken = data['authToken']['_content']
         lifetime = int(data['lifetime']['_content'])
 

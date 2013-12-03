@@ -8,11 +8,9 @@
 
 import unittest
 
-from pysimplesoap.client import SimpleXMLElement
-
 from zimsoap.client import ZimbraMailClient
 from zimsoap.zobjects import Task
-#from zimsoap import utils
+from zimsoap import utils
 
 TEST_HOST = '192.168.33.10'
 TEST_ADMIN_PORT = '7071'
@@ -49,7 +47,6 @@ class ZimbraMailAPITests(unittest.TestCase):
 
     def test_CreateTaskRequest(self):
         xml = """
-        <CreateTaskRequest>
             <m su="{subject}">
                 <inv>
                     <comp percentComplete="0" name="{subject}">
@@ -61,22 +58,18 @@ class ZimbraMailAPITests(unittest.TestCase):
                     <content></content>
                 </mp>
             </m>
-        </CreateTaskRequest>
         """.format(
             subject='test_CreateTaskRequest',
             desc='Task Content'
         )
-
-        task_xml = SimpleXMLElement(xml)
-        resp = self.zc.CreateTaskRequest(self.zc, task_xml)
-        self.assertTrue('CreateTaskResponse' in resp)
+        dic = utils.xml_str_to_dict(xml)
+        resp = self.zc.request('CreateTask', dic)
 
         # store created task id
-        self.task_id = resp.CreateTaskResponse['calItemId']
+        self.task_id = resp['calItemId']
 
     def test_GetTaskRequest(self):
         xml = """
-        <CreateTaskRequest>
             <m su="{subject}">
                 <inv>
                     <comp percentComplete="0" name="{subject}">
@@ -88,20 +81,20 @@ class ZimbraMailAPITests(unittest.TestCase):
                     <content></content>
                 </mp>
             </m>
-        </CreateTaskRequest>
         """.format(
             subject='test_GetTaskRequest',
             desc='Task Content'
         )
 
-        task_xml = SimpleXMLElement(xml)
-        resp = self.zc.CreateTaskRequest(self.zc, task_xml)
+        task_dic = utils.xml_str_to_dict(xml)
+        resp = self.zc.request('CreateTask', task_dic)
 
         # store created task id
-        self.task_id = resp.CreateTaskResponse['calItemId']
+        self.task_id = resp['calItemId']
 
-        resp = self.zc.GetTaskRequest(id=self.task_id)
-        self.assertTrue('GetTaskResponse' in resp)
+        resp = self.zc.request('GetTask', {'id':self.task_id})
+
+        # Just checks success (check on response tag is in request())
 
 
 class PythonicZimbraMailAPITests(unittest.TestCase):
@@ -157,13 +150,12 @@ class ZobjectTaskTests(unittest.TestCase):
     """ Tests the Task zobject.
     """
 
-    def test_to_xml_creator(self):
+    def test_to_creator(self):
         task = Task()
         subject = 'Task Subject'
         desc = 'Task Content'
 
-        req_xml = task.to_xml_creator(subject, desc)
-        self.assertEqual(req_xml.get_name(), u'CreateTaskRequest')
-        self.assertEqual(req_xml.m['su'], subject)
-        self.assertEqual(str(req_xml.m.inv.comp.fr), desc)
-        self.assertEqual(str(req_xml.m.inv.comp.desc), desc)
+        req = task.to_creator(subject, desc)
+        self.assertEqual(req['su'], subject)
+        self.assertEqual(req['inv']['comp']['fr']['_content'], desc)
+        self.assertEqual(req['inv']['comp']['desc']['_content'], desc)

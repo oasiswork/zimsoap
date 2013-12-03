@@ -7,6 +7,7 @@ Note that they do *not* handle themselves communication with
 zimbra API. It is left to ZimbraAdminClient.
 """
 
+from pysimplesoap.client import SimpleXMLElement
 import utils
 
 class NotEnoughInformation(Exception):
@@ -24,6 +25,24 @@ class ZObject(object):
     """
     # In <a name="zimbraPrefForwardReply">&gt;</a> it would be 'name'
     ATTRNAME_PROPERTY='n'
+    @classmethod
+    def from_xml(cls, xml):
+        """ Given a pysimplesoap.SimpleXMLElement, generate a Python Object
+        """
+        if not xml.get_name() == cls.TAG_NAME:
+            raise TypeError(
+                "Class %s should be parsed from XML tag '%s', not '%s'"% \
+                    (str(cls), cls.TAG_NAME, xml.get_name()))
+
+        obj = cls()
+        # import attributes
+        obj._import_attributes(xml.attributes())
+
+        # import <a> child tags as dict items, see __getitem__()
+        if xml.children():
+            obj._a_tags = obj._parse_a_tags(xml)
+
+        return obj
 
     @classmethod
     def from_dict(cls, d):
@@ -100,24 +119,31 @@ class ZObject(object):
                 setattr(self, k, str(v))
 
     @classmethod
-    def _parse_a_tags(cls, dic):
+    def _parse_a_tags(cls, xml):
         """ Iterates over all <a> tags and builds a dict with those.
         If a tag with same "n" attributes appears several times, the
         dict value is a list with the tags values, else it's a string.
 
-        @param dic the dict describing the tag
+        @param xml a SimpleXMLElement
         @returns   a dict
         """
         props = {}
 
-        if dic.has_key('a'):
-            childs = dic['a']
+        if isinstance(xml, SimpleXMLElement):
+            childs = [i for i in xml.children() if i.get_name() == 'a']
         else:
-            childs = []
+            if xml.has_key('a'):
+                childs = xml['a']
+            else:
+                childs = []
 
         for child in childs:
-            k = child[cls.ATTRNAME_PROPERTY]
-            v = child['_content']
+            if isinstance(xml, SimpleXMLElement):
+                k = child.attributes()[cls.ATTRNAME_PROPERTY].value
+                v = child
+            else:
+                k = child[cls.ATTRNAME_PROPERTY]
+                v = child['_content']
             try:
                 v = utils.auto_type(str(v))
             except UnicodeEncodeError:
@@ -136,19 +162,45 @@ class ZObject(object):
         return props
 
     @classmethod
-    def _unparse_a_tags(cls, attrs_dict):
+    def _unparse_a_tags(cls, attrs_dict, format='xml'):
         """ Iterates over the dictionary
 
-        @param attrs_dict a dict of attributes
+        @param xml a dict of attributes
         @returns   a SimpleXMLElement list containing <a> tags
         """
         prop_tags = []
 
         for k, v in attrs_dict.items():
-            node = {cls.ATTRNAME_PROPERTY: k, '_content': utils.auto_type(v)}
+            if format == 'xml':
+                node = SimpleXMLElement('<a {}="{}">{}</a>'.format(
+                        cls.ATTRNAME_PROPERTY, k, utils.auto_untype(v)))
+            else:
+                node = {cls.ATTRNAME_PROPERTY: k, '_content': utils.auto_type(v)}
             prop_tags.append(node)
 
         return prop_tags
+
+    def to_xml_selector(self):
+        """ Returns something usefull for an XML SOAP request, to select an
+        object by a property.
+
+        it simply uses the first property usable filled-in the object as selector.
+
+        @return SimpleXMLElement
+        """
+        selector = None
+        for s in self.SELECTORS:
+            if hasattr(self, s):
+                selector = s
+
+        if selector is None:
+            raise ValueError("At least one %s has to be set as attr."\
+                    % str(self.SELECTORS))
+
+        xml = '<%s by="%s" >%s</%s>' %\
+            (self.TAG_NAME, selector, getattr(self, selector), self.TAG_NAME)
+
+        return SimpleXMLElement(xml)
 
     def to_selector(self):
         selector = None
@@ -226,6 +278,20 @@ class Identity(ZObject):
     TAG_NAME = 'identity'
     ATTRNAME_PROPERTY='name'
 
+    def to_xml_creator(self):
+        """ Returns the XML suitable for CreateIdentity or ModifyIdentity
+        """
+
+        o = SimpleXMLElement('<{}/>'.format(self.TAG_NAME))
+
+        for prop in ('name', 'id'):
+            if hasattr(self, prop):
+                o[prop] = getattr(self, prop)
+
+        for node in self._unparse_a_tags(self._a_tags):
+            o.import_node(node)
+        return o
+
     def to_creator(self):
         """ Returns the dict suitable for CreateIdentity or ModifyIdentity
         """
@@ -237,7 +303,7 @@ class Identity(ZObject):
 
         if len(self._a_tags) > 0:
             o['a'] = []
-            for node in self._unparse_a_tags(self._a_tags):
+            for node in self._unparse_a_tags(self._a_tags, format='FIXME'):
                 o['a'].append(node)
         return o
 
@@ -267,6 +333,16 @@ class Mailbox(ZObject):
     """
     TAG_NAME = 'mbox'
 
+    def to_xml_selector(self):
+        try:
+            xml = '<%s id="%s" />' %\
+                (self.TAG_NAME, self.id)
+
+        except AttributeError:
+            raise ValueError("Mailbox should define attribute \"id\".")
+
+        return SimpleXMLElement(xml)
+
     def to_selector(self):
         try:
             return {'id': self.id}
@@ -284,6 +360,19 @@ class Signature(ZObject):
     SELECTORS = ('id', 'name')
 
     @classmethod
+    def from_xml(cls, xml):
+        """ Override default, adding the capture of content and contenttype.
+        """
+        o = super(Signature, cls).from_xml(xml)
+        if xml.children():
+            for node in xml.children():
+                if node.get_name() == 'content':
+                    o._content = str(node)
+                    o._contenttype = node['type']
+                    break
+        return o
+
+    @classmethod
     def from_dict(cls, d):
         """ Override default, adding the capture of content and contenttype.
         """
@@ -293,6 +382,26 @@ class Signature(ZObject):
             o._contenttype = d['content']['type']
 
         return o
+
+
+    def to_xml_selector(self):
+        """ For some reason, the selector for <signature> is
+
+            <signature id="1234" />
+
+        rather than
+
+            <signature by="id"></signature>
+        """
+
+        for i in self.SELECTORS:
+            if hasattr(self, i):
+                val = getattr(self, i)
+                selector = i
+                break
+        s = '<{} {}="{}" />'.format(self.TAG_NAME, selector, val)
+
+        return SimpleXMLElement(s)
 
     def to_selector(self):
         """ For some reason, the selector for <signature> is
@@ -392,8 +501,8 @@ class Task(ZObject):
     TAG_NAME = 'task'
     ATTRNAME_PROPERTY = 'id'
 
-    def to_xml_creator(self, subject, desc):
-        """ Returns an XML object suitable for CreateTaskRequest
+    def to_creator(self, subject, desc):
+        """ Returns an dict XML representation CreateTaskRequest
 
         Example :
         <CreateTaskRequest>
@@ -411,27 +520,32 @@ class Task(ZObject):
         </CreateTaskRequest>
         """
 
-        base_xml = """
-        <CreateTaskRequest>
-            <m>
-                <inv>
-                    <comp percentComplete="0"></comp>
-                </inv>
-                <mp>
-                    <content></content>
-                </mp>
-            </m>
-        </CreateTaskRequest>
-        """
+        # base_xml = """
+        # <CreateTaskRequest>
+        #     <m>
+        #         <inv>
+        #             <comp percentComplete="0"></comp>
+        #         </inv>
+        #         <mp>
+        #             <content></content>
+        #         </mp>
+        #     </m>
+        # </CreateTaskRequest>
+        # """
 
-        task = SimpleXMLElement(base_xml)
-        task.m['su'] = subject
-        comp = task.m.inv.comp
+        base_dict = {'m': {
+                'inv': {'comp': {'percentComplete': '0'}},
+                'mp' : {'content': {}}
+        }}
+
+        task = base_dict
+        base_dict['m']['su'] = subject
+        comp = task['m']['inv']['comp']
         comp['name'] = subject
-        comp.fr = desc
-        comp.desc = desc
+        comp['fr'] = {'_content': desc}
+        comp['desc'] = {'_content' : desc}
 
-        return task
+        return task['m']
 
 
 
