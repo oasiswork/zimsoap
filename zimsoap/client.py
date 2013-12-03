@@ -16,13 +16,10 @@ import cookielib
 import time
 import re
 
-
-import pysimplesoap
 import pythonzimbra
 
 import pythonzimbra.tools.auth
 from pythonzimbra.communication import Communication
-
 
 import utils
 import zobjects
@@ -138,7 +135,7 @@ class ZimbraSoapServerError(Exception):
             self.http_e, self.http_msg)
 
 
-class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
+class ZimbraAbstractClient(object):
     """ Factorized abstract code for SOAP API access.
 
     Provides common ground for zimbraAdmin and zimbraAccount.
@@ -148,11 +145,6 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
         self.com = Communication(loc)
         self._server_host = server_host
         self._server_port = server_port
-        super(ZimbraAbstractClient, self).__init__(
-            location = loc,
-            action = loc,
-            namespace = self.NAMESPACE,
-            *args, **kwargs)
 
         self._session = ZimbraAPISession(self)
 
@@ -629,16 +621,6 @@ class ZimbraAPISession:
         (sends AuthRequest, receives AuthResponse).
         """
 
-        # req_nodes = [
-        #     zobjects.Account(name=username).to_xml_selector(),
-        #     pysimplesoap.client.SimpleXMLElement(
-        #         '<password>{}</password>'.format(password)
-        #         )
-        #     ]
-
-        # response = self.client.AuthRequest(self.client,
-        # utils.wrap_el(req_nodes))
-
         data = self.client.request(
             'Auth',
             {
@@ -670,7 +652,8 @@ class ZimbraAPISession:
 
     def is_session_valid(self):
         try:
-            self.client.AuthRequest(authToken=self.authToken)
+            self.client.request('Auth',
+                                {'authToken': {'_content': self.authToken}})
             return True
-        except pysimplesoap.client.SoapFault:
+        except ZimbraSoapServerError:
             return False

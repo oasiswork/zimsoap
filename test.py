@@ -9,8 +9,6 @@ import unittest
 import urllib2
 from os.path import dirname, abspath, join
 
-import pysimplesoap
-from pysimplesoap.client import SimpleXMLElement
 import pythonzimbra
 
 from pythonzimbra.communication import Communication
@@ -179,12 +177,6 @@ class ZimbraAccountClientTests(unittest.TestCase):
         self.assertIsInstance(identities['identity'], dict)
 
     def modifyIdentity(self):
-        xml_set = utils.wrap_el(SimpleXMLElement(
-                '<identity name="DEFAULT"><a name="zimbraPrefSaveToSent">FALSE</a></identity>'
-                ))
-        xml_unset = utils.wrap_el(SimpleXMLElement(
-                '<identity name="DEFAULT"><a name="zimbraPrefSaveToSent">TRUE</a></identity>'
-                ))
         resp1 = self.zc.request('ModifyIdentity', {'identity': {
                     'name': 'DEFAULT',
                     'a': {'name': 'zimbraPrefSaveToSent', '_content': 'FALSE' }
@@ -272,9 +264,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         except e:
             raise e('failed in self.testGetAllMailboxes()')
 
-        xml_node = SimpleXMLElement(
-            '<l><mbox id="%s" /></l>' % EXISTANT_MBOX_ID)
-
         resp = self.zc.request('GetMailbox', {'mbox': {'id': EXISTANT_MBOX_ID}})
         self.assertIsInstance(resp['mbox'], dict)
         self.assertTrue(resp['mbox'].has_key('mbxid'))
@@ -335,11 +324,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
                 # from server.
                 raise
 
-        # xml = zimsoap.utils.extractResponses(resp)
-        # self.assertEqual(xml_dl[0].get_name(), 'entry')
-        # self.assertEqual(xml_dl[0].get_name(), 'code')
-        # self.assertEqual(xml_dl[0].get_name(), 'message')
-
     def testGetAccount(self):
         account = {'by': 'name', '_content': TEST_LAMBDA_USER}
         resp = self.zc.request('GetAccount', {'account': account})
@@ -351,13 +335,6 @@ class ZObjectsTests(unittest.TestCase):
         TAG_NAME = 'TestObject'
 
     def setUp(self):
-        self.simple_domain = SimpleXMLElement(samples.SIMPLE_DOMAIN)
-        self.misnamed_domain = SimpleXMLElement(samples.MISNAMED_DOMAIN)
-        self.mbox = SimpleXMLElement(samples.MBOX)
-        self.admin_account = SimpleXMLElement(samples.ADMIN_ACCOUNT)
-        self.system_account = SimpleXMLElement(samples.SYSTEM_ACCOUNT)
-        self.normal_account = SimpleXMLElement(samples.NORMAL_ACCOUNT)
-
         # samples, as dict
         xml2dict = zimsoap.utils.xml_str_to_dict
         self.simple_domain_dict = xml2dict(samples.SIMPLE_DOMAIN)
@@ -386,14 +363,6 @@ class ZObjectsTests(unittest.TestCase):
         zo.name = 'myname'
         self.assertIn('myid', repr(zo))
 
-    def testDomainFromXML(self):
-        d = Domain.from_xml(self.simple_domain)
-        self.assertIsInstance(d, Domain)
-        self.assertIsInstance(d.id, str)
-        self.assertIsInstance(d.name, str)
-        self.assertIsNotNone(d.id)
-        self.assertEqual(d.name, 'client1.unbound.oasiswork.fr')
-
     def testDomainFromDict(self):
         d = Domain.from_dict(self.simple_domain_dict['domain'])
         self.assertIsInstance(d, Domain)
@@ -415,20 +384,6 @@ class ZObjectsTests(unittest.TestCase):
         # Should not produce a selector with spamattr
         with self.assertRaises(ValueError) as cm:
             Domain(spamattr='eggvalue').to_selector()
-
-    def testMailboxFromXML(self):
-        m = Mailbox.from_xml(self.mbox)
-        self.assertIsInstance(m, Mailbox)
-        self.assertIsInstance(m.newMessages, str)
-
-
-    def test_ZObjects_import_a_tags_xml(self):
-        props = Domain._parse_a_tags(self.simple_domain)
-        self.assertIsInstance(props, dict)
-        # 53 is the number of unique "n" keys in the sample domain.
-        self.assertEqual(len(props), 53)
-        # Just check one of the <a> tags
-        self.assertEqual(props['zimbraAuthMech'], 'zimbra')
 
     def test_ZObjects_import_a_tags(self):
         props = Domain._parse_a_tags(self.simple_domain_dict['domain'])
@@ -484,22 +439,10 @@ class ZObjectsTests(unittest.TestCase):
         with self.assertRaises(TypeError) as cm:
             d1 == m1
 
-    def test_Signature_to_xml_selector(self):
-        s = Signature(id='1234')
-        self.assertEqual(repr(s.to_xml_selector()), '<signature id="1234"/>')
-        self.assertIsInstance(s.to_xml_selector(), SimpleXMLElement)
-
-        s = Signature(name='jdoe')
-        self.assertEqual(repr(s.to_xml_selector()), '<signature name="jdoe"/>')
-
-        s = Signature(id='1234', name='jdoe')
-        self.assertEqual(repr(s.to_xml_selector()), '<signature id="1234"/>')
-
-
     def test_Signature_to_selector(self):
         s = Signature(id='1234')
         self.assertEqual(s.to_selector(), {'id': '1234'})
-        self.assertIsInstance(s.to_xml_selector(), SimpleXMLElement)
+        self.assertIsInstance(s.to_selector(), dict)
 
         s = Signature(name='jdoe')
         self.assertEqual(s.to_selector(), {'name': 'jdoe'})
@@ -531,14 +474,6 @@ class ZObjectsTests(unittest.TestCase):
         d = s.to_creator()
         self.assertTrue(d['content'], 'TEST_CONTENT')
 
-    def test_Signature_xml_import(self):
-        xml = samples.SIGNATURE
-        s = Signature.from_xml(SimpleXMLElement(xml))
-        self.assertIsInstance(s, Signature)
-        self.assertIsInstance(s.get_content(), str)
-        self.assertEqual(s.get_content(), 'CONTENT')
-        self.assertEqual(s.get_content_type(), 'text/html')
-
     def test_Signature_dict_import(self):
         s = Signature.from_dict(self.signature_dict['signature'])
         self.assertIsInstance(s, Signature)
@@ -546,21 +481,12 @@ class ZObjectsTests(unittest.TestCase):
         self.assertEqual(s.get_content(), 'CONTENT')
         self.assertEqual(s.get_content_type(), 'text/html')
 
-    def test_Identity_to_xml_creator(self):
-        xml = samples.IDENTITY
-        test_attr = 'zimbraPrefForwardReplyPrefixChar'
-
-        i = Identity.from_xml(SimpleXMLElement(xml))
-        xml_creator = Identity.from_xml(i.to_xml_creator())
-        self.assertEqual(i[test_attr], xml_creator[test_attr])
-
     def test_Identity_to_creator(self):
         test_attr = 'zimbraPrefForwardReplyPrefixChar'
 
         i = Identity.from_dict(self.identity_dict['identity'])
         dict_again = Identity.from_dict(i.to_creator())
         self.assertEqual(i[test_attr], dict_again[test_attr])
-
 
     def test_Account_system(self):
         sys = Account.from_dict(self.system_account_dict['account'])
