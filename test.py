@@ -707,6 +707,20 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(resp, list)
         self.assertEqual(len(resp), 0)
 
+    def test_get_all_signatures_onlyone(self):
+        self.zc.create_signature('unittest', 'CONTENT', "text/html")
+
+        resp = self.zc.get_signatures()
+        self.assertIsInstance(resp, list)
+        self.assertEqual(len(resp), 1)
+
+        a_sig = resp[0]
+        self.assertIsInstance(a_sig, Signature)
+        self.assertEqual(a_sig.name, 'unittest')
+        self.assertEqual(a_sig.get_content(), 'CONTENT')
+        self.assertEqual(a_sig.get_content_type(), 'text/html')
+
+
     def test_get_all_signatures_nonempty(self):
         self.zc.create_signature('unittest', 'CONTENT', "text/html")
         self.zc.create_signature('unittest1', 'CONTENT', "text/html")
@@ -720,6 +734,21 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertEqual(a_sig.name, 'unittest')
         self.assertEqual(a_sig.get_content(), 'CONTENT')
         self.assertEqual(a_sig.get_content_type(), 'text/html')
+
+
+    def test_create_signature_special_char(self):
+        self.zc.create_signature('unittest', '&nbsp;', "text/html")
+
+        resp = self.zc.get_signatures()
+        self.assertIsInstance(resp, list)
+        self.assertEqual(len(resp), 1)
+
+        a_sig = resp[0]
+        self.assertIsInstance(a_sig, Signature)
+        self.assertEqual(a_sig.name, 'unittest')
+        self.assertEqual(a_sig.get_content(), '&nbsp;')
+        self.assertEqual(a_sig.get_content_type(), 'text/html')
+
 
     def test_get_a_signature_by_signature(self):
         sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
@@ -790,7 +819,7 @@ class PythonicAccountAPITests(unittest.TestCase):
         prefs = self.zc.get_preferences()
         self.assertIsInstance(prefs, dict)
         self.assertIsInstance(prefs['zimbraPrefMailFlashTitle'], bool)
-        self.assertIsInstance(prefs['zimbraPrefComposeFormat'], str)
+        self.assertIsInstance(prefs['zimbraPrefComposeFormat'], (str, unicode))
         self.assertIsInstance(prefs['zimbraPrefCalendarDayHourEnd'], int)
 
     def test_get_identities(self):
@@ -801,24 +830,22 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertTrue(utils.is_zuuid(identities[0]['zimbraPrefIdentityId']))
 
     def test_modify_identity(self):
-        test_attr = 'zimbraPrefForwardReplyPrefixChar'
+        test_attr = 'zimbraPrefFromDisplay'
 
         # First get the default identity id
         def_identity = self.zc.get_identities()[0]
 
-        # Test if it's in initial state
         initial_attrval = def_identity[test_attr]
-        self.assertEqual(initial_attrval, '>')
 
         i = Identity(id=def_identity.id)
-        i[test_attr] = '&lt;'
+        i[test_attr] = 'Patapon'
         self.zc.modify_identity(i)
 
         modified_i = self.zc.get_identities()[0]
-        self.assertEqual(modified_i[test_attr], '<')
+        self.assertEqual(modified_i[test_attr], 'Patapon')
 
         # Revert it back
-        i[test_attr] = '&gt;'
+        i[test_attr] = initial_attrval
         self.zc.modify_identity(i)
 
 

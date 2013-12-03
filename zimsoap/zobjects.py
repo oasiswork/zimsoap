@@ -49,6 +49,9 @@ class ZObject(object):
         """ Given a dict in python-zimbra format or XML, generate
         a Python object.
         """
+
+        if type(d) != dict:
+            raise TypeError('Expecting a <dict>, got a {}'.format(type(d)))
         obj = cls()
 
         # import attributes
@@ -463,13 +466,12 @@ class Signature(ZObject):
             signature['name'] = self.name
 
         if self.has_content():
-            escaped_content = utils.wrap_in_cdata(self._content)
             # Set one, flush the other (otherwise, we let relief behind...)
             if self._contenttype == 'text/plain':
-                plain_text = escaped_content
+                plain_text = self._content
                 html_text = ''
             else:
-                html_text = escaped_content
+                html_text = self_content
                 plain_text = ''
 
             content_plain = {'type': 'text/plain', '_content': plain_text}

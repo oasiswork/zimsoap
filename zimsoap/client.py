@@ -233,18 +233,25 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         """
         s = zobjects.Signature(name=name)
         s.set_content(content, contenttype)
-        resp = self.CreateSignatureRequest(self,
-                                           utils.wrap_el(s.to_xml_creator()))
-        xml_sig = utils.extractSingleResponse(resp)
-        return zobjects.Signature.from_xml(xml_sig)
+
+        resp = self.request('CreateSignature', {'signature': s.to_creator()})
+        return zobjects.Signature.from_dict(resp['signature'])
 
     def get_signatures(self):
         """ Get all signatures for the current user
 
         @returns a list of zobjects.Signature
         """
-        resp = self.GetSignaturesRequest()
-        return [zobjects.Signature.from_xml(i) for i in utils.extractResponses(resp)]
+        resp = self.request('GetSignatures')
+
+        try:
+            signatures = resp['signature']
+        except KeyError:
+            return []
+
+        if type(signatures) != list:
+            signatures = [signatures]
+        return [zobjects.Signature.from_dict(i) for i in signatures]
 
     def get_signature(self, signature):
         """Retrieve one signature, discriminated by name or id.
@@ -256,24 +263,26 @@ class ZimbraAccountClient(ZimbraAbstractClient):
                  signature is matching, returns None.
         """
 
-        resp = self.GetSignaturesRequest(
-            self, utils.wrap_el(signature.to_xml_selector()))
-        try:
-            sig = utils.extractSingleResponse(resp)
-        except IndexError:
-            return None
+        resp = self.request('GetSignatures',
+                            {'signature': signature.to_selector()})
+
+        if resp.has_key('signature'):
+            if type(resp['signature']) == list:
+                sig = resp['signature'][0]
+            else:
+                sig = resp['signature']
+
+                return zobjects.Signature.from_dict(sig)
         else:
-            return zobjects.Signature.from_xml(sig)
 
-
+            return None
 
     def delete_signature(self, signature):
         """ Delete a signature by name or id
 
         @param signature a Signature object with name or id defined
         """
-        self.DeleteSignatureRequest(
-            self, utils.wrap_el(signature.to_xml_selector()))
+        self.request('DeleteSignature', {'signature': signature.to_selector()})
 
     def modify_signature(self, signature):
         """ Modify an existing signature
@@ -285,11 +294,10 @@ class ZimbraAccountClient(ZimbraAbstractClient):
                           valid, the name does not allows to identify the
                          signature for that operation.
         """
-
         # if no content is specified, just use a selector (id/name)
-        xml = signature.to_xml_creator(for_modify=True)
+        dic = signature.to_creator(for_modify=True)
 
-        self.ModifySignatureRequest(self, utils.wrap_el(xml))
+        self.request('ModifySignature', {'signature': dic})
 
     def get_preferences(self):
         """ Gets all the preferences of the current user
@@ -297,11 +305,11 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         @returns a dict presenting the preferences by name, values are
                  typed to str/bool/int/float regarding their content.
         """
-        pref_list = utils.extractResponses(self.GetPrefsRequest())
+        pref_list = self.request('GetPrefs')['pref']
 
         out = {}
-        for i in pref_list:
-            out[i['name']] = utils.auto_type(str(i))
+        for pref in pref_list:
+            out[pref['name']] = utils.auto_type(pref['_content'])
 
         return out
 
@@ -320,8 +328,16 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
         @returns list of zobjects.Identity
         """
-        resps = utils.extractResponses(self.GetIdentitiesRequest())
-        return [zobjects.Identity.from_xml(i) for i in resps]
+        resp = self.request('GetIdentities')
+
+        if resp.has_key('identity'):
+            identities = resp['identity']
+            if type(identities) != list:
+                identities = [identities]
+
+            return [zobjects.Identity.from_dict(i) for i in identities]
+        else:
+            return []
 
     def modify_identity(self, identity):
         """ Modify some attributes of an identity or its name.
@@ -330,8 +346,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
                items you want to modify/set and/or the `name` attribute to
                rename the identity.
         """
-        xml = identity.to_xml_creator()
-        self.ModifyIdentityRequest(self, utils.wrap_el(xml))
+        self.request('ModifyIdentity', {'identity': identity.to_creator()})
 
 
 class ZimbraAdminClient(ZimbraAbstractClient):
