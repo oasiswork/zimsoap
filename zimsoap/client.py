@@ -386,24 +386,24 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             *args, **kwargs)
 
     def get_all_domains(self):
-        xml_doms = utils.extractResponses(self.GetAllDomainsRequest())
-        return [zobjects.Domain.from_xml(d) for d in xml_doms]
+        resp = self.request_list('GetAllDomains')
+        return [zobjects.Domain.from_dict(d) for d in resp]
+
 
     def get_all_accounts(self, domain=None, server=None,
                          include_system_accounts=False,
                          include_admin_accounts=True):
-        selectors = []
+        selectors = {}
         if domain:
-            selectors.append(domain.to_xml_selector())
+            selectors['domain'] = domain.to_selector()
         if server:
-            selectors.append(server.to_xml_selector())
+            selectors['server'] = server.to_selector()
 
-        resp = self.GetAllAccountsRequest(self, utils.wrap_el(selectors))
-        xml_accounts = utils.extractResponses(resp)
+        dict_accounts = self.request_list('GetAllAccounts', selectors)
 
         accounts = []
-        for i in xml_accounts:
-            account = zobjects.Account.from_xml(i)
+        for i in dict_accounts:
+            account = zobjects.Account.from_dict(i)
 
             if not (
                 not include_system_accounts and account.is_system()
@@ -421,9 +421,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         @returns dict with stats
         """
-        resp = utils.extractSingleResponse(self.GetMailboxStatsRequest())
+        resp = self.request_single('GetMailboxStats')
         ret = {}
-        for k,v in resp.attributes().items():
+        for k,v in resp.items():
             ret[k] = int(v)
 
         return ret
@@ -433,38 +433,36 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         @returns a list of pairs <ClassOfService object>,count
         """
-        selector = domain.to_xml_selector()
-        resp = self.CountAccountRequest(self, utils.wrap_el(selector))
-        cos_list = utils.extractResponses(resp)
-
+        selector = domain.to_selector()
+        cos_list = self.request_list('CountAccount', {'domain': selector})
         ret = []
 
         for i in cos_list:
-            ret.append( ( zobjects.ClassOfService.from_xml(i), int(i) ) )
+            count = int(i['_content'])
+            ret.append((zobjects.ClassOfService.from_dict(i),  count))
 
         return list(ret)
 
 
     def get_all_mailboxes(self):
-        resp = self.GetAllMailboxesRequest()
-        xml_mailboxes = utils.extractResponses(resp)
-        return [zobjects.Mailbox.from_xml(i) for i in xml_mailboxes]
+        resp = self.request_list('GetAllMailboxes')
+
+        return [zobjects.Mailbox.from_dict(i) for i in resp]
 
     def get_account_mailbox(self, account_id):
         """ Returns a Mailbox corresponding to an account. Usefull to get the
         size (attribute 's'), and the mailbox ID, returns nothing appart from
         that.
         """
-        selector = zobjects.Mailbox(id=account_id).to_xml_selector()
-        resp = self.GetMailboxRequest(self, utils.wrap_el(selector))
+        selector = zobjects.Mailbox(id=account_id).to_selector()
+        resp = self.request_single('GetMailbox', {'mbox': selector})
 
-        xml_mbox = utils.extractSingleResponse(resp)
-        return zobjects.Mailbox.from_xml(xml_mbox)
+        return zobjects.Mailbox.from_dict(resp)
 
     def get_domain(self, domain):
-        selector = domain.to_xml_selector()
-        resp = self.GetDomainRequest(self, utils.wrap_el(selector))
-        return zobjects.Domain.from_xml(utils.extractSingleResponse(resp))
+        selector = domain.to_selector()
+        resp = self.request_single('GetDomain', {'domain': selector})
+        return zobjects.Domain.from_dict(resp)
 
     def get_distribution_list(self, dl_description):
         """
@@ -473,21 +471,17 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                    - name: the name of the list
         @returns the DistributionList
         """
-        selector = dl_description.to_xml_selector()
+        selector = dl_description.to_selector()
 
-        resp = self.GetDistributionListRequest(self, utils.wrap_el(selector))
-        dl = zobjects.DistributionList.from_xml(
-            utils.extractSingleResponse(resp))
+        resp = self.request_single('GetDistributionList', {'dl': selector})
+        dl = zobjects.DistributionList.from_dict(resp)
         return dl
 
     def create_distribution_list(self, name, dynamic=0):
-        resp = self.CreateDistributionListRequest(attributes={
-                'name'   : name,
-                'dynamic': str(dynamic)
-                })
+        args = {'name'   : name, 'dynamic': str(dynamic)}
+        resp = self.request_single('CreateDistributionList', args)
 
-        return zobjects.DistributionList.from_xml(
-            utils.extractSingleResponse(resp))
+        return zobjects.DistributionList.from_dict(resp)
 
     def delete_distribution_list(self, dl):
         try:
@@ -500,7 +494,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             except AttributeError:
                 raise ValueError('Unqualified DistributionList')
 
-        self.DeleteDistributionListRequest(attributes={'id': dl_id})
+        self.request('DeleteDistributionList', {'id': dl_id})
 
     def get_account(self, account):
         """ Fetches an account with all its attributes.
@@ -508,9 +502,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         @param account, an account object, with either id or name attribute set.
         @return a zobjects.Account object, filled.
         """
-        req_body = utils.wrap_el(account.to_xml_selector())
-        resp = self.GetAccountRequest(self, req_body)
-        return zobjects.Account.from_xml(utils.extractSingleResponse(resp))
+        selector = account.to_selector()
+        resp = self.request_single('GetAccount', {'account': selector})
+        return zobjects.Account.from_dict(resp)
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
@@ -539,9 +533,12 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         It's the mechanism used with the "view email" button in admin console.
         """
-        xml = account.to_xml_selector()
-        resp = self.DelegateAuthRequest(self, utils.wrap_el(xml))
-        authToken, lifetime  = [str(i) for i in utils.extractResponses(resp)]
+        selector = account.to_selector()
+        resp = self.request('DelegateAuth', {'account': selector})
+
+        lifetime = resp['lifetime']['_content']
+        authToken = resp['authToken']['_content']
+
         zc = ZimbraAccountClient(self._server_host)
         zc.login_with_authToken(authToken, lifetime)
         return zc
@@ -656,7 +653,7 @@ class ZimbraAPISession:
         self.set_end_date(lifetime)
 
     def import_session(self, auth_token):
-        if not type(auth_token) == str:
+        if not isinstance(auth_token, (str, unicode)):
             raise TypeError('auth_token should be a string, not {}'.format(
                     type(auth_token)))
         self.authToken = auth_token

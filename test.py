@@ -254,19 +254,17 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
     def testCountAccountReturnsSomething(self):
         """Count accounts on the first of domains"""
-        # TODO Once client methods are converted
         first_domain_name = self.zc.get_all_domains()[0].name
 
-        # FIXME: the <l> is a total workarround
-        xml_node = SimpleXMLElement(
-            '<l><domain by="name">%s</domain></l>' % self.EXISTANT_DOMAIN)
-        resp = self.zc.CountAccountRequest(self.zc,xml_node)
-        first_cos = zimsoap.utils.extractResponses(resp)[0]
-        self.assertEqual(first_cos.get_name(), 'cos')
-        self.assertTrue(first_cos.attributes().has_key('id'))
+        resp = self.zc.request_list(
+            'CountAccount',
+            {'domain': {'by': 'name', '_content': self.EXISTANT_DOMAIN}}
+        )
+        first_cos = resp[0]
+        self.assertTrue(first_cos.has_key('id'))
 
         # will fail if not convertible to int
-        self.assertIsInstance(int(first_cos), int)
+        self.assertIsInstance(int(first_cos['_content']), int)
 
     def testGetMailboxRequest(self):
         try:
@@ -882,7 +880,8 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def tearDown(self):
         try:
-            self.zc.delete_distribution_list(DistributionList(name=self.TEST_DL_NAME))
+            self.zc.delete_distribution_list(
+                DistributionList(name=self.TEST_DL_NAME))
         except ZimbraSoapServerError:
             pass
 
@@ -990,7 +989,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         dl_req = DistributionList(name=name)
 
         with self.assertRaises(ZimbraSoapServerError) as cm:
-            self.zc.get_distribution_list(dl_req)
+            print self.zc.get_distribution_list(dl_req)
 
         dl = self.zc.create_distribution_list(name)
         self.assertIsInstance(dl, DistributionList)
