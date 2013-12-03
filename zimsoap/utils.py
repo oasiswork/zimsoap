@@ -3,9 +3,11 @@
 """ Misc tool functions """
 
 import pysimplesoap
+import pythonzimbra
 import re
 import hmac
 import hashlib
+from xml.dom import minidom
 
 re_zuuid = re.compile(r'[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}')
 def is_zuuid(s):
@@ -57,3 +59,15 @@ def auto_untype(arg):
         return 'FALSE'
     else:
         return arg
+
+def xml_str_to_dict(s):
+    """ Transforms an XML string it to python-zimbra dict format
+
+    For format, see:
+      https://github.com/Zimbra-Community/python-zimbra/blob/master/README.md
+
+    @param a string, containing XML
+    @returns a dict, with python-zimbra format
+    """
+    xml = minidom.parseString(s)
+    return pythonzimbra.tools.xmlserializer.dom_to_dict(xml.firstChild)
