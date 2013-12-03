@@ -811,7 +811,7 @@ class PythonicAccountAPITests(unittest.TestCase):
         resp = self.zc.get_preference('zimbraPrefMailFlashTitle')
         self.assertIsInstance(resp, bool)
         resp = self.zc.get_preference('zimbraPrefComposeFormat')
-        self.assertIsInstance(resp, str)
+        self.assertIsInstance(resp, (str, unicode))
         resp = self.zc.get_preference('zimbraPrefCalendarDayHourEnd')
         self.assertIsInstance(resp, int)
 

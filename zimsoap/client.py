@@ -138,7 +138,6 @@ class ZimbraSoapServerError(Exception):
             self.http_e, self.http_msg)
 
 
-
 class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
     """ Factorized abstract code for SOAP API access.
 
@@ -183,6 +182,42 @@ class ZimbraAbstractClient(pysimplesoap.client.SoapClient):
 
         return resp.get_response()[resp_name]
 
+    def request_single(self, name, content={}):
+        """ Simple wrapper arround request to extract a single response
+
+        @return the first tag in the response body
+        """
+        resp = self.request(name, content)
+
+        # We stop on the first non-attribute (attributes are unicode/str)
+        # If it's a list, we only return the first one.
+
+        for i in resp.values():
+            if type(i) == list:
+                return i[0]
+            elif type(i) == dict:
+                return i
+
+        return None
+
+
+    def request_list(self, name, content={}):
+        """ Simple wrapper arround request to extract a list of response
+
+        @return the list of tags with same name or empty list
+        """
+        resp = self.request(name, content)
+
+        # We stop on the first non-attribute (attributes are unicode/str)
+        # If it's a list, we only return the first one.
+
+        for i in resp.values():
+            if type(i) == list:
+                return i
+            elif type(i) == dict:
+                return [i]
+
+        return []
 
     def login(self, user, password):
         self._session.login(user, password)
@@ -242,15 +277,8 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
         @returns a list of zobjects.Signature
         """
-        resp = self.request('GetSignatures')
+        signatures = self.request_list('GetSignatures')
 
-        try:
-            signatures = resp['signature']
-        except KeyError:
-            return []
-
-        if type(signatures) != list:
-            signatures = [signatures]
         return [zobjects.Signature.from_dict(i) for i in signatures]
 
     def get_signature(self, signature):
@@ -263,19 +291,13 @@ class ZimbraAccountClient(ZimbraAbstractClient):
                  signature is matching, returns None.
         """
 
-        resp = self.request('GetSignatures',
-                            {'signature': signature.to_selector()})
-
-        if resp.has_key('signature'):
-            if type(resp['signature']) == list:
-                sig = resp['signature'][0]
-            else:
-                sig = resp['signature']
-
-                return zobjects.Signature.from_dict(sig)
+        resp = self.request_single('GetSignatures',
+                                   {'signature': signature.to_selector()})
+        if resp:
+            return zobjects.Signature.from_dict(resp)
         else:
-
             return None
+
 
     def delete_signature(self, signature):
         """ Delete a signature by name or id
@@ -318,10 +340,8 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
         @returns the value, typed to str/bool/int/float regarding its content.
         """
-        xml = pysimplesoap.client.SimpleXMLElement(
-            '<pref name="{}" />'.format(pref_name))
-        resp = self.GetPrefsRequest(self, utils.wrap_el(xml))
-        return utils.auto_type(str(utils.extractSingleResponse(resp)))
+        resp = self.request_single('GetPrefs', {'pref': {'name': pref_name}})
+        return utils.auto_type(resp['_content'])
 
     def get_identities(self):
         """ Get all the identities of the user, as a list

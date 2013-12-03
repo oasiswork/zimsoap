@@ -471,7 +471,7 @@ class Signature(ZObject):
                 plain_text = self._content
                 html_text = ''
             else:
-                html_text = self_content
+                html_text = self._content
                 plain_text = ''
 
             content_plain = {'type': 'text/plain', '_content': plain_text}
