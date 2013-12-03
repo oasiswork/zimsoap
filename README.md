@@ -1,8 +1,14 @@
 ZimSOAP : a programmatic python interface to zimbra
 ===================================================
 
-ZimSOAP allows to access the [SOAP Zimbra API] through a programmatic interface,
-taking care of authentification.
+ZimSOAP allows to access the [SOAP Zimbra API] through a programmatic,
+data-type-aware  interface high-level. It also handle  authentification,
+sessions, pre-authentication and delegated authentication.
+
+Not all methods are covered, but you're welcome to wrap the ones you need and
+pull-request !
+
+If you are looking at a lower-level lib, you better look to [python-zimbra]
 
 Allows accessing zimbraAdmin and zimbraAccount SOAP APIs
 
@@ -11,7 +17,9 @@ Allows accessing zimbraAdmin and zimbraAccount SOAP APIs
  - presents the request results as nice Python objects
  - all requests are tested with 8.0.4 and 8.0.5
 
-[SOAP Zimbra API]: http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/index.html
+[SOAP Zimbra API]:
+http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/index.html
+[python-zimbra]:https://github.com/Zimbra-Community/python-zimbra/
 
 Installing
 ----------
@@ -20,17 +28,15 @@ Fullfill requirements, then simply :
 
     # ./setup.py install
 
-
 Requirements
 ------------
 
-pysimplesoap >= 0.11 (patched, see below)
+python-zimbra (dev version)
 
-Sadly, pysimplesoap has some blocking bugs, waiting for integration upstream,
-and you need for now to use a forked version.
+Hint:
 
-    $ git clone git@github.com:oasiswork/pysimplesoap.git
-	$ cd pysimplesoap
+    $ git clone https://github.com/Zimbra-Community/python-zimbra.git
+	$ cd python-zimbra
 	$ sudo ./setup.py install
 
 API
@@ -95,5 +101,3 @@ To run only some tests, use one of those two:
 
     $ python -m unittest test.MyTestClass
     $ python -m unittest test.MyTestClass.my_test_method
-
-[^1]: http://code.google.com/p/pysimplesoap/issues/detail?id=115
