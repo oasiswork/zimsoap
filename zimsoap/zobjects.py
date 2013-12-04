@@ -4,7 +4,8 @@
 """ Zimbra specific objects, handle (un)parsing to/from XML and other glue-code.
 
 Note that they do *not* handle themselves communication with
-zimbra API. It is left to ZimbraAdminClient.
+zimbra API. It is left to
+ZimbraAdminClient/ZimbraAccountClient/ZimbraMailClient...
 """
 
 from pysimplesoap.client import SimpleXMLElement
