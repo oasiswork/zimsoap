@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 #
-# Unit tests, using unittest module, bundled with python. It has to be tested
-# against a Zimbra server.
-#
+""" Unittests against zimbraMail SOAP webservice
+
+It has to be tested against a zimbra server (see properties.py) and is only
+supposed to pass with the reference VMs.
+"""
 
 import unittest
 

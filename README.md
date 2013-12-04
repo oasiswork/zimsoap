@@ -95,9 +95,10 @@ Make sure your vagrant vm is running `vagrant status`.
 
 Code is covered by unit tests, you can run them (only Python needed):
 
-    $ python test.py
+    $ python -m unittest discover
 
-To run only some tests, use one of those two:
+To run only some tests, for example :
 
-    $ python -m unittest test.MyTestClass
-    $ python -m unittest test.MyTestClass.my_test_method
+    $ python -m unittest test.test_zobjects
+    $ python -m unittest test.test_zobjects.ZObjectTests
+    $ python -m unittest test.test_zobjects.ZObjectTests.testDomainSelector

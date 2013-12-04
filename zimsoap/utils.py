@@ -4,6 +4,8 @@
 
 import pysimplesoap
 import pythonzimbra
+import pythonzimbra.tools.xmlserializer
+
 import re
 import hmac
 import hashlib
