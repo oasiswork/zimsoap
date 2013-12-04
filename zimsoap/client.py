@@ -575,7 +575,7 @@ class ZimbraMailClient(ZimbraAbstractClient):
             *args, **kwargs)
 
     def login(self, user, password):
-        # !!! We need to athenticathe with the 'urn:zimbraAccount' namespace
+        # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
 
     def create_task(self, subject, desc):
@@ -587,7 +587,7 @@ class ZimbraMailClient(ZimbraAbstractClient):
         """
         task = zobjects.Task()
         task_creator = task.to_creator(subject, desc)
-        resp = self.request('CreateTask', {'m': task_creator})
+        resp = self.request('CreateTask', task_creator)
         task_id = resp['calItemId']
         return task_id
 

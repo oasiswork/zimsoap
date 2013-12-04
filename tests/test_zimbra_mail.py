@@ -62,8 +62,8 @@ class ZimbraMailAPITests(unittest.TestCase):
             subject='test_CreateTaskRequest',
             desc='Task Content'
         )
-        dic = utils.xml_str_to_dict(xml)
-        resp = self.zc.request('CreateTask', dic)
+        task = utils.xml_str_to_dict(xml)
+        resp = self.zc.request('CreateTask', task)
 
         # store created task id
         self.task_id = resp['calItemId']
@@ -86,13 +86,13 @@ class ZimbraMailAPITests(unittest.TestCase):
             desc='Task Content'
         )
 
-        task_dic = utils.xml_str_to_dict(xml)
-        resp = self.zc.request('CreateTask', task_dic)
+        task = utils.xml_str_to_dict(xml)
+        resp = self.zc.request('CreateTask', task)
 
         # store created task id
         self.task_id = resp['calItemId']
 
-        resp = self.zc.request('GetTask', {'id':self.task_id})
+        resp = self.zc.request('GetTask', {'id': self.task_id})
 
         # Just checks success (check on response tag is in request())
 
@@ -156,6 +156,6 @@ class ZobjectTaskTests(unittest.TestCase):
         desc = 'Task Content'
 
         req = task.to_creator(subject, desc)
-        self.assertEqual(req['su'], subject)
-        self.assertEqual(req['inv']['comp']['fr']['_content'], desc)
-        self.assertEqual(req['inv']['comp']['desc']['_content'], desc)
+        self.assertEqual(req['m']['su'], subject)
+        self.assertEqual(req['m']['inv']['comp']['fr']['_content'], desc)
+        self.assertEqual(req['m']['inv']['comp']['desc']['_content'], desc)

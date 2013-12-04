@@ -502,7 +502,7 @@ class Task(ZObject):
     ATTRNAME_PROPERTY = 'id'
 
     def to_creator(self, subject, desc):
-        """ Returns an dict XML representation CreateTaskRequest
+        """ Return a python-zimbra dict for CreateTaskRequest
 
         Example :
         <CreateTaskRequest>
@@ -520,32 +520,24 @@ class Task(ZObject):
         </CreateTaskRequest>
         """
 
-        # base_xml = """
-        # <CreateTaskRequest>
-        #     <m>
-        #         <inv>
-        #             <comp percentComplete="0"></comp>
-        #         </inv>
-        #         <mp>
-        #             <content></content>
-        #         </mp>
-        #     </m>
-        # </CreateTaskRequest>
-        # """
+        task = {
+            'm': {
+                'su': subject,
+                'inv': {
+                    'comp': {
+                        'name': subject,
+                        'fr': {'_content': desc},
+                        'desc': {'_content': desc},
+                        'percentComplete': '0'
+                    }
+                },
+                'mp': {
+                    'content': {}
+                }
+            }
+        }
 
-        base_dict = {'m': {
-                'inv': {'comp': {'percentComplete': '0'}},
-                'mp' : {'content': {}}
-        }}
-
-        task = base_dict
-        base_dict['m']['su'] = subject
-        comp = task['m']['inv']['comp']
-        comp['name'] = subject
-        comp['fr'] = {'_content': desc}
-        comp['desc'] = {'_content' : desc}
-
-        return task['m']
+        return task
 
 
 
