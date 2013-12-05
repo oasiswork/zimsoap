@@ -8,7 +8,7 @@ import unittest
 from zimsoap.zobjects import *
 import zimsoap.utils
 
-from test import samples
+import samples
 
 class ZObjectsTests(unittest.TestCase):
     class NullZObject(ZObject):
