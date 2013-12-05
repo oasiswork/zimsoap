@@ -45,12 +45,14 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIn('myid', repr(zo))
 
     def testDomainFromDict(self):
-        d = Domain.from_dict(self.simple_domain_dict['domain'])
+        data = self.simple_domain_dict['domain']
+        d = Domain.from_dict(data)
         self.assertIsInstance(d, Domain)
         self.assertIsInstance(d.id, str)
         self.assertIsInstance(d.name, str)
         self.assertIsNotNone(d.id)
         self.assertEqual(d.name, 'client1.unbound.oasiswork.fr')
+        self.assertEqual(d.get_full_data(), data)
 
     def testDomainSelector(self):
         d = Domain(name='foo')
