@@ -24,5 +24,5 @@ setup(name='zimsoap',
       author_email='jdelalande@oasiswork.fr',
       url='https://dev.oasiswork.fr/projects/zimsoap/',
       packages=['zimsoap'],
-      install_requires=['pysimplesoap>=0.11']
+      install_requires=['pythonzimbra>=1.0-git']
       )
