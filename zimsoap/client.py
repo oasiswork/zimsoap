@@ -287,11 +287,21 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         @returns a zobjects.Signature object, filled with the signature if no
                  signature is matching, returns None.
         """
+        resp = self.request_list('GetSignatures')
 
-        resp = self.request_single('GetSignatures',
-                                   {'signature': signature.to_selector()})
-        if resp:
-            return zobjects.Signature.from_dict(resp)
+        # GetSignature does not allow to filter the results, so we do it by
+        # hand...
+        if resp and (len(resp) > 0):
+            for sig_dict in resp:
+                sig = zobjects.Signature.from_dict(sig_dict)
+                if hasattr(signature, 'id'):
+                    its_this_one = (sig.id == signature.id)
+                elif hasattr(signature, 'name'):
+                    its_this_one = (sig.name == signature.name)
+                else:
+                    raise ValueError('should mention one of id,name')
+                if its_this_one:
+                    return sig
         else:
             return None
 
