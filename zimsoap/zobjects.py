@@ -36,6 +36,8 @@ class ZObject(object):
                     (str(cls), cls.TAG_NAME, xml.get_name()))
 
         obj = cls()
+        obj._full_xml = xml
+
         # import attributes
         obj._import_attributes(xml.attributes())
 
@@ -54,6 +56,7 @@ class ZObject(object):
         if type(d) != dict:
             raise TypeError('Expecting a <dict>, got a {}'.format(type(d)))
         obj = cls()
+        obj._full_data = d
 
         # import attributes
         obj._import_attributes(d)
@@ -68,6 +71,14 @@ class ZObject(object):
         """
         self._import_attributes(kwargs)
         self._a_tags = {}
+        self._full_data = {}
+        self._full_xml = ""
+
+    def get_full_data(self):
+        return self._full_data
+
+    def get_full_xml(self):
+        return self._full_data
 
     def __eq__(self, other):
         if type(self) != type(other):

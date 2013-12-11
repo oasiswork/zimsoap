@@ -1,6 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from distutils.core import setup
+import os
+from setuptools import setup
+
+README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
+
 
 def mk_version(base_version):
     try:
@@ -12,10 +17,12 @@ def mk_version(base_version):
 
 setup(name='zimsoap',
       version=mk_version('0.1'),
-      description='A high-level library to access programaticaly Zimbra SOAP API features',
+      description='A high-level library to access programaticaly Zimbra \
+                   SOAP API features',
+      long_description=README,
       author='Jocelyn Delalande',
       author_email='jdelalande@oasiswork.fr',
       url='https://dev.oasiswork.fr/projects/zimsoap/',
       packages=['zimsoap'],
-      install_requires=['pysimplesoap >= 0.11']
+      install_requires=['pysimplesoap>=0.11']
       )

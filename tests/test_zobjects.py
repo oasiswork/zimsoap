@@ -8,11 +8,13 @@ import unittest
 from zimsoap.zobjects import *
 import zimsoap.utils
 
-from test import samples
+import samples
+
 
 class ZObjectsTests(unittest.TestCase):
+
     class NullZObject(ZObject):
-        ATTRNAME_PROPERTY='n'
+        ATTRNAME_PROPERTY = 'n'
         TAG_NAME = 'TestObject'
 
     def setUp(self):
@@ -45,12 +47,14 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIn('myid', repr(zo))
 
     def testDomainFromDict(self):
-        d = Domain.from_dict(self.simple_domain_dict['domain'])
+        data = self.simple_domain_dict['domain']
+        d = Domain.from_dict(data)
         self.assertIsInstance(d, Domain)
         self.assertIsInstance(d.id, str)
         self.assertIsInstance(d.name, str)
         self.assertIsNotNone(d.id)
         self.assertEqual(d.name, 'client1.unbound.oasiswork.fr')
+        self.assertEqual(d.get_full_data(), data)
 
     def testDomainSelector(self):
         d = Domain(name='foo')
@@ -59,11 +63,11 @@ class ZObjectsTests(unittest.TestCase):
         self.assertEqual(s['_content'], 'foo')
 
     def testInvalidDomainSelector(self):
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             Domain().to_selector()
 
         # Should not produce a selector with spamattr
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             Domain(spamattr='eggvalue').to_selector()
 
     def test_ZObjects_import_a_tags(self):
@@ -97,27 +101,25 @@ class ZObjectsTests(unittest.TestCase):
         self.assertTrue(d1 != d2)
         self.assertFalse(d1 == d2)
 
-
     def test_ZObjects_comparison_invalid_id_first(self):
         d1 = Domain(id='123')
         d2 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
 
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             d1 == d2
 
     def test_ZObjects_comparison_invalid_id_second(self):
         d1 = Domain(id='123')
         d2 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
 
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             d2 == d1
-
 
     def test_ZObjects_comparison_invalid_type(self):
         d1 = Domain(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
         m1 = Mailbox(id='d78fd9c9-f000-440b-bce6-ea938d40fa2d')
 
-        with self.assertRaises(TypeError) as cm:
+        with self.assertRaises(TypeError):
             d1 == m1
 
     def test_Signature_to_selector(self):
@@ -131,10 +133,9 @@ class ZObjectsTests(unittest.TestCase):
         s = Signature(id='1234', name='jdoe')
         self.assertEqual(s.to_selector(), {'id': '1234'})
 
-
     def test_Signature_creator_fails_without_content(self):
         s = Signature(name='unittest')
-        with self.assertRaises(AttributeError) as cm:
+        with self.assertRaises(AttributeError):
             s.to_xml_creator()
 
     def test_Signature_creator_default_format(self):
