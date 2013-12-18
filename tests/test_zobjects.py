@@ -187,3 +187,9 @@ class ZObjectsTests(unittest.TestCase):
         self.assertEqual(sys.is_admin(), False)
         self.assertEqual(adm.is_admin(), True)
         self.assertEqual(norm.is_admin(), False)
+
+
+    def test_property(self):
+        norm = Account.from_dict(self.normal_account_dict['account'])
+        self.assertEqual(norm.property('zimbraFeatureSignaturesEnabled'), True)
+

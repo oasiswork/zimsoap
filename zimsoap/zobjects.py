@@ -281,7 +281,10 @@ class Account(ZObject):
         except KeyError:
             return False
 
-
+    def property(self, property_name):
+        """ Returns a property value
+        """
+        return self._a_tags[property_name]
 
 
 class Identity(ZObject):
