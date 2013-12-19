@@ -324,8 +324,8 @@ class Identity(ZObject):
 
     def is_default(self):
         """ Is it the default identity ? """
-        return self.id == self._a_tags['zimbraPrefIdentityId']
-
+        # it's not just a convention : default identity name cannot be changed...
+        return self.name == 'DEFAULT'
 
 
 class ClassOfService(ZObject):
