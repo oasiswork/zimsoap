@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """ Misc tool functions """
 
-import pysimplesoap
 import pythonzimbra
 import pythonzimbra.tools.xmlserializer
 

@@ -13,7 +13,6 @@ import getpass
 
 import sys; import os; sys.path.append(os.path.dirname(__file__)+'/../')
 
-from pysimplesoap.client import SoapFault
 from urllib2 import URLError
 
 import zimsoap.client
@@ -49,7 +48,7 @@ if __name__ == '__main__':
     zc = zimsoap.client.ZimbraAdminClient(args.server, args.port)
     try:
         zc.login(args.username, password)
-    except (SoapFault, URLError) as sf:
+    except (zimsoap.client.ZimbraSoapServerError, URLError) as sf:
         print sf
         exit(5)
 
