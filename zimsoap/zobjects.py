@@ -301,8 +301,13 @@ class Signature(ZObject):
         """
         o = super(Signature, cls).from_dict(d)
         if d.has_key('content'):
-            o._content = d['content']['_content']
-            o._contenttype = d['content']['type']
+        #	Sometimes, several contents, (one txt, other  html), take last
+            try:
+                o._content = d['content']['_content']
+                o._contenttype = d['content']['type']
+            except TypeError:
+                o._content = d['content'][-1]['_content']
+                o._contenttype = d['content'][-1]['type']
 
         return o
 
