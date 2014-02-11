@@ -126,7 +126,11 @@ class ZObject(object):
 
         for child in childs:
             k = child[cls.ATTRNAME_PROPERTY]
-            v = child['_content']
+            try:
+                v = child['_content']
+            except KeyError:
+                v = None
+
             try:
                 v = utils.auto_type(str(v))
             except UnicodeEncodeError:
