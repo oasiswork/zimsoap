@@ -108,6 +108,12 @@ class ZObject(object):
             if (k != '_content') and (type(v) in (unicode, str)):
                 setattr(self, k, str(v))
 
+    def property(self, property_name):
+        """ Returns a property value
+        """
+        return self._a_tags[property_name]
+
+
     @classmethod
     def _parse_a_tags(cls, dic):
         """ Iterates over all <a> tags and builds a dict with those.
@@ -210,6 +216,15 @@ class Account(ZObject):
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
+    def get_login_part(self):
+        try:
+            domain_name = self.name.split('@')[0]
+            return Domain(name=domain_name)
+        except AttributeError, e:
+            raise NotEnoughInformation(
+                'Cannot get domain without self.name filled')
+
+
     def is_admin(self):
         """ Is it an admin account ?
 
@@ -229,11 +244,6 @@ class Account(ZObject):
             return self._a_tags['zimbraIsSystemAccount']
         except KeyError:
             return False
-
-    def property(self, property_name):
-        """ Returns a property value
-        """
-        return self._a_tags[property_name]
 
 
 class Identity(ZObject):
