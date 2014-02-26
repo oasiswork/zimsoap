@@ -108,10 +108,36 @@ class ZObject(object):
             if (k != '_content') and (type(v) in (unicode, str)):
                 setattr(self, k, str(v))
 
-    def property(self, property_name):
+    def property(self, property_name, default=Ellipsis):
         """ Returns a property value
+
+        @param default will return that value if the property is not found,
+               else, will raise a KeyError.
         """
-        return self._a_tags[property_name]
+        try:
+            return self._a_tags[property_name]
+        except KeyError:
+            if default != Ellipsis:
+                return default
+            else:
+                raise
+
+
+
+    def property_as_list(self, property_name):
+        """ property() but encapsulates it in a list, if it's a
+        single-element property.
+        """
+        try:
+            res = self._a_tags[property_name]
+        except KeyError:
+            return []
+
+        if type(res) == list:
+            return res
+        else:
+            return [res]
+
 
 
     @classmethod
