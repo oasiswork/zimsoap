@@ -328,8 +328,12 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertIsInstance(dl, DistributionList)
         self.assertEqual(dl.name, name)
 
+        dl_list = self.zc.get_all_distribution_lists()
+        self.assertIsInstance(dl_list[0], DistributionList)
+
         dl_got = self.zc.get_distribution_list(dl_req)
         self.assertIsInstance(dl_got, DistributionList)
+        self.assertEqual(dl_got, dl_list[0])
 
         self.zc.delete_distribution_list(dl_got)
 

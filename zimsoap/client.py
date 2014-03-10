@@ -471,6 +471,15 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         resp = self.request_single('GetDomain', {'domain': selector})
         return zobjects.Domain.from_dict(resp)
 
+    def get_all_distribution_lists(self, domain=None):
+        if domain:
+            selectors = {'domain': domain.to_selector()}
+        else:
+            selectors = {}
+
+        got = self.request_list('GetAllDistributionLists', selectors)
+        return [zobjects.DistributionList.from_dict(i) for i in got]
+
     def get_distribution_list(self, dl_description):
         """
         @param   dl_description : a DistributionList specifying either :
