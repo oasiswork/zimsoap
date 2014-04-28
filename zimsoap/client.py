@@ -40,10 +40,10 @@ class RESTClient:
 
     def __init__(self, server_host, server_port=None, preauth_key=None):
         if server_port:
-            self.preauth_url = 'https://{}:{}/service/preauth?'.format(
+            self.preauth_url = 'https://{0}:{1}/service/preauth?'.format(
                 server_host, server_port)
         else:
-            self.preauth_url = 'https://{}/service/preauth?'.format(server_host)
+            self.preauth_url = 'https://{0}/service/preauth?'.format(server_host)
 
         self.set_preauth_key(preauth_key)
 
@@ -116,7 +116,7 @@ class DomainHasNoPreAuthKey(Exception):
     pass"""
     def __init__(self, domain):
         # Call the base class constructor with the parameters it needs
-        msg = '"{}" has no preauth key, make one first, see {}'.format(
+        msg = '"{0}" has no preauth key, make one first, see {1}'.format(
             domain.name,
             'http://wiki.zimbra.com/wiki/Preauth#Preparing_a_domain_for_preauth'
             )
@@ -131,7 +131,7 @@ class ZimbraSoapServerError(Exception):
         self.http_msg = self.r_soap_text.search(self.http_e.read()).groups()[0]
 
     def __str__(self):
-        return '{}: {}'.format(
+        return '{0}: {1}'.format(
             self.http_e, self.http_msg)
 
 
@@ -667,7 +667,7 @@ class ZimbraAPISession:
 
     def import_session(self, auth_token):
         if not isinstance(auth_token, (str, unicode)):
-            raise TypeError('auth_token should be a string, not {}'.format(
+            raise TypeError('auth_token should be a string, not {0}'.format(
                     type(auth_token)))
         self.authToken = auth_token
 

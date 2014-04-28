@@ -33,7 +33,7 @@ class ZObject(object):
         """
 
         if type(d) != dict:
-            raise TypeError('Expecting a <dict>, got a {}'.format(type(d)))
+            raise TypeError('Expecting a <dict>, got a {0}'.format(type(d)))
         obj = cls()
         obj._full_data = d
 

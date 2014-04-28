@@ -24,14 +24,14 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False
     spec and examples are here http://wiki.zimbra.com/wiki/Preauth
     """
     if admin:
-        s = '{}|1|name|{}|{}'.format(account_name, expires, timestamp)
+        s = '{0}|1|name|{1}|{2}'.format(account_name, expires, timestamp)
     else:
-        s = '{}|name|{}|{}'.format(account_name, expires, timestamp)
+        s = '{0}|name|{1}|{2}'.format(account_name, expires, timestamp)
 
     return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()
 
 def wrap_in_cdata(s):
-    return "<![CDATA[{}]]>".format(s)
+    return "<![CDATA[{0}]]>".format(s)
 
 def auto_type(s):
     """ Get a XML response and tries to convert it to Python base object
