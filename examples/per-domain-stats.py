@@ -64,8 +64,8 @@ if __name__ == '__main__':
         print
         print "Domain %s" % domain.name
         for cos , count in zc.count_account(domain):
-            print '{:.<20}{}'.format(cos.name, count)
+            print '{0:.<20}{1}'.format(cos.name, count)
             total_accounts += count
 
-print '\nTOTAL ACCOUNTS ({} domains): {}'.format(
+print '\nTOTAL ACCOUNTS ({0} domains): {1}'.format(
     len(domains_to_inspect), total_accounts)
