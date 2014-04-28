@@ -10,8 +10,8 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 def mk_version(base_version):
     try:
         GIT_HEAD = open('.git/HEAD').readline().split(':')[1].strip()
-        GIT_HEAD_REV = open('.git/{}'.format(GIT_HEAD)).readline().strip()
-        return '{}-git-{:.7}'.format(base_version, GIT_HEAD_REV)
+        GIT_HEAD_REV = open('.git/{0}'.format(GIT_HEAD)).readline().strip()
+        return '{0}-git-{1:.7}'.format(base_version, GIT_HEAD_REV)
     except IOError:
         return base_version
 

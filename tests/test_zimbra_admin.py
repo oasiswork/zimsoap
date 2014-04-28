@@ -366,12 +366,12 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(account_by_id.id, account.id)
 
     def test_mk_auth_token_succeeds(self):
-        user = Account(name='admin@{}'.format(TEST_DOMAIN1))
+        user = Account(name='admin@{0}'.format(TEST_DOMAIN1))
         tk = self.zc.mk_auth_token(user, 0)
         self.assertIsInstance(tk, str)
 
     def test_mk_auth_token_fails_if_no_key(self):
-        user = Account(name='admin@{}'.format(TEST_DOMAIN2))
+        user = Account(name='admin@{0}'.format(TEST_DOMAIN2))
 
         with self.assertRaises(DomainHasNoPreAuthKey) as cm:
             self.zc.mk_auth_token(user, 0)
