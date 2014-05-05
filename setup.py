@@ -9,8 +9,13 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 
 def mk_version(base_version):
     try:
-        GIT_HEAD = open('.git/HEAD').readline().split(':')[1].strip()
-        GIT_HEAD_REV = open('.git/{0}'.format(GIT_HEAD)).readline().strip()
+        try:
+            GIT_HEAD = open('.git/HEAD').readline().split(':')[1].strip()
+        except IndexError: # if we checkout a commit
+            GIT_HEAD_REV = open('.git/HEAD').readline()
+        else:
+            GIT_HEAD_REV = open('.git/{0}'.format(GIT_HEAD)).readline().strip()
+
         return '{0}-git-{1:.7}'.format(base_version, GIT_HEAD_REV)
     except IOError:
         return base_version
