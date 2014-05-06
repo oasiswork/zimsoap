@@ -271,6 +271,16 @@ class Account(ZObject):
         except KeyError:
             return False
 
+    def is_virtual(self):
+        """ Is it a virtual external account ?
+
+        No field present means False by default.
+        """
+        try:
+            return self._a_tags['zimbraIsExternalVirtualAccount']
+        except KeyError:
+            return False
+
 
 class Identity(ZObject):
     """An account object

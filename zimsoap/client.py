@@ -399,7 +399,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def get_all_accounts(self, domain=None, server=None,
                          include_system_accounts=False,
-                         include_admin_accounts=True):
+                         include_admin_accounts=True,
+                         include_virtual_accounts=True):
         selectors = {}
         if domain:
             selectors['domain'] = domain.to_selector()
@@ -416,6 +417,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 not include_system_accounts and account.is_system()
                 or
                 not include_admin_accounts and account.is_admin()
+                or
+                not include_virtual_accounts and account.is_virtual()
                 ):
                 accounts.append(account)
 
@@ -521,6 +524,24 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         selector = account.to_selector()
         resp = self.request_single('GetAccount', {'account': selector})
         return zobjects.Account.from_dict(resp)
+
+
+    def modify_account(self, account, key, val):
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(ac).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+
+        self.request('ModifyAccount', {
+                'id': ac_id,
+                'a' : {'n': key, '_content': val}
+        })
+
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
