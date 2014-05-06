@@ -526,7 +526,11 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return zobjects.Account.from_dict(resp)
 
 
-    def modify_account(self, account, key, val):
+    def modify_account(self, account, attrs):
+        """
+        @param account : a zobjects.Account
+        @attrs         : a dictionary of attributes to set ({key:value,...})
+        """
         try:
             ac_id = account.id
 
@@ -537,9 +541,10 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             except AttributeError:
                 raise ValueError('Unqualified Account')
 
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyAccount', {
                 'id': ac_id,
-                'a' : {'n': key, '_content': val}
+                'a' : attrs
         })
 
 
