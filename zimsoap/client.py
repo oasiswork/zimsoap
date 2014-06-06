@@ -241,6 +241,10 @@ class ZimbraAbstractClient(object):
 
         self.login_with_authToken(authToken)
 
+    def get_host(self):
+        return self._server_host
+
+
 class ZimbraAccountClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAccount webservice.
 
