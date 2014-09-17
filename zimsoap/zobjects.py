@@ -52,6 +52,9 @@ class ZObject(object):
         self._a_tags = {}
         self._full_data = {}
 
+    def __hash__(self):
+        return hash(str(self))
+
     def get_full_data(self):
         return self._full_data
 

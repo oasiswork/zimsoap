@@ -21,7 +21,7 @@ def mk_version(base_version):
         return base_version
 
 setup(name='zimsoap',
-      version=mk_version('0.2'),
+      version=mk_version('0.2.1'),
       description='A high-level library to access programaticaly Zimbra \
                    SOAP API features',
       long_description=README,
