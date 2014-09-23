@@ -4,7 +4,10 @@
 import os
 from setuptools import setup
 
-README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
+try:
+    README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
+except IOError:
+    README = ''
 
 
 def mk_version(base_version):
