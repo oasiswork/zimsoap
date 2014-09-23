@@ -27,7 +27,7 @@ setup(name='zimsoap',
       long_description=README,
       author='Jocelyn Delalande',
       author_email='jdelalande@oasiswork.fr',
-      url='https://dev.oasiswork.fr/projects/zimsoap/',
+      url='https://github.com/oasiswork/zimsoap/',
       packages=['zimsoap'],
       install_requires=['python-zimbra>=1.0']
       )
