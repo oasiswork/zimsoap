@@ -176,6 +176,8 @@ class ZimbraAbstractClient(object):
         except urllib2.HTTPError, e:
             if e.code == 500:
                 raise ZimbraSoapServerError(e, req, resp)
+            else:
+                raise
 
         return resp.get_response()[resp_name]
 
