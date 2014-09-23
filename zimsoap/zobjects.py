@@ -84,6 +84,14 @@ class ZObject(object):
         """
         return self._a_tags[k]
 
+    def get(self, k, default=None):
+        """ Mimics dict() get method
+        """
+        try:
+            return self[k]
+        except KeyError:
+            return default
+
     def __setitem__(self, k, v):
         self._a_tags[k] = v
 
