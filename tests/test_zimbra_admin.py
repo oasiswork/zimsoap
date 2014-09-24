@@ -190,6 +190,11 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.request('GetAccount', {'account': account})
         self.assertIsInstance(resp['account'], dict)
 
+    def testGetAccountInfo(self):
+        account = {'by': 'name', '_content': TEST_LAMBDA_USER}
+        resp = self.zc.request('GetAccountInfo', {'account': account})
+        self.assertIsInstance(resp['cos']['id'], (str, unicode))
+
 
 class PythonicAdminAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
@@ -215,7 +220,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         try:
             self.zc.delete_distribution_list(
                 DistributionList(name=self.TEST_DL_NAME))
-        except ZimbraSoapServerError:
+        except (ZimbraSoapServerError, KeyError):
             pass
 
     def test_get_all_domains(self):
@@ -364,6 +369,12 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertIsInstance(account_by_id, Account)
         self.assertEqual(account_by_id.name, TEST_LAMBDA_USER)
         self.assertEqual(account_by_id.id, account.id)
+
+    def test_get_account_cos(self):
+        cos = self.zc.get_account_cos(Account(name=TEST_LAMBDA_USER))
+        self.assertIsInstance(cos, COS)
+        self.assertEqual(cos.name, 'default')
+        self.assertRegexpMatches(cos.id, r'[\w\-]{36}')
 
     def test_mk_auth_token_succeeds(self):
         user = Account(name='admin@{0}'.format(TEST_DOMAIN1))

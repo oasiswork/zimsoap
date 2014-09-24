@@ -232,6 +232,10 @@ class Domain(ZObject):
     SELECTORS = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
 
 
+class COS(ZObject):
+    TAG_NAME = 'cos'
+    SELECTORS = ('id', 'name')
+
 class Server(ZObject):
     """ A Zimbra server object
     """

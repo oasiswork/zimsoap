@@ -475,6 +475,20 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         return zobjects.Mailbox.from_dict(resp)
 
+    def get_account_cos(self, account):
+        """ Fetch the cos for a given account
+
+        Quite different from the original request which returns COS + various
+        URL + COS + zimbraMailHost... But all other informations are accessible
+        through get_account.
+
+        :type account zobjects.Account
+        :rtype zobjects.COS
+        """
+        resp = self.request(
+            'GetAccountInfo', {'account': account.to_selector()})
+        return zobjects.COS.from_dict(resp['cos'])
+
     def get_domain(self, domain):
         selector = domain.to_selector()
         resp = self.request_single('GetDomain', {'domain': selector})
