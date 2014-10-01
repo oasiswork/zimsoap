@@ -8,6 +8,7 @@ supposed to pass with the reference VMs.
 """
 
 import unittest
+import random
 
 from zimsoap.client import *
 from zimsoap.zobjects import *
@@ -240,6 +241,16 @@ class PythonicAdminAPITests(unittest.TestCase):
         dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
         self.assertIsInstance(dom, Domain)
         self.assertEqual(dom.name, TEST_DOMAIN1)
+
+    def test_modify_domain(self):
+        rand_str = random.randint(0,10**9)
+
+        dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
+        a = {'zimbraAutoProvNotificationBody': rand_str}
+        self.zc.modify_domain(dom, a)
+
+        dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
+        self.assertEqual(dom['zimbraAutoProvNotificationBody'], rand_str)
 
     def test_get_all_accounts(self):
         accounts = self.zc.get_all_accounts()

@@ -494,6 +494,29 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         resp = self.request_single('GetDomain', {'domain': selector})
         return zobjects.Domain.from_dict(resp)
 
+
+    def modify_domain(self, domain, attrs):
+        """
+        :type domain : a zobjects.Domain
+        :param attrs :  attributes to modify
+        :type attrs dict
+        """
+        try:
+            dom_id = domain.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the domain first
+            try:
+                dom_id = self.get_domain(domain).id
+            except AttributeError:
+                raise ValueError('Unqualified domain')
+
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        self.request('ModifyDomain', {
+                'id': dom_id,
+                'a' : attrs
+        })
+
     def get_all_distribution_lists(self, domain=None):
         if domain:
             selectors = {'domain': domain.to_selector()}
