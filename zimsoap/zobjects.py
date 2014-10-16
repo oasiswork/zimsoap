@@ -93,7 +93,7 @@ class ZObject(object):
             return default
 
     def __setitem__(self, k, v):
-        self._a_tags[k] = v
+        self._a_tags[k] = utils.auto_type(v)
 
     def __repr__(self):
         most_significant_id = getattr(self, 'id',
