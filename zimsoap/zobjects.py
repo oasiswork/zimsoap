@@ -125,7 +125,8 @@ class ZObject(object):
             else:
                 raise
 
-
+    def has_property(self, property_name):
+        return self._a_tags.has_key(property_name)
 
     def property_as_list(self, property_name):
         """ property() but encapsulates it in a list, if it's a
