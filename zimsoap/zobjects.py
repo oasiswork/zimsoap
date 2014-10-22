@@ -306,6 +306,12 @@ class Account(ZObject):
         except KeyError:
             return False
 
+class CalendarResource(ZObject):
+    """A CalendarResource object
+    """
+    TAG_NAME = 'calresource'
+    SELECTORS = ('id','name')
+
 
 class Identity(ZObject):
     """An account object

@@ -430,6 +430,23 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         return accounts
 
+
+    def get_all_calendar_resources(self, domain=None, server=None,):
+        selectors = {}
+        if domain:
+            selectors['domain'] = domain.to_selector()
+        if server:
+            selectors['server'] = server.to_selector()
+
+        dict_calres = self.request_list('GetAllCalendarResources', selectors)
+
+        resources = []
+        for i in dict_calres:
+            calres = zobjects.CalendarResource.from_dict(i)
+            resources.append(calres)
+
+        return resources
+
     def get_mailbox_stats(self):
         """ Get global stats about mailboxes
 

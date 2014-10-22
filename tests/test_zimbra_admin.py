@@ -87,6 +87,11 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         self.assertTrue(resp.has_key('account'), list)
         self.assertIsInstance(resp['account'], list)
 
+    def testGetAlllCalendarResourcesReturnsSomething(self):
+        resp = self.zc.request('GetAllCalendarResources')
+        self.assertTrue(resp.has_key('calresource'), list)
+        self.assertIsInstance(resp['calresource'], list)
+
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.request('GetAllDomains')
         self.assertTrue(resp.has_key('domain'), list)
@@ -301,6 +306,21 @@ class PythonicAdminAPITests(unittest.TestCase):
             include_admin_accounts=False, include_system_accounts=False)
         self.assertEqual(len(accounts_no_admin_no_system), 5)
 
+    def test_get_all_calendar_resources(self):
+        resources = self.zc.get_all_calendar_resources()
+        self.assertIsInstance(resources[0], CalendarResource)
+        self.assertEqual(len(resources), 2)
+
+    def test_get_all_calendar_resources_by_single_server(self):
+        test_server = Server(name='zimbratest.oasiswork.fr')
+        resources = self.zc.get_all_calendar_resources(server=test_server)
+        self.assertIsInstance(resources[0], CalendarResource)
+        self.assertEqual(len(resources), 2)
+
+    def test_get_all_calendar_resources_by_single_domain(self):
+        test_domain = Domain(name=TEST_DOMAIN2)
+        resources = self.zc.get_all_calendar_resources(domain=test_domain)
+        self.assertEqual(len(resources), 1)
 
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
