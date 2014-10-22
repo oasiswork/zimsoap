@@ -224,6 +224,23 @@ class Domain(ZObject):
     TAG_NAME = 'domain'
     SELECTORS = ('id', 'name', 'virtualHostname', 'krb5Realm', 'foreignName')
 
+    def get_alias_target_name(self):
+        """ The target of a domain is defined in two places :
+
+          - zimbraDomainAliasTargetId: cd330216-ac40-48a2-abe9-812091879714
+          - zimbraMailCatchAllForwardingAddress: @zimbratest.example.fr
+
+          Here we parse the zimbraMailCatchAllForwardingAddress to extract domain
+
+          :rtype str
+        """
+        prop = self.property('zimbraMailCatchAllForwardingAddress', '')
+        if prop:
+            return prop[1:]
+        else:
+            return prop
+
+
 
 class COS(ZObject):
     TAG_NAME = 'cos'
