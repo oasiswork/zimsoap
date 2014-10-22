@@ -322,6 +322,19 @@ class PythonicAdminAPITests(unittest.TestCase):
         resources = self.zc.get_all_calendar_resources(domain=test_domain)
         self.assertEqual(len(resources), 1)
 
+    def test_get_calendar_resource(self):
+        calendar_resource = self.zc.get_calendar_resource(
+            CalendarResource(name=TEST_CALRES1))
+        self.assertIsInstance(calendar_resource, CalendarResource)
+        self.assertEqual(calendar_resource.name, TEST_CALRES1)
+
+        # Now grab it by ID
+        calendar_resource_by_id = self.zc.get_calendar_resource(
+            CalendarResource(id=calendar_resource.id))
+        self.assertIsInstance(calendar_resource_by_id, CalendarResource)
+        self.assertEqual(calendar_resource_by_id.name, TEST_CALRES1)
+        self.assertEqual(calendar_resource_by_id.id, calendar_resource.id)
+
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
         self.assertIsInstance(stats, dict)

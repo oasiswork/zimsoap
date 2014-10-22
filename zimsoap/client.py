@@ -430,6 +430,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         return accounts
 
+    # Calendar resources
 
     def get_all_calendar_resources(self, domain=None, server=None,):
         selectors = {}
@@ -446,6 +447,18 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             resources.append(calres)
 
         return resources
+
+    def get_calendar_resource(self, cal_resource):
+        """ Fetches an calendar resource with all its attributes.
+
+        @param account, a CalendarResource, with either id or name attribute set.
+        @return a CalendarResource object, filled.
+        """
+        selector = cal_resource.to_selector()
+        resp = self.request_single('GetCalendarResource',
+                                   {'calresource': selector})
+        return zobjects.CalendarResource.from_dict(resp)
+
 
     def get_mailbox_stats(self):
         """ Get global stats about mailboxes
