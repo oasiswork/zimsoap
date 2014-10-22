@@ -459,7 +459,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                                    {'calresource': selector})
         return zobjects.CalendarResource.from_dict(resp)
 
-    def create_calendar_resource(self, name, password, attrs={}):
+    def create_calendar_resource(self, name, password=None, attrs={}):
         """
         :param attrs a dict of attributes, must specify the displayName and
                      zimbraCalResType
@@ -467,9 +467,10 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         print(attrs, type(attrs))
         args = {
             'name'    : name,
-            'password': password,
             'a'       : [{'n': k, '_content': v} for k,v in attrs.items()]
             }
+        if password:
+            args['password'] = password
         resp = self.request_single('CreateCalendarResource', args)
         return zobjects.CalendarResource.from_dict(resp)
 

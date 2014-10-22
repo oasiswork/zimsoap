@@ -345,7 +345,7 @@ class PythonicAdminAPITests(unittest.TestCase):
             print self.zc.get_calendar_resource(res_req)
 
         # CREATE
-        res = self.zc.create_calendar_resource(name, 'password', {
+        res = self.zc.create_calendar_resource(name, attrs={
             'displayName'     : 'test display name',
             'zimbraCalResType': CalendarResource.EQUIPMENT_TYPE
         })
