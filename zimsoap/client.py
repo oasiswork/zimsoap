@@ -459,6 +459,55 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                                    {'calresource': selector})
         return zobjects.CalendarResource.from_dict(resp)
 
+    def create_calendar_resource(self, name, password, attrs={}):
+        """
+        :param attrs a dict of attributes, must specify the displayName and
+                     zimbraCalResType
+        """
+        print(attrs, type(attrs))
+        args = {
+            'name'    : name,
+            'password': password,
+            'a'       : [{'n': k, '_content': v} for k,v in attrs.items()]
+            }
+        resp = self.request_single('CreateCalendarResource', args)
+        return zobjects.CalendarResource.from_dict(resp)
+
+    def delete_calendar_resource(self, calresource):
+        try:
+            res_id = calresource.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the dl first
+            try:
+                cal_id = self.get_calendar_resource(calresource).id
+            except AttributeError:
+                raise ValueError('Unqualified CalendarResource')
+
+        self.request('DeleteCalendarResource', {'id': res_id})
+
+    def modify_calendar_resource(self, calres, attrs):
+        """
+        @param account : a zobjects.CalendarResource
+        @attrs         : a dictionary of attributes to set ({key:value,...})
+        """
+        try:
+            res_id = calres.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                res_id = self.get_calendar_resource(calres).id
+            except AttributeError:
+                raise ValueError('Unqualified CalendarResource')
+
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        self.request('ModifyCalendarResource', {
+                'id': res_id,
+                'a' : attrs
+        })
+
+    # Mailbox stats
 
     def get_mailbox_stats(self):
         """ Get global stats about mailboxes

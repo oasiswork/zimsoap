@@ -252,13 +252,8 @@ class Server(ZObject):
     TAG_NAME = 'server'
     SELECTORS = ('id', 'name', 'serviceHostname')
 
-class Account(ZObject):
-    """An account object
-    """
-    TAG_NAME = 'account'
-    SELECTORS = ('adminName','appAdminName','id',
-                 'foreignPrincipal','name','krb5Principal')
 
+class AbstractAddressableZObject(ZObject):
     def get_domain(self):
         try:
             domain_name = self.name.split('@')[1]
@@ -275,6 +270,13 @@ class Account(ZObject):
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
+
+class Account(AbstractAddressableZObject):
+    """An account object
+    """
+    TAG_NAME = 'account'
+    SELECTORS = ('adminName','appAdminName','id',
+                 'foreignPrincipal','name','krb5Principal')
 
     def is_admin(self):
         """ Is it an admin account ?
@@ -306,11 +308,14 @@ class Account(ZObject):
         except KeyError:
             return False
 
-class CalendarResource(ZObject):
+class CalendarResource(AbstractAddressableZObject):
     """A CalendarResource object
     """
     TAG_NAME = 'calresource'
     SELECTORS = ('id','name')
+
+    EQUIPMENT_TYPE = 'Equipment'
+    LOCATION_TYPE = 'Location'
 
 
 class Identity(ZObject):

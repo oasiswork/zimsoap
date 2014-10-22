@@ -335,6 +335,43 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(calendar_resource_by_id.name, TEST_CALRES1)
         self.assertEqual(calendar_resource_by_id.id, calendar_resource.id)
 
+
+    def test_create_get_update_delete_calendar_resource(self):
+        name = 'test-{}@zimbratest.oasiswork.fr'.format(
+            random.randint(0,10**9))
+        res_req = CalendarResource(name=name)
+
+        with self.assertRaises(ZimbraSoapServerError) as cm:
+            print self.zc.get_calendar_resource(res_req)
+
+        # CREATE
+        res = self.zc.create_calendar_resource(name, 'password', {
+            'displayName'     : 'test display name',
+            'zimbraCalResType': CalendarResource.EQUIPMENT_TYPE
+        })
+
+        self.assertIsInstance(res, CalendarResource)
+        self.assertEqual(res.name, name)
+
+        # GET
+        res_got = self.zc.get_calendar_resource(res_req)
+        self.assertIsInstance(res_got, CalendarResource)
+        self.assertEqual(res.name, name)
+
+        # UPDATE
+        random_name_1 =  'test-{}'.format(random.randint(0,10**9))
+        self.zc.modify_calendar_resource(res_got, {'displayName': random_name_1})
+
+        res_got = self.zc.get_calendar_resource(res_req)
+        self.assertEqual(res_got['displayName'], random_name_1)
+
+        # DELETE
+        self.zc.delete_calendar_resource(res_got)
+
+        with self.assertRaises(ZimbraSoapServerError) as cm:
+            self.zc.get_calendar_resource(res)
+
+
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
         self.assertIsInstance(stats, dict)
