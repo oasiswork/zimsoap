@@ -234,7 +234,7 @@ class Domain(ZObject):
 
           :rtype str
         """
-        prop = self.property('zimbraMailCatchAllForwardingAddress', '')
+        prop = str(self.property('zimbraMailCatchAllForwardingAddress', ''))
         if prop:
             return prop[1:]
         else:
