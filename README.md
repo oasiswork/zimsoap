@@ -24,20 +24,13 @@ http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/index.ht
 Installing
 ----------
 
-Fullfill requirements, then simply :
+Simple:
 
-    # ./setup.py install
+    pip install zimsoap
 
-Requirements
-------------
+Or if you fetch it from git:
 
-python-zimbra (dev version)
-
-Hint:
-
-    $ git clone https://github.com/Zimbra-Community/python-zimbra.git
-	$ cd python-zimbra
-	$ sudo ./setup.py install
+    ./setup.py install
 
 API
 ---
