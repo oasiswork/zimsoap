@@ -660,7 +660,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         except AttributeError:
             # No id is known, so we have to fetch the account first
             try:
-                ac_id = self.get_account(ac).id
+                ac_id = self.get_account(account).id
             except AttributeError:
                 raise ValueError('Unqualified Account')
 
@@ -670,6 +670,37 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 'a' : attrs
         })
 
+    def create_account(self, email, password, attrs={}):
+        """
+        @param email : Full email with domain eg: login@domain.com
+        @param password : Password for local auth
+        @attrs         : a dictionary of attributes to set ({key:value,...})
+        """
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        self.request('CreateAccount', {
+                'name': email,
+                'password' : password,
+                'a': attrs,
+        })
+
+    def delete_account(self, account):
+        """
+        @param acccount : an account object to be used as a selector
+        @param password : Password for local auth
+        @attrs         : a dictionary of attributes to set ({key:value,...})
+        """
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(account).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+        self.request('DeleteAccount', {
+                'id': ac_id,
+        })
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
