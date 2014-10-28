@@ -686,8 +686,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def delete_account(self, account):
         """
         @param acccount : an account object to be used as a selector
-        @param password : Password for local auth
-        @attrs         : a dictionary of attributes to set ({key:value,...})
         """
         try:
             ac_id = account.id
@@ -700,6 +698,25 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 raise ValueError('Unqualified Account')
         self.request('DeleteAccount', {
                 'id': ac_id,
+        })
+
+    def add_account_alias(selc, account, alias):
+        """
+        @param acccount : an account object to be used as a selector
+        @param password : email alias
+        """
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(account).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+        self.request('AddAccountAlias', {
+                'id': ac_id,
+                'alias': alias,
         })
 
     def mk_auth_token(self, account, admin=False, duration=0):
