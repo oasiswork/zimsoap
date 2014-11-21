@@ -415,6 +415,8 @@ class Signature(ZObject):
 
         return {selector: val}
 
+    def get_content(self, content):
+        return self._content
 
     def set_content(self, content, contenttype='text/html'):
         self._content = content
