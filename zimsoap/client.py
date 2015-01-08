@@ -102,16 +102,17 @@ class MailRESTClient(RESTClient):
         self.isadmin = False
         RESTClient.__init__(self, *args, **kwargs)
 
+class ZimSOAPException(Exception):
+    pass
 
-
-class ShouldAuthenticateFirst(Exception):
+class ShouldAuthenticateFirst(ZimSOAPException):
     """ Error fired when an operation requiring auth is intented before the auth
     is done.
     """
     pass
 
 
-class DomainHasNoPreAuthKey(Exception):
+class DomainHasNoPreAuthKey(ZimSOAPException):
     """ Error fired when the server has no preauth key
     pass"""
     def __init__(self, domain):
@@ -122,7 +123,7 @@ class DomainHasNoPreAuthKey(Exception):
             )
         Exception.__init__(self)
 
-class ZimbraSoapServerError(Exception):
+class ZimbraSoapServerError(ZimSOAPException):
     r_soap_text = re.compile(r'<soap:Text>(.*)</soap:Text>')
     def __init__(self, http_e, request, response):
         self.http_e = http_e
@@ -133,6 +134,18 @@ class ZimbraSoapServerError(Exception):
     def __str__(self):
         return '{0}: {1}'.format(
             self.http_e, self.http_msg)
+
+class ZimbraSoapUnexpectedResponse(ZimSOAPException):
+    def __init__(self, request, response, msg=''):
+        self.request = request
+        self.response = response
+        self.msg = msg
+
+    def __str__(self):
+        if self.msg:
+            return self.msg
+        else:
+            return 'Unexpected Response from Zimbra Server'
 
 
 class ZimbraAbstractClient(object):
@@ -179,7 +192,12 @@ class ZimbraAbstractClient(object):
             else:
                 raise
 
-        return resp.get_response()[resp_name]
+        try:
+            return resp.get_response()[resp_name]
+        except KeyError:
+            raise ZimbraSoapUnexpectedResponse(
+                req, resp, 'Cannot find {} in response "{}"'.format(
+                    resp_name, resp.get_response()))
 
     def request_single(self, name, content={}):
         """ Simple wrapper arround request to extract a single response
