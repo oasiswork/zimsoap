@@ -114,7 +114,7 @@ class ZObject(object):
     def property(self, property_name, default=Ellipsis):
         """ Returns a property value
 
-        @param default will return that value if the property is not found,
+        :param: default will return that value if the property is not found,
                else, will raise a KeyError.
         """
         try:
@@ -150,8 +150,8 @@ class ZObject(object):
         If a tag with same "n" attributes appears several times, the
         dict value is a list with the tags values, else it's a string.
 
-        @param dic the dict describing the tag
-        @returns   a dict
+        :param: dic the dict describing the tag
+        :returns:   a dict
         """
         props = {}
 
@@ -188,8 +188,8 @@ class ZObject(object):
     def _unparse_a_tags(cls, attrs_dict):
         """ Iterates over the dictionary
 
-        @param attrs_dict a dict of attributes
-        @returns   a SimpleXMLElement list containing <a> tags
+        :param: attrs_dict a dict of attributes
+        :returns:   a SimpleXMLElement list containing <a> tags
         """
         prop_tags = []
 
@@ -232,7 +232,7 @@ class Domain(ZObject):
 
           Here we parse the zimbraMailCatchAllForwardingAddress to extract domain
 
-          :rtype str
+          :rtype: str
         """
         prop = str(self.property('zimbraMailCatchAllForwardingAddress', ''))
         if prop:

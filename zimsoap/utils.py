@@ -67,8 +67,8 @@ def xml_str_to_dict(s):
     For format, see:
       https://github.com/Zimbra-Community/python-zimbra/blob/master/README.md
 
-    @param a string, containing XML
-    @returns a dict, with python-zimbra format
+    :param: a string, containing XML
+    :returns: a dict, with python-zimbra format
     """
     xml = minidom.parseString(s)
     return pythonzimbra.tools.xmlserializer.dom_to_dict(xml.firstChild)
