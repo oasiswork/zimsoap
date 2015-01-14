@@ -706,7 +706,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def add_account_alias(self, account, alias):
         """
         @param acccount  an account object to be used as a selector
-        @param alias     email alias
+        @param alias     email alias address
         @returns         None (the API itself returns nothing)
         """
         try:
@@ -722,6 +722,27 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 'id': ac_id,
                 'alias': alias,
         })
+
+    def remove_account_alias(self, account, alias):
+        """
+        @param acccount  an account object to be used as a selector
+        @param alias     email alias address
+        @returns         None (the API itself returns nothing)
+        """
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(account).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+        self.request('RemoveAccountAlias', {
+                'id': ac_id,
+                'alias': alias,
+        })
+
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.

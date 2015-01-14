@@ -405,6 +405,34 @@ class PythonicAdminAPITests(unittest.TestCase):
             self.zc.get_account(ac)
 
 
+    def test_create_delete_account_alias(self):
+
+        # prepare account
+
+        ac_name = 'test-{}@zimbratest.oasiswork.fr'.format(
+            random.randint(0,10**9))
+        ac = self.zc.create_account(ac_name, 'pass1234')
+
+        alias_name = 'test-{}@zimbratest.oasiswork.fr'.format(
+            random.randint(0,10**9))
+
+        # CREATE
+        retval = self.zc.add_account_alias(Account(name=ac_name), alias_name)
+
+        self.assertEqual(retval, None)
+
+        # GET
+        ac_got = self.zc.get_account(Account(name=ac_name))
+        self.assertIn(alias_name, ac_got['mail'])
+
+        # DELETE
+        self.zc.remove_account_alias(ac, alias_name)
+
+        # GET
+        ac_got = self.zc.get_account(Account(name=ac_name))
+        self.assertNotIn(alias_name, ac_got['mail'])
+
+
 
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
