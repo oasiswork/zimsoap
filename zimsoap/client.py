@@ -672,9 +672,10 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def create_account(self, email, password, attrs={}):
         """
-        @param email : Full email with domain eg: login@domain.com
-        @param password : Password for local auth
-        @attrs         : a dictionary of attributes to set ({key:value,...})
+        @param email    Full email with domain eg: login@domain.com
+        @param password Password for local auth
+        @attrs          a dictionary of attributes to set ({key:value,...})
+        @returns        the account
         """
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('CreateAccount', {
@@ -702,8 +703,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def add_account_alias(selc, account, alias):
         """
-        @param acccount : an account object to be used as a selector
-        @param password : email alias
+        @param acccount  an account object to be used as a selector
+        @param alias     email alias
+        @returns         None (the API itself returns nothing)
         """
         try:
             ac_id = account.id
