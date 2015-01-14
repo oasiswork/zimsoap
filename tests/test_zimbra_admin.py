@@ -342,7 +342,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         res_req = CalendarResource(name=name)
 
         with self.assertRaises(ZimbraSoapServerError) as cm:
-            print self.zc.get_calendar_resource(res_req)
+            self.zc.get_calendar_resource(res_req)
 
         # CREATE
         res = self.zc.create_calendar_resource(name, attrs={
@@ -370,6 +370,40 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_calendar_resource(res)
+
+    def test_create_get_update_delete_account(self):
+        name = 'test-{}@zimbratest.oasiswork.fr'.format(
+            random.randint(0,10**9))
+        password = 'pass124'
+        ac_req = Account(name=name)
+
+        with self.assertRaises(ZimbraSoapServerError) as cm:
+            self.zc.get_account(ac_req)
+
+        # CREATE
+        ac = self.zc.create_account(name, password)
+
+        self.assertIsInstance(ac, Account)
+        self.assertEqual(ac.name, name)
+
+        # GET
+        ac_got = self.zc.get_account(ac_req)
+        self.assertIsInstance(ac_got, Account)
+        self.assertEqual(ac_got.name, name)
+
+        # UPDATE
+        random_name_1 =  'test-{}'.format(random.randint(0,10**9))
+        self.zc.modify_account(ac_got, {'displayName': random_name_1})
+
+        ac_got = self.zc.get_account(ac_req)
+        self.assertEqual(ac_got['displayName'], random_name_1)
+
+        # DELETE
+        self.zc.delete_account(ac_got)
+
+        with self.assertRaises(ZimbraSoapServerError) as cm:
+            self.zc.get_account(ac)
+
 
 
     def test_get_mailbox_stats(self):

@@ -675,14 +675,16 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         @param email    Full email with domain eg: login@domain.com
         @param password Password for local auth
         @attrs          a dictionary of attributes to set ({key:value,...})
-        @returns        the account
+        @returns        the created zobjects.Account
         """
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
-        self.request('CreateAccount', {
+        resp = self.request_single('CreateAccount', {
                 'name': email,
                 'password' : password,
                 'a': attrs,
         })
+
+        return zobjects.Account.from_dict(resp)
 
     def delete_account(self, account):
         """
