@@ -416,6 +416,26 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    def _get_or_fetch_id(self, zobj, fetch_func):
+        """ Returns the ID of a Zobject wether it's already known or not
+
+        If zobj.id is not known (frequent if zobj is a selector), fetches first
+        the object and then returns its ID.
+
+        :type zobj:       a zobject subclass
+        :type fetch_func: the function to fetch the zobj from server if its id
+                          is undefined.
+        :returns:         the object id
+        """
+
+        try:
+            return zobj.id
+        except AttributeError:
+            try:
+                return fetch_func(zobj).id
+            except AttributeError:
+                raise ValueError('Unqualified Resource')
+
     def get_all_domains(self):
         resp = self.request_list('GetAllDomains')
         return [zobjects.Domain.from_dict(d) for d in resp]
@@ -482,7 +502,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param: attrs a dict of attributes, must specify the displayName and
                      zimbraCalResType
         """
-        print(attrs, type(attrs))
         args = {
             'name'    : name,
             'a'       : [{'n': k, '_content': v} for k,v in attrs.items()]
@@ -493,36 +512,18 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return zobjects.CalendarResource.from_dict(resp)
 
     def delete_calendar_resource(self, calresource):
-        try:
-            res_id = calresource.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the dl first
-            try:
-                cal_id = self.get_calendar_resource(calresource).id
-            except AttributeError:
-                raise ValueError('Unqualified CalendarResource')
-
-        self.request('DeleteCalendarResource', {'id': res_id})
+        self.request('DeleteCalendarResource', {
+            'id': self._get_or_fetch_id(calresource, self.get_calendar_resource),
+        })
 
     def modify_calendar_resource(self, calres, attrs):
         """
         :param account: a zobjects.CalendarResource
         :param attrs:    a dictionary of attributes to set ({key:value,...})
         """
-        try:
-            res_id = calres.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                res_id = self.get_calendar_resource(calres).id
-            except AttributeError:
-                raise ValueError('Unqualified CalendarResource')
-
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyCalendarResource', {
-                'id': res_id,
+                'id': self._get_or_fetch_id(calres, self.get_calendar_resource),
                 'a' : attrs
         })
 
@@ -599,19 +600,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param attrs: attributes to modify
         :type attrs dict
         """
-        try:
-            dom_id = domain.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the domain first
-            try:
-                dom_id = self.get_domain(domain).id
-            except AttributeError:
-                raise ValueError('Unqualified domain')
-
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyDomain', {
-                'id': dom_id,
+                'id': self._get_or_fetch_id(domain, self.get_domain),
                 'a' : attrs
         })
 
@@ -644,17 +635,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return zobjects.DistributionList.from_dict(resp)
 
     def delete_distribution_list(self, dl):
-        try:
-            dl_id = dl.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the dl first
-            try:
-                dl_id = self.get_distribution_list(dl).id
-            except AttributeError:
-                raise ValueError('Unqualified DistributionList')
-
-        self.request('DeleteDistributionList', {'id': dl_id})
+        self.request('DeleteDistributionList', {
+            'id': self._get_or_fetch_id(dl, self.get_distribution_list)
+        })
 
     def get_account(self, account):
         """ Fetches an account with all its attributes.
@@ -672,19 +655,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param account: a zobjects.Account
         :param attrs  : a dictionary of attributes to set ({key:value,...})
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
-
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyAccount', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
                 'a' : attrs
         })
 
@@ -708,17 +681,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         """
         :param acccount: an account object to be used as a selector
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
         self.request('DeleteAccount', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
         })
 
     def add_account_alias(self, account, alias):
@@ -727,17 +691,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param alias:     email alias address
         :returns:         None (the API itself returns nothing)
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
         self.request('AddAccountAlias', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
                 'alias': alias,
         })
 
@@ -747,17 +702,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param alias:     email alias address
         :returns:         None (the API itself returns nothing)
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
         self.request('RemoveAccountAlias', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
                 'alias': alias,
         })
 
