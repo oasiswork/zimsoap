@@ -701,7 +701,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 'id': ac_id,
         })
 
-    def add_account_alias(selc, account, alias):
+    def add_account_alias(self, account, alias):
         """
         @param acccount  an account object to be used as a selector
         @param alias     email alias
