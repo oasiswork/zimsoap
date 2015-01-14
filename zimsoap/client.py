@@ -678,7 +678,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         except AttributeError:
             # No id is known, so we have to fetch the account first
             try:
-                ac_id = self.get_account(ac).id
+                ac_id = self.get_account(account).id
             except AttributeError:
                 raise ValueError('Unqualified Account')
 
@@ -686,6 +686,79 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         self.request('ModifyAccount', {
                 'id': ac_id,
                 'a' : attrs
+        })
+
+    def create_account(self, email, password, attrs={}):
+        """
+        @param email    Full email with domain eg: login@domain.com
+        @param password Password for local auth
+        @attrs          a dictionary of attributes to set ({key:value,...})
+        @returns        the created zobjects.Account
+        """
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        resp = self.request_single('CreateAccount', {
+                'name': email,
+                'password' : password,
+                'a': attrs,
+        })
+
+        return zobjects.Account.from_dict(resp)
+
+    def delete_account(self, account):
+        """
+        @param acccount : an account object to be used as a selector
+        """
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(account).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+        self.request('DeleteAccount', {
+                'id': ac_id,
+        })
+
+    def add_account_alias(self, account, alias):
+        """
+        @param acccount  an account object to be used as a selector
+        @param alias     email alias address
+        @returns         None (the API itself returns nothing)
+        """
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(account).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+        self.request('AddAccountAlias', {
+                'id': ac_id,
+                'alias': alias,
+        })
+
+    def remove_account_alias(self, account, alias):
+        """
+        @param acccount  an account object to be used as a selector
+        @param alias     email alias address
+        @returns         None (the API itself returns nothing)
+        """
+        try:
+            ac_id = account.id
+
+        except AttributeError:
+            # No id is known, so we have to fetch the account first
+            try:
+                ac_id = self.get_account(account).id
+            except AttributeError:
+                raise ValueError('Unqualified Account')
+        self.request('RemoveAccountAlias', {
+                'id': ac_id,
+                'alias': alias,
         })
 
 
