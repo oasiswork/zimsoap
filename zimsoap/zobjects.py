@@ -536,4 +536,38 @@ class Task(ZObject):
         return task
 
 
+class Folder(ZObject):
+    TAG_NAME = 'folder'
+    ATTRNAME_PROPERTY = 'id'
+    SELECTORS = ('uuid', 'l', 'path')
 
+    # Selectors for Folders don't use the standard form
+    def to_selector(self):
+        selector = None
+        for s in self.SELECTORS:
+            if hasattr(self, s):
+                selector = s
+
+        if selector is None:
+            raise ValueError("At least one %s has to be set as attr." \
+                             % str(self.SELECTORS))
+
+        val = getattr(self, selector)
+
+        return {selector: val}
+
+    def get_unread(self):
+        if hasattr(self, "u"):
+            return self.u
+        else:
+            return 0
+
+
+class Link(Folder):
+    TAG_NAME = 'link'
+    ATTRNAME_PROPERTY = 'id'
+
+
+class Search(Folder):
+    TAG_NAME = 'search'
+    ATTRNAME_PROPERTY = 'id'
