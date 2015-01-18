@@ -823,6 +823,7 @@ class ZimbraMailClient(ZimbraAbstractClient):
             return None
 
 
+
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
        authentification header.
