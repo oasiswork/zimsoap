@@ -109,7 +109,7 @@ class ZObject(object):
     def _import_attributes(self, dic):
         for k, v in dic.items():
             if (k != '_content') and (type(v) in (unicode, str)):
-                setattr(self, k, str(v))
+                setattr(self, k, unicode(v))
 
     def property(self, property_name, default=Ellipsis):
         """ Returns a property value
