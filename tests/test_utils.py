@@ -53,7 +53,7 @@ class ZimsoapUtilsTests(unittest.TestCase):
         self.assertIsInstance(utils.auto_type('FALSE'), bool)
 
     def test_auto_type_none(self):
-        self.assertEqual(None, '')
+        self.assertEqual(utils.auto_type(None), '')
 
     def test_auto_untype_bool(self):
         self.assertEqual(utils.auto_untype(True), 'TRUE')
