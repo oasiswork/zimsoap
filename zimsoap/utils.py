@@ -43,7 +43,11 @@ def auto_type(s):
     else:
         try:
             try:
-                return int(s)
+                # telephone numbers may be wrongly interpretted as ints
+                if s.startswith('+'):
+                    return s
+                else:
+                    return int(s)
             except ValueError:
                 return float(s)
 
