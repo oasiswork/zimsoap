@@ -14,12 +14,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "8.0.4p" do |that|
 		that.vm.box = "zimbra-8.0.4p"
-		that.vm.box_url = "http://vagrant.oasiswork.fr/zimbra-8.0.4p.box"
+		that.vm.box_url = "http://vagrant.owk.cc/zimbra-8.0.4p.box"
   end
 
   config.vm.define "8.0.5" do |that|
 		that.vm.box = "zimbra-8.0.5"
-		that.vm.box_url = "http://vagrant.oasiswork.fr/zimbra-8.0.5.box"
+		that.vm.box_url = "http://vagrant.owk.cc/zimbra-8.0.5.box"
   end
 
   # The url from where the 'config.vm.box' box will be fetched if it

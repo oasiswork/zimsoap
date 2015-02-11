@@ -7,8 +7,6 @@ core classes for SOAP clients, there are also REST clients here, but used only
 for pre-authentification.
 """
 
-
-from os.path import dirname, abspath, join
 import datetime
 import urllib
 import urllib2
@@ -17,7 +15,6 @@ import time
 import re
 
 import pythonzimbra
-
 import pythonzimbra.tools.auth
 from pythonzimbra.communication import Communication
 
@@ -29,6 +26,8 @@ class RESTClient:
     """ Abstract Classe, RESTClient defines a REST client for some operations we
     can't do with SOAP API, such as admin preauth.
     """
+    TOKEN_COOKIE = "ZM_AUTH_TOKEN"
+
     class NoPreauthKeyProvided(Exception):
         pass
 
@@ -38,13 +37,14 @@ class RESTClient:
             self.msg = 'Zimbra issued HTTP error : '+e.msg
             Exception.__init__(self, self.msg)
 
-    def __init__(self, server_host, server_port=None, preauth_key=None):
+    def __init__(self, server_host, server_port=None, preauth_key=None, isadmin=False):
         if server_port:
             self.preauth_url = 'https://{0}:{1}/service/preauth?'.format(
                 server_host, server_port)
         else:
             self.preauth_url = 'https://{0}/service/preauth?'.format(server_host)
 
+        self.isadmin = isadmin
         self.set_preauth_key(preauth_key)
 
     def set_preauth_key(self, preauth_key):
@@ -102,16 +102,17 @@ class MailRESTClient(RESTClient):
         self.isadmin = False
         RESTClient.__init__(self, *args, **kwargs)
 
+class ZimSOAPException(Exception):
+    pass
 
-
-class ShouldAuthenticateFirst(Exception):
+class ShouldAuthenticateFirst(ZimSOAPException):
     """ Error fired when an operation requiring auth is intented before the auth
     is done.
     """
     pass
 
 
-class DomainHasNoPreAuthKey(Exception):
+class DomainHasNoPreAuthKey(ZimSOAPException):
     """ Error fired when the server has no preauth key
     pass"""
     def __init__(self, domain):
@@ -122,7 +123,7 @@ class DomainHasNoPreAuthKey(Exception):
             )
         Exception.__init__(self)
 
-class ZimbraSoapServerError(Exception):
+class ZimbraSoapServerError(ZimSOAPException):
     r_soap_text = re.compile(r'<soap:Text>(.*)</soap:Text>')
     def __init__(self, http_e, request, response):
         self.http_e = http_e
@@ -133,6 +134,18 @@ class ZimbraSoapServerError(Exception):
     def __str__(self):
         return '{0}: {1}'.format(
             self.http_e, self.http_msg)
+
+class ZimbraSoapUnexpectedResponse(ZimSOAPException):
+    def __init__(self, request, response, msg=''):
+        self.request = request
+        self.response = response
+        self.msg = msg
+
+    def __str__(self):
+        if self.msg:
+            return self.msg
+        else:
+            return 'Unexpected Response from Zimbra Server'
 
 
 class ZimbraAbstractClient(object):
@@ -152,12 +165,12 @@ class ZimbraAbstractClient(object):
         """ Do a SOAP request and returns the result.
 
         Simple wrapper arround pythonzimbra functions
-        @param name ex: 'Auth' for performing an 'AuthRequest'
-        @param content: a dict formatted pythonzimbra-style for request
-        @param namespace: (optional), the namespace, if different from the
+        :param name: ex: 'Auth' for performing an 'AuthRequest'
+        :param content: a dict formatted pythonzimbra-style for request
+        :param namespace: (optional), the namespace, if different from the
                           client's
 
-        @returns a dict with response
+        :returns: a dict with response
         """
         if not namespace:
             namespace = self.NAMESPACE
@@ -179,12 +192,17 @@ class ZimbraAbstractClient(object):
             else:
                 raise
 
-        return resp.get_response()[resp_name]
+        try:
+            return resp.get_response()[resp_name]
+        except KeyError:
+            raise ZimbraSoapUnexpectedResponse(
+                req, resp, 'Cannot find {} in response "{}"'.format(
+                    resp_name, resp.get_response()))
 
     def request_single(self, name, content={}):
         """ Simple wrapper arround request to extract a single response
 
-        @return the first tag in the response body
+        :returns: the first tag in the response body
         """
         resp = self.request(name, content)
 
@@ -203,7 +221,7 @@ class ZimbraAbstractClient(object):
     def request_list(self, name, content={}):
         """ Simple wrapper arround request to extract a list of response
 
-        @return the list of tags with same name or empty list
+        :returns: the list of tags with same name or empty list
         """
         resp = self.request(name, content)
 
@@ -264,10 +282,10 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
     def create_signature(self, name, content, contenttype="text/html"):
         """
-        @param  name        verbose name of the signature
-        @param  content     content of the signature, in html or plain-text
-        @param  contenttype can be "text/html" (default) or "text/plain"
-        @return a zobjects.Signature object
+        :param:  name        verbose name of the signature
+        :param:  content     content of the signature, in html or plain-text
+        :param:  contenttype can be "text/html" (default) or "text/plain"
+        :returns: a zobjects.Signature object
         """
         s = zobjects.Signature(name=name)
         s.set_content(content, contenttype)
@@ -278,7 +296,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def get_signatures(self):
         """ Get all signatures for the current user
 
-        @returns a list of zobjects.Signature
+        :returns: a list of zobjects.Signature
         """
         signatures = self.request_list('GetSignatures')
 
@@ -287,10 +305,10 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def get_signature(self, signature):
         """Retrieve one signature, discriminated by name or id.
 
-        @param a zobjects.Signature describing the signature
+        :param: a zobjects.Signature describing the signature
                like "Signature(name='my-sig')"
 
-        @returns a zobjects.Signature object, filled with the signature if no
+        :returns: a zobjects.Signature object, filled with the signature if no
                  signature is matching, returns None.
         """
         resp = self.request_list('GetSignatures')
@@ -315,7 +333,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def delete_signature(self, signature):
         """ Delete a signature by name or id
 
-        @param signature a Signature object with name or id defined
+        :param: signature a Signature object with name or id defined
         """
         self.request('DeleteSignature', {'signature': signature.to_selector()})
 
@@ -324,7 +342,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
         Can modify the content, contenttype and name. An unset attribute will not
         delete the attribute but leave it untouched.
-        @param signature a zobject.Signature object, with modified
+        :param: signature a zobject.Signature object, with modified
                          content/contentype/name, the id should be present and
                           valid, the name does not allows to identify the
                          signature for that operation.
@@ -337,7 +355,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def get_preferences(self):
         """ Gets all the preferences of the current user
 
-        @returns a dict presenting the preferences by name, values are
+        :returns: a dict presenting the preferences by name, values are
                  typed to str/bool/int/float regarding their content.
         """
         pref_list = self.request('GetPrefs')['pref']
@@ -351,7 +369,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def get_preference(self, pref_name):
         """ Gets a single named preference
 
-        @returns the value, typed to str/bool/int/float regarding its content.
+        :returns: the value, typed to str/bool/int/float regarding its content.
         """
         resp = self.request_single('GetPrefs', {'pref': {'name': pref_name}})
         return utils.auto_type(resp['_content'])
@@ -359,7 +377,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def get_identities(self):
         """ Get all the identities of the user, as a list
 
-        @returns list of zobjects.Identity
+        :returns: list of zobjects.Identity
         """
         resp = self.request('GetIdentities')
 
@@ -375,7 +393,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def modify_identity(self, identity):
         """ Modify some attributes of an identity or its name.
 
-        @param identity a zobjects.Identity with `id` set (mandatory). Also set
+        :param: identity a zobjects.Identity with `id` set (mandatory). Also set
                items you want to modify/set and/or the `name` attribute to
                rename the identity.
         """
@@ -397,6 +415,26 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         super(ZimbraAdminClient, self).__init__(
             server_host, server_port,
             *args, **kwargs)
+
+    def _get_or_fetch_id(self, zobj, fetch_func):
+        """ Returns the ID of a Zobject wether it's already known or not
+
+        If zobj.id is not known (frequent if zobj is a selector), fetches first
+        the object and then returns its ID.
+
+        :type zobj:       a zobject subclass
+        :type fetch_func: the function to fetch the zobj from server if its id
+                          is undefined.
+        :returns:         the object id
+        """
+
+        try:
+            return zobj.id
+        except AttributeError:
+            try:
+                return fetch_func(zobj).id
+            except AttributeError:
+                raise ValueError('Unqualified Resource')
 
     def get_all_domains(self):
         resp = self.request_list('GetAllDomains')
@@ -451,8 +489,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def get_calendar_resource(self, cal_resource):
         """ Fetches an calendar resource with all its attributes.
 
-        @param account, a CalendarResource, with either id or name attribute set.
-        @return a CalendarResource object, filled.
+        :param: account, a CalendarResource, with either id or name attribute set.
+        :returns: a CalendarResource object, filled.
         """
         selector = cal_resource.to_selector()
         resp = self.request_single('GetCalendarResource',
@@ -461,10 +499,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def create_calendar_resource(self, name, password=None, attrs={}):
         """
-        :param attrs a dict of attributes, must specify the displayName and
+        :param: attrs a dict of attributes, must specify the displayName and
                      zimbraCalResType
         """
-        print(attrs, type(attrs))
         args = {
             'name'    : name,
             'a'       : [{'n': k, '_content': v} for k,v in attrs.items()]
@@ -475,36 +512,18 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return zobjects.CalendarResource.from_dict(resp)
 
     def delete_calendar_resource(self, calresource):
-        try:
-            res_id = calresource.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the dl first
-            try:
-                cal_id = self.get_calendar_resource(calresource).id
-            except AttributeError:
-                raise ValueError('Unqualified CalendarResource')
-
-        self.request('DeleteCalendarResource', {'id': res_id})
+        self.request('DeleteCalendarResource', {
+            'id': self._get_or_fetch_id(calresource, self.get_calendar_resource),
+        })
 
     def modify_calendar_resource(self, calres, attrs):
         """
-        @param account : a zobjects.CalendarResource
-        @attrs         : a dictionary of attributes to set ({key:value,...})
+        :param account: a zobjects.CalendarResource
+        :param attrs:    a dictionary of attributes to set ({key:value,...})
         """
-        try:
-            res_id = calres.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                res_id = self.get_calendar_resource(calres).id
-            except AttributeError:
-                raise ValueError('Unqualified CalendarResource')
-
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyCalendarResource', {
-                'id': res_id,
+                'id': self._get_or_fetch_id(calres, self.get_calendar_resource),
                 'a' : attrs
         })
 
@@ -515,7 +534,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         Parses <stats numMboxes="6" totalSize="141077"/>
 
-        @returns dict with stats
+        :returns: dict with stats
         """
         resp = self.request_single('GetMailboxStats')
         ret = {}
@@ -527,7 +546,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def count_account(self, domain):
         """ Count the number of accounts for a given domain, sorted by cos
 
-        @returns a list of pairs <ClassOfService object>,count
+        :returns: a list of pairs <ClassOfService object>,count
         """
         selector = domain.to_selector()
         cos_list = self.request_list('CountAccount', {'domain': selector})
@@ -562,8 +581,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         URL + COS + zimbraMailHost... But all other informations are accessible
         through get_account.
 
-        :type account zobjects.Account
-        :rtype zobjects.COS
+        :type account: zobjects.Account
+        :rtype: zobjects.COS
         """
         resp = self.request(
             'GetAccountInfo', {'account': account.to_selector()})
@@ -577,23 +596,13 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def modify_domain(self, domain, attrs):
         """
-        :type domain : a zobjects.Domain
-        :param attrs :  attributes to modify
+        :type domain: a zobjects.Domain
+        :param attrs: attributes to modify
         :type attrs dict
         """
-        try:
-            dom_id = domain.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the domain first
-            try:
-                dom_id = self.get_domain(domain).id
-            except AttributeError:
-                raise ValueError('Unqualified domain')
-
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyDomain', {
-                'id': dom_id,
+                'id': self._get_or_fetch_id(domain, self.get_domain),
                 'a' : attrs
         })
 
@@ -608,10 +617,10 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def get_distribution_list(self, dl_description):
         """
-        @param   dl_description : a DistributionList specifying either :
+        :param:   dl_description : a DistributionList specifying either :
                    - id:   the account_id
                    - name: the name of the list
-        @returns the DistributionList
+        :returns: the DistributionList
         """
         selector = dl_description.to_selector()
 
@@ -626,23 +635,15 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return zobjects.DistributionList.from_dict(resp)
 
     def delete_distribution_list(self, dl):
-        try:
-            dl_id = dl.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the dl first
-            try:
-                dl_id = self.get_distribution_list(dl).id
-            except AttributeError:
-                raise ValueError('Unqualified DistributionList')
-
-        self.request('DeleteDistributionList', {'id': dl_id})
+        self.request('DeleteDistributionList', {
+            'id': self._get_or_fetch_id(dl, self.get_distribution_list)
+        })
 
     def get_account(self, account):
         """ Fetches an account with all its attributes.
 
-        @param account, an account object, with either id or name attribute set.
-        @return a zobjects.Account object, filled.
+        :param account: an account object, with either id or name attribute set.
+        :returns: a zobjects.Account object, filled.
         """
         selector = account.to_selector()
         resp = self.request_single('GetAccount', {'account': selector})
@@ -651,84 +652,72 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def modify_account(self, account, attrs):
         """
-        @param account : a zobjects.Account
-        @attrs         : a dictionary of attributes to set ({key:value,...})
+        :param account: a zobjects.Account
+        :param attrs  : a dictionary of attributes to set ({key:value,...})
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
-
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
         self.request('ModifyAccount', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
                 'a' : attrs
         })
 
     def create_account(self, email, password, attrs={}):
         """
-        @param email : Full email with domain eg: login@domain.com
-        @param password : Password for local auth
-        @attrs         : a dictionary of attributes to set ({key:value,...})
+        :param email:    Full email with domain eg: login@domain.com
+        :param password: Password for local auth
+        :param attrs:    a dictionary of attributes to set ({key:value,...})
+        :returns:        the created zobjects.Account
         """
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
-        self.request('CreateAccount', {
+        resp = self.request_single('CreateAccount', {
                 'name': email,
                 'password' : password,
                 'a': attrs,
         })
 
+        return zobjects.Account.from_dict(resp)
+
     def delete_account(self, account):
         """
-        @param acccount : an account object to be used as a selector
+        :param acccount: an account object to be used as a selector
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
         self.request('DeleteAccount', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
         })
 
-    def add_account_alias(selc, account, alias):
+    def add_account_alias(self, account, alias):
         """
-        @param acccount : an account object to be used as a selector
-        @param password : email alias
+        :param acccount:  an account object to be used as a selector
+        :param alias:     email alias address
+        :returns:         None (the API itself returns nothing)
         """
-        try:
-            ac_id = account.id
-
-        except AttributeError:
-            # No id is known, so we have to fetch the account first
-            try:
-                ac_id = self.get_account(account).id
-            except AttributeError:
-                raise ValueError('Unqualified Account')
         self.request('AddAccountAlias', {
-                'id': ac_id,
+                'id': self._get_or_fetch_id(account, self.get_account),
                 'alias': alias,
         })
+
+    def remove_account_alias(self, account, alias):
+        """
+        :param acccount:  an account object to be used as a selector
+        :param alias:     email alias address
+        :returns:         None (the API itself returns nothing)
+        """
+        self.request('RemoveAccountAlias', {
+                'id': self._get_or_fetch_id(account, self.get_account),
+                'alias': alias,
+        })
+
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
 
         See http://wiki.zimbra.com/wiki/Preauth
 
-        @param duration, in seconds defaults to 0, which means "use account
+        :param duration: in seconds defaults to 0, which means "use account
                default"
 
-        @param account : an account object to be used as a selector
-        @returns       the auth string
+        :param account: an account object to be used as a selector
+        :returns:       the auth string
         """
         domain = account.get_domain()
         try:
@@ -776,7 +765,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
 
 class ZimbraMailClient(ZimbraAbstractClient):
-    """ Specialized Soap client to access zimbraAccount webservice.
+    """ Specialized Soap client to access zimbraMail webservice.
 
     API ref is
     http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraMail/service-summary.html
@@ -794,12 +783,86 @@ class ZimbraMailClient(ZimbraAbstractClient):
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
 
+    def _extract_folders(self, folders, prefix=""):
+        result = []
+        if not "name" in folders:
+            # log.debug("Unknown Object: %s" % unicode(folders))
+            pass
+        else:
+            if folders["name"] == "USER_ROOT":
+                foldername = "/"
+                folders["name"] = foldername
+            else:
+                foldername = "%s/%s" % (prefix, folders["name"])
+                prefix = foldername
+                folders["name"] = foldername
+            if "folder" in folders:
+                if "name" in folders["folder"]:
+                    folders["folder"]["name"] = "%s/%s" % (foldername, folders["folder"]["name"])
+                    result.append(zobjects.Folder.from_dict(folders["folder"]))
+                else:
+                    for folder in folders["folder"]:
+                        result.extend(self._extract_folders(folder, prefix))
+                del folders["folder"]
+            if "link" in folders:
+                # No folder or link under a link
+                if "name" in folders["link"]:
+                    if foldername == "/":
+                        folders["link"]["name"] = "/%s" % (folders["link"]["name"])
+                    else:
+                        folders["link"]["name"] = "%s/%s" % (foldername, folders["link"]["name"])
+                    result.append(zobjects.Link.from_dict(folders["link"]))
+                else:
+                    for link in folders["link"]:
+                        link["name"] = "%s/%s" % (prefix, link["name"])
+                        if hasattr(link, "folder"):
+                            del link.folder
+                        result.append(zobjects.Link.from_dict(link))
+            if "search" in folders:
+                # No folder or link under a link
+                if "name" in folders["search"]:
+                    if foldername == "/":
+                        folders["search"]["name"] = "/%s" % (folders["search"]["name"])
+                    else:
+                        folders["search"]["name"] = "%s/%s" % (foldername, folders["search"]["name"])
+                    result.append(zobjects.Search.from_dict(folders["search"]))
+                else:
+                    for search in folders["search"]:
+                        search["name"] = "%s/%s" % (prefix, search["name"])
+                        result.append(zobjects.Search.from_dict(search))
+            result.append(zobjects.Folder.from_dict(folders))
+        return result
+
+    def get_folders(self, visible=1, needGranteeName=1, view=None, depth=-1, tr=True):
+        """ Fetches all folders of an account.
+
+        :param account: an account object, with either id or name attribute set.
+        :returns: a zobjects.Folders object, filled.
+        """
+        folders = self.request_single('GetFolder',
+                                      {"visible": visible, "needGranteeName": needGranteeName, "view": view,
+                                       "depth": depth, "tr": tr})
+
+        return self._extract_folders(folders)
+
+    def get_folder(self, folder, visible=1, needGranteeName=1, view=None, depth=-1, tr=True):
+        """ Fetches one folder of an account.
+
+        :param folder: an Folder object, with path attribute set.
+        :returns: a zobjects.Folders object, filled.
+        """
+        resp = self.request_single('GetFolder', {"folder": {"path": folder.path}, "visible": visible,
+                                                 "needGranteeName": needGranteeName, "view": view, "depth": depth,
+                                                 "tr": tr})
+
+        return zobjects.Folder.from_dict(resp)
+
     def create_task(self, subject, desc):
         """Create a task
 
-        @param subject : the task's subject
-        @param desc : the task's content in plain-text
-        @return the task's id
+        :param subject: the task's subject
+        :param desc: the task's content in plain-text
+        :returns: the task's id
         """
         task = zobjects.Task()
         task_creator = task.to_creator(subject, desc)
@@ -810,10 +873,10 @@ class ZimbraMailClient(ZimbraAbstractClient):
     def get_task(self, task_id):
         """Retrieve one task, discriminated by id.
 
-        @param task_id: the task id
+        :param: task_id: the task id
 
-        @returns a zobjects.Task object ;
-                 if no task is matching, returns None.
+        :returns: a zobjects.Task object ;
+                  if no task is matching, returns None.
         """
         task = self.request_single('GetTask', {'id': task_id})
 
@@ -842,7 +905,7 @@ class ZimbraAPISession:
         """ Performs the login against zimbra
         (sends AuthRequest, receives AuthResponse).
 
-        @param namespace if specified, the namespace used for authetication (if
+        :param: namespace if specified, the namespace used for authetication (if
                          the client namespace is not suitable for
                          authentication).
         """
