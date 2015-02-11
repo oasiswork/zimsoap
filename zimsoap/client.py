@@ -17,7 +17,6 @@ import re
 import pythonzimbra
 import pythonzimbra.tools.auth
 from pythonzimbra.communication import Communication
-
 import utils
 import zobjects
 
@@ -638,6 +637,20 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         self.request('DeleteDistributionList', {
             'id': self._get_or_fetch_id(dl, self.get_distribution_list)
         })
+
+    def add_distribution_list_member(self, distribution_list, members):
+        resp = self.request_single('AddDistributionListMember', {
+            'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
+            'dlm': members
+        })
+        return resp
+
+    def remove_distribution_list_member(self, distribution_list, members):
+        resp = self.request_single('RemoveDistributionListMember', {
+            'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
+            'dlm': members
+        })
+        return resp
 
     def get_account(self, account):
         """ Fetches an account with all its attributes.
