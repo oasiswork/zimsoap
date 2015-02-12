@@ -13,7 +13,7 @@ except IOError:
 
 
 setup(name='zimsoap',
-      version='0.3',
+      version='0.3.3',
       description='A high-level library to access programaticaly Zimbra \
                    SOAP API features',
       long_description=README,
