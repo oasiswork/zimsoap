@@ -628,6 +628,12 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return dl
 
     def create_distribution_list(self, name, dynamic=0):
+        """
+
+        :param name: A string, NOT a zObject
+        :param dynamic:
+        :return: a zobjects.DistributionList
+        """
         args = {'name'   : name, 'dynamic': str(dynamic)}
         resp = self.request_single('CreateDistributionList', args)
 
@@ -639,6 +645,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         })
 
     def add_distribution_list_member(self, distribution_list, members):
+        members = [{'_content': v} for v in members]
         resp = self.request_single('AddDistributionListMember', {
             'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
             'dlm': members
@@ -646,6 +653,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return resp
 
     def remove_distribution_list_member(self, distribution_list, members):
+        members = [{'_content': v} for v in members]
         resp = self.request_single('RemoveDistributionListMember', {
             'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
             'dlm': members

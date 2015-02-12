@@ -376,6 +376,15 @@ class DistributionList(ZObject):
     TAG_NAME='dl'
     SELECTORS = ('id', 'name')
 
+    @classmethod
+    def from_dict(cls, d):
+        """ Override default, adding the capture of members.
+        """
+        o = super(DistributionList, cls).from_dict(d)
+        o.members = []
+        if d.has_key('dlm'):
+            o.members = [member["_content"] for member in d["dlm"]]
+        return o
 
 class Signature(ZObject):
     TAG_NAME='signature'
