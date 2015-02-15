@@ -763,6 +763,51 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         return authToken, lifetime
 
+    def search_directory(self, query, maxResults=0, limit=0, offset=0, domain=None, applyCos=0, applyConfig=0, sortBy="name", types="accounts", sortAscending=1, countOnly=0, attrs=["displayName", "zimbraId", "zimbraAccountStatus"], ):
+        """
+        SearchAccount is deprecated, using SearchDirectory
+
+        :param query: Query string - should be an LDAP-style filter string (RFC 2254)
+        :param limit: The maximum number of accounts to return (0 is default and means all)
+        :param offset: The starting offset (0, 25, etc)
+        :param domain: The domain name to limit the search to
+        :param applyCos: applyCos - Flag whether or not to apply the COS policy to account. Specify 0 (false) if only requesting attrs that aren't inherited from COS
+        :param applyConfig: whether or not to apply the global config attrs to account. specify 0 (false) if only requesting attrs that aren't inherited from global config
+        :param sortBy: Name of attribute to sort on. Default is the account name.
+        :param types: Comma-separated list of types to return. Legal values are: accounts|distributionlists|aliases|resources|domains|coses (default is accounts)
+        :param sortAscending: Whether to sort in ascending order. Default is 1 (true)
+        :param countOnly: Whether response should be count only. Default is 0 (false)
+        :param attrs: Comma-seperated list of attrs to return ("displayName", "zimbraId", "zimbraAccountStatus")
+        :return: dict of list of "account" "alias" "dl" "calresource" "domain" "cos"
+        """
+        fullquery = {'query': query,
+                   'maxResults': maxResults,
+                   'limit': limit,
+                   'offset': offset,
+                   'applyCos': applyCos,
+                   'applyConfig': applyConfig,
+                   'sortBy': sortBy,
+                   'types': types,
+                   'sortAscending': sortAscending,
+                   'countOnly': countOnly,
+
+                    }
+
+        if attrs:
+            fullquery.update({'attrs': ','.join(attrs)})
+
+        if domain:
+            fullquery.update({'domain': domain})
+
+        search_response = self.request('SearchDirectory', fullquery)
+        result = {}
+        items = {"account": zobjects.Account.from_dict, "alias": None, "dl": None, "calresource": None, "domain": None, "cos": None}
+        for k, func in items.iteritems():
+            if func:
+                if k in search_response:
+                    result[k] = [func(v) for v in search_response[k]]
+        return result
+
 
 class ZimbraMailClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAccount webservice.
