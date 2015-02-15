@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 """ Misc tool functions """
 
-import pythonzimbra
-import pythonzimbra.tools.xmlserializer
-
 import re
 import hmac
 import hashlib
 from xml.dom import minidom
+import xml.etree.ElementTree as ET
+
+import pythonzimbra
+import pythonzimbra.tools.xmlserializer
+
 
 re_zuuid = re.compile(r'[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}')
 def is_zuuid(s):
@@ -78,3 +80,16 @@ def xml_str_to_dict(s):
     """
     xml = minidom.parseString(s)
     return pythonzimbra.tools.xmlserializer.dom_to_dict(xml.firstChild)
+
+
+def init_localconfig(localconfig="/opt/zimbra/conf/localconfig.xml"):
+    """ Read localconfig.xml and return a dist with keys/values
+
+    :param: path to localconfig file as string
+    :return: a dict
+    """
+    root = ET.fromstring(open(localconfig, "r").read())
+    values = {}
+    for child in root:
+        values.update({child.attrib['name']: child.getchildren()[0].text})
+    return values

@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+
 from setuptools import setup
+
 
 try:
     README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()

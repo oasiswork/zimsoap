@@ -7,8 +7,6 @@ core classes for SOAP clients, there are also REST clients here, but used only
 for pre-authentification.
 """
 
-
-from os.path import dirname, abspath, join
 import datetime
 import urllib
 import urllib2
@@ -17,10 +15,8 @@ import time
 import re
 
 import pythonzimbra
-
 import pythonzimbra.tools.auth
 from pythonzimbra.communication import Communication
-
 import utils
 import zobjects
 
@@ -29,6 +25,8 @@ class RESTClient:
     """ Abstract Classe, RESTClient defines a REST client for some operations we
     can't do with SOAP API, such as admin preauth.
     """
+    TOKEN_COOKIE = "ZM_AUTH_TOKEN"
+
     class NoPreauthKeyProvided(Exception):
         pass
 
@@ -38,13 +36,14 @@ class RESTClient:
             self.msg = 'Zimbra issued HTTP error : '+e.msg
             Exception.__init__(self, self.msg)
 
-    def __init__(self, server_host, server_port=None, preauth_key=None):
+    def __init__(self, server_host, server_port=None, preauth_key=None, isadmin=False):
         if server_port:
             self.preauth_url = 'https://{0}:{1}/service/preauth?'.format(
                 server_host, server_port)
         else:
             self.preauth_url = 'https://{0}/service/preauth?'.format(server_host)
 
+        self.isadmin = isadmin
         self.set_preauth_key(preauth_key)
 
     def set_preauth_key(self, preauth_key):
@@ -202,6 +201,7 @@ class ZimbraAbstractClient(object):
     def request_single(self, name, content={}):
         """ Simple wrapper arround request to extract a single response
 
+        :rtype : object
         :returns: the first tag in the response body
         """
         resp = self.request(name, content)
@@ -221,6 +221,7 @@ class ZimbraAbstractClient(object):
     def request_list(self, name, content={}):
         """ Simple wrapper arround request to extract a list of response
 
+        :rtype : object
         :returns: the list of tags with same name or empty list
         """
         resp = self.request(name, content)
@@ -629,6 +630,12 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return dl
 
     def create_distribution_list(self, name, dynamic=0):
+        """
+
+        :param name: A string, NOT a zObject
+        :param dynamic:
+        :return: a zobjects.DistributionList
+        """
         args = {'name'   : name, 'dynamic': str(dynamic)}
         resp = self.request_single('CreateDistributionList', args)
 
@@ -638,6 +645,22 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         self.request('DeleteDistributionList', {
             'id': self._get_or_fetch_id(dl, self.get_distribution_list)
         })
+
+    def add_distribution_list_member(self, distribution_list, members):
+        members = [{'_content': v} for v in members]
+        resp = self.request_single('AddDistributionListMember', {
+            'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
+            'dlm': members
+        })
+        return resp
+
+    def remove_distribution_list_member(self, distribution_list, members):
+        members = [{'_content': v} for v in members]
+        resp = self.request_single('RemoveDistributionListMember', {
+            'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
+            'dlm': members
+        })
+        return resp
 
     def get_account(self, account):
         """ Fetches an account with all its attributes.
@@ -763,9 +786,54 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         return authToken, lifetime
 
+    def search_directory(self, query, maxResults=0, limit=0, offset=0, domain=None, applyCos=0, applyConfig=0, sortBy="name", types="accounts", sortAscending=1, countOnly=0, attrs=["displayName", "zimbraId", "zimbraAccountStatus"], ):
+        """
+        SearchAccount is deprecated, using SearchDirectory
+
+        :param query: Query string - should be an LDAP-style filter string (RFC 2254)
+        :param limit: The maximum number of accounts to return (0 is default and means all)
+        :param offset: The starting offset (0, 25, etc)
+        :param domain: The domain name to limit the search to
+        :param applyCos: applyCos - Flag whether or not to apply the COS policy to account. Specify 0 (false) if only requesting attrs that aren't inherited from COS
+        :param applyConfig: whether or not to apply the global config attrs to account. specify 0 (false) if only requesting attrs that aren't inherited from global config
+        :param sortBy: Name of attribute to sort on. Default is the account name.
+        :param types: Comma-separated list of types to return. Legal values are: accounts|distributionlists|aliases|resources|domains|coses (default is accounts)
+        :param sortAscending: Whether to sort in ascending order. Default is 1 (true)
+        :param countOnly: Whether response should be count only. Default is 0 (false)
+        :param attrs: Comma-seperated list of attrs to return ("displayName", "zimbraId", "zimbraAccountStatus")
+        :return: dict of list of "account" "alias" "dl" "calresource" "domain" "cos"
+        """
+        fullquery = {'query': query,
+                   'maxResults': maxResults,
+                   'limit': limit,
+                   'offset': offset,
+                   'applyCos': applyCos,
+                   'applyConfig': applyConfig,
+                   'sortBy': sortBy,
+                   'types': types,
+                   'sortAscending': sortAscending,
+                   'countOnly': countOnly,
+
+                    }
+
+        if attrs:
+            fullquery.update({'attrs': ','.join(attrs)})
+
+        if domain:
+            fullquery.update({'domain': domain})
+
+        search_response = self.request('SearchDirectory', fullquery)
+        result = {}
+        items = {"account": zobjects.Account.from_dict, "alias": None, "dl": None, "calresource": None, "domain": None, "cos": None}
+        for k, func in items.iteritems():
+            if func:
+                if k in search_response:
+                    result[k] = [func(v) for v in search_response[k]]
+        return result
+
 
 class ZimbraMailClient(ZimbraAbstractClient):
-    """ Specialized Soap client to access zimbraAccount webservice.
+    """ Specialized Soap client to access zimbraMail webservice.
 
     API ref is
     http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraMail/service-summary.html
@@ -782,6 +850,80 @@ class ZimbraMailClient(ZimbraAbstractClient):
     def login(self, user, password):
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
+
+    def _extract_folders(self, folders, prefix=""):
+        result = []
+        if not "name" in folders:
+            # log.debug("Unknown Object: %s" % unicode(folders))
+            pass
+        else:
+            if folders["name"] == "USER_ROOT":
+                foldername = "/"
+                folders["name"] = foldername
+            else:
+                foldername = "%s/%s" % (prefix, folders["name"])
+                prefix = foldername
+                folders["name"] = foldername
+            if "folder" in folders:
+                if "name" in folders["folder"]:
+                    folders["folder"]["name"] = "%s/%s" % (foldername, folders["folder"]["name"])
+                    result.append(zobjects.Folder.from_dict(folders["folder"]))
+                else:
+                    for folder in folders["folder"]:
+                        result.extend(self._extract_folders(folder, prefix))
+                del folders["folder"]
+            if "link" in folders:
+                # No folder or link under a link
+                if "name" in folders["link"]:
+                    if foldername == "/":
+                        folders["link"]["name"] = "/%s" % (folders["link"]["name"])
+                    else:
+                        folders["link"]["name"] = "%s/%s" % (foldername, folders["link"]["name"])
+                    result.append(zobjects.Link.from_dict(folders["link"]))
+                else:
+                    for link in folders["link"]:
+                        link["name"] = "%s/%s" % (prefix, link["name"])
+                        if hasattr(link, "folder"):
+                            del link.folder
+                        result.append(zobjects.Link.from_dict(link))
+            if "search" in folders:
+                # No folder or link under a link
+                if "name" in folders["search"]:
+                    if foldername == "/":
+                        folders["search"]["name"] = "/%s" % (folders["search"]["name"])
+                    else:
+                        folders["search"]["name"] = "%s/%s" % (foldername, folders["search"]["name"])
+                    result.append(zobjects.Search.from_dict(folders["search"]))
+                else:
+                    for search in folders["search"]:
+                        search["name"] = "%s/%s" % (prefix, search["name"])
+                        result.append(zobjects.Search.from_dict(search))
+            result.append(zobjects.Folder.from_dict(folders))
+        return result
+
+    def get_folders(self, visible=1, needGranteeName=1, view=None, depth=-1, tr=True):
+        """ Fetches all folders of an account.
+
+        :param account: an account object, with either id or name attribute set.
+        :returns: a zobjects.Folders object, filled.
+        """
+        folders = self.request_single('GetFolder',
+                                      {"visible": visible, "needGranteeName": needGranteeName, "view": view,
+                                       "depth": depth, "tr": tr})
+
+        return self._extract_folders(folders)
+
+    def get_folder(self, folder, visible=1, needGranteeName=1, view=None, depth=-1, tr=True):
+        """ Fetches one folder of an account.
+
+        :param folder: an Folder object, with path attribute set.
+        :returns: a zobjects.Folders object, filled.
+        """
+        resp = self.request_single('GetFolder', {"folder": {"path": folder.path}, "visible": visible,
+                                                 "needGranteeName": needGranteeName, "view": view, "depth": depth,
+                                                 "tr": tr})
+
+        return zobjects.Folder.from_dict(resp)
 
     def create_task(self, subject, desc):
         """Create a task

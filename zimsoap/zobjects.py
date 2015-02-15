@@ -109,7 +109,7 @@ class ZObject(object):
     def _import_attributes(self, dic):
         for k, v in dic.items():
             if (k != '_content') and (type(v) in (unicode, str)):
-                setattr(self, k, str(v))
+                setattr(self, k, unicode(v))
 
     def property(self, property_name, default=Ellipsis):
         """ Returns a property value
@@ -156,7 +156,10 @@ class ZObject(object):
         props = {}
 
         if dic.has_key('a'):
-            childs = dic['a']
+            if len(dic['a']) == 2 and isinstance(dic['a'], dict): # transform to list if there is only one attribute
+                childs = [dic['a']]
+            else:
+                childs = dic['a']
         else:
             childs = []
 
@@ -376,6 +379,15 @@ class DistributionList(ZObject):
     TAG_NAME='dl'
     SELECTORS = ('id', 'name')
 
+    @classmethod
+    def from_dict(cls, d):
+        """ Override default, adding the capture of members.
+        """
+        o = super(DistributionList, cls).from_dict(d)
+        o.members = []
+        if d.has_key('dlm'):
+            o.members = [member["_content"] for member in d["dlm"]]
+        return o
 
 class Signature(ZObject):
     TAG_NAME='signature'
@@ -536,4 +548,38 @@ class Task(ZObject):
         return task
 
 
+class Folder(ZObject):
+    TAG_NAME = 'folder'
+    ATTRNAME_PROPERTY = 'id'
+    SELECTORS = ('uuid', 'l', 'path')
 
+    # Selectors for Folders don't use the standard form
+    def to_selector(self):
+        selector = None
+        for s in self.SELECTORS:
+            if hasattr(self, s):
+                selector = s
+
+        if selector is None:
+            raise ValueError("At least one %s has to be set as attr." \
+                             % str(self.SELECTORS))
+
+        val = getattr(self, selector)
+
+        return {selector: val}
+
+    def get_unread(self):
+        if hasattr(self, "u"):
+            return self.u
+        else:
+            return 0
+
+
+class Link(Folder):
+    TAG_NAME = 'link'
+    ATTRNAME_PROPERTY = 'id'
+
+
+class Search(Folder):
+    TAG_NAME = 'search'
+    ATTRNAME_PROPERTY = 'id'
