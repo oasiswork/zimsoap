@@ -765,7 +765,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
 
 class ZimbraMailClient(ZimbraAbstractClient):
-    """ Specialized Soap client to access zimbraAccount webservice.
+    """ Specialized Soap client to access zimbraMail webservice.
 
     API ref is
     http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraMail/service-summary.html
