@@ -7,8 +7,6 @@ core classes for SOAP clients, there are also REST clients here, but used only
 for pre-authentification.
 """
 
-
-from os.path import dirname, abspath, join
 import datetime
 import urllib
 import urllib2
@@ -782,6 +780,80 @@ class ZimbraMailClient(ZimbraAbstractClient):
     def login(self, user, password):
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
+
+    def _extract_folders(self, folders, prefix=""):
+        result = []
+        if not "name" in folders:
+            # log.debug("Unknown Object: %s" % unicode(folders))
+            pass
+        else:
+            if folders["name"] == "USER_ROOT":
+                foldername = "/"
+                folders["name"] = foldername
+            else:
+                foldername = "%s/%s" % (prefix, folders["name"])
+                prefix = foldername
+                folders["name"] = foldername
+            if "folder" in folders:
+                if "name" in folders["folder"]:
+                    folders["folder"]["name"] = "%s/%s" % (foldername, folders["folder"]["name"])
+                    result.append(zobjects.Folder.from_dict(folders["folder"]))
+                else:
+                    for folder in folders["folder"]:
+                        result.extend(self._extract_folders(folder, prefix))
+                del folders["folder"]
+            if "link" in folders:
+                # No folder or link under a link
+                if "name" in folders["link"]:
+                    if foldername == "/":
+                        folders["link"]["name"] = "/%s" % (folders["link"]["name"])
+                    else:
+                        folders["link"]["name"] = "%s/%s" % (foldername, folders["link"]["name"])
+                    result.append(zobjects.Link.from_dict(folders["link"]))
+                else:
+                    for link in folders["link"]:
+                        link["name"] = "%s/%s" % (prefix, link["name"])
+                        if hasattr(link, "folder"):
+                            del link.folder
+                        result.append(zobjects.Link.from_dict(link))
+            if "search" in folders:
+                # No folder or link under a link
+                if "name" in folders["search"]:
+                    if foldername == "/":
+                        folders["search"]["name"] = "/%s" % (folders["search"]["name"])
+                    else:
+                        folders["search"]["name"] = "%s/%s" % (foldername, folders["search"]["name"])
+                    result.append(zobjects.Search.from_dict(folders["search"]))
+                else:
+                    for search in folders["search"]:
+                        search["name"] = "%s/%s" % (prefix, search["name"])
+                        result.append(zobjects.Search.from_dict(search))
+            result.append(zobjects.Folder.from_dict(folders))
+        return result
+
+    def get_folders(self, visible=1, needGranteeName=1, view=None, depth=-1, tr=True):
+        """ Fetches all folders of an account.
+
+        :param account: an account object, with either id or name attribute set.
+        :returns: a zobjects.Folders object, filled.
+        """
+        folders = self.request_single('GetFolder',
+                                      {"visible": visible, "needGranteeName": needGranteeName, "view": view,
+                                       "depth": depth, "tr": tr})
+
+        return self._extract_folders(folders)
+
+    def get_folder(self, folder, visible=1, needGranteeName=1, view=None, depth=-1, tr=True):
+        """ Fetches one folder of an account.
+
+        :param folder: an Folder object, with path attribute set.
+        :returns: a zobjects.Folders object, filled.
+        """
+        resp = self.request_single('GetFolder', {"folder": {"path": folder.path}, "visible": visible,
+                                                 "needGranteeName": needGranteeName, "view": view, "depth": depth,
+                                                 "tr": tr})
+
+        return zobjects.Folder.from_dict(resp)
 
     def create_task(self, subject, desc):
         """Create a task
