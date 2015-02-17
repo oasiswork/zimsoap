@@ -67,8 +67,23 @@ Testing
 
 ### Setting your environment for tests ###
 
+Integration tests are to be run either :
 
-#### Dependencies ####
+- against a pre-configured VM, using vagrant
+- using any zimbra server you provide, after reading the above warning.
+
+----
+
+**DO NOT USE A PRODUCTION SERVER TO RUN TESTS.**
+
+Use a dedicated test server, unable to send emails over networks and consider
+all Zimbra accounts/domains/settings are disposable for automated tests
+purposes.
+
+----
+
+
+#### Using the vagrant VM ####
 
 The first time you want to run tests, you have to grab submodules:
 
@@ -86,12 +101,28 @@ of download time the first time) :
 You have several zimbra versions available as VMs for testing (see vagrant
 status).
 
-*Warning*: the test VM requires 2GB RAM to function properly.
+*Warning*: the test VM requires 2GB RAM to function properly and may put heavy
+ load on your machine.
+
+
+#### Using your own zimbra server ####
+
+You may want to create a *test_config.ini* in tests/ directory. Example content:
+
+    [zimbra_server]
+    host = 192.168.33.10
+    admin_port = 7071
+    domain_1 = zimbratest.oasiswork.fr
+    domain_2 = zimbratest2.oasiswork.fr
+    domain_3 = zimbratest3.oasiswork.fr
+    admin_login = admin@zimbratest.oasiswork.fr
+    admin_password = password
+    lambda_user = albacore@zimbratest.oasiswork.fr
+    lambda_password = albacore
+    calres1 = camescope@zimbratest2.oasiswork.fr
 
 
 ### Testing ###
-
-Make sure your vagrant vm is running `vagrant status`.
 
 Code is covered by unit tests, you can run them (only Python needed):
 

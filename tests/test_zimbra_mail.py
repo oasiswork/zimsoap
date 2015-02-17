@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #
-""" Unittests against zimbraMail SOAP webservice
+""" Integration tests against zimbraMail SOAP webservice
 
-It has to be tested against a zimbra server (see properties.py) and is only
-supposed to pass with the reference VMs.
+It has to be tested against a zimbra server (see README.md).
 """
 
 import unittest
@@ -14,7 +13,9 @@ from zimsoap.client import ZimbraMailClient
 from zimsoap.zobjects import Task
 from zimsoap import utils
 
-from test.properties import *
+import tests
+
+TEST_CONF = tests.get_config()
 
 class ZimbraMailAPITests(unittest.TestCase):
     """ Test logic and Zimbra Mail SOAP methods """
@@ -22,13 +23,13 @@ class ZimbraMailAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraMailClient(TEST_HOST)
-        cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
+        cls.zc = ZimbraMailClient(TEST_CONF['host'])
+        cls.zc.login(TEST_CONF['lambda_user'], TEST_CONF['lambda_password'])
 
     def setUp(self):
-        self.TEST_SERVER = TEST_HOST
-        self.TEST_LOGIN = TEST_LAMBDA_USER
-        self.TEST_PASSWORD = TEST_LAMBDA_PASSWORD
+        self.TEST_SERVER = TEST_CONF['host']
+        self.TEST_LOGIN = TEST_CONF['lambda_user']
+        self.TEST_PASSWORD = TEST_CONF['lambda_password']
         self.task_id = None
 
     """
@@ -97,13 +98,13 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraMailClient(TEST_HOST)
-        cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
+        cls.zc = ZimbraMailClient(TEST_CONF['host'])
+        cls.zc.login(TEST_CONF['lambda_user'], TEST_CONF['lambda_password'])
 
     def setUp(self):
-        self.TEST_SERVER = TEST_HOST
-        self.TEST_LOGIN = TEST_LAMBDA_USER
-        self.TEST_PASSWORD = TEST_LAMBDA_PASSWORD
+        self.TEST_SERVER = TEST_CONF['host']
+        self.TEST_LOGIN = TEST_CONF['lambda_user']
+        self.TEST_PASSWORD = TEST_CONF['lambda_password']
         self.task_id = None
 
     """

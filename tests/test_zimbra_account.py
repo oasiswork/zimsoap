@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Unittests against zimbraAccount SOAP webservice
+""" Integration tests against zimbraAccount SOAP webservice
 
-It has to be tested against a zimbra server (see properties.py) and is only
-supposed to pass with the reference VMs.
+It has to be tested against a zimbra server (see README.md)
 """
 
 import unittest
 
 from zimsoap.client import *
 from zimsoap.zobjects import *
+import tests
 
-from tests.properties import *
+TEST_CONF = tests.get_config()
 
 class ZimbraAccountClientTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAccountClient(TEST_HOST)
-        cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
+        cls.zc = ZimbraAccountClient(TEST_CONF['host'])
+        cls.zc.login(TEST_CONF['lambda_user'], TEST_CONF['lambda_password'])
 
     def tearDown(self):
         # Delete the test signature (if any)
@@ -121,8 +121,8 @@ class PythonicAccountAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAccountClient(TEST_HOST)
-        cls.zc.login(TEST_LAMBDA_USER, TEST_LAMBDA_PASSWORD)
+        cls.zc = ZimbraAccountClient(TEST_CONF['host'])
+        cls.zc.login(TEST_CONF['lambda_user'], TEST_CONF['lambda_password'])
 
     def tearDown(self):
         # Delete the test signature (if any)
@@ -326,11 +326,11 @@ class PythonicAccountAPITests(unittest.TestCase):
 
 
     def test_account_get_logged_in_by(self):
-        admin_zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
-        admin_zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        admin_zc = ZimbraAdminClient(TEST_CONF['host'], TEST_CONF['admin_port'])
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
-        new_zc = ZimbraAccountClient(TEST_HOST)
-        new_zc.get_logged_in_by(TEST_LAMBDA_USER, admin_zc)
+        new_zc = ZimbraAccountClient(TEST_CONF['host'])
+        new_zc.get_logged_in_by(TEST_CONF['lambda_user'], admin_zc)
 
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc._session.is_session_valid())

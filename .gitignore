@@ -5,3 +5,4 @@
 build
 dist
 zimsoap.egg-info
+tests/test_config.ini

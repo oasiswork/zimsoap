@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Unittests against zimbraAdmin SOAP webservice
+""" Integration tests against zimbraAdmin SOAP webservice
 
-It has to be tested against a zimbra server (see properties.py) and is only
-supposed to pass with the reference VMs.
+It has to be tested against a zimbra server (see README.md)
 """
 
 import unittest
@@ -13,16 +12,20 @@ import random
 from zimsoap.client import *
 from zimsoap.zobjects import *
 
-from tests.properties import *
+import tests
+
+TEST_CONF = tests.get_config()
 
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
-        self.TEST_SERVER = TEST_HOST
-        self.TEST_LOGIN = TEST_ADMIN_LOGIN
-        self.TEST_PASSWORD = TEST_ADMIN_PASSWORD
+        self.TEST_SERVER = TEST_CONF['host']
+        self.TEST_LOGIN = TEST_CONF['admin_login']
+        self.TEST_PASSWORD = TEST_CONF['admin_password']
+        self.TEST_ADMIN_PORT = TEST_CONF['admin_port']
+        self.LAMBDA_USER = TEST_CONF['lambda_user']
 
     def testLogin(self):
-        zc = ZimbraAdminClient(self.TEST_SERVER, TEST_ADMIN_PORT)
+        zc = ZimbraAdminClient(self.TEST_SERVER, self.TEST_ADMIN_PORT)
         zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
         self.assertTrue(zc._session.is_logged_in())
 
@@ -56,15 +59,15 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
-        cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        cls.zc = ZimbraAdminClient(TEST_CONF['host'], TEST_CONF['admin_port'])
+        cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
 
     def setUp(self):
         # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
-        self.EXISTANT_DOMAIN = TEST_DOMAIN1
+        self.EXISTANT_DOMAIN = TEST_CONF['domain1']
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
         self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
@@ -192,12 +195,12 @@ class ZimbraAdminClientRequests(unittest.TestCase):
                 raise
 
     def testGetAccount(self):
-        account = {'by': 'name', '_content': TEST_LAMBDA_USER}
+        account = {'by': 'name', '_content': TEST_CONF['lambda_user']}
         resp = self.zc.request('GetAccount', {'account': account})
         self.assertIsInstance(resp['account'], dict)
 
     def testGetAccountInfo(self):
-        account = {'by': 'name', '_content': TEST_LAMBDA_USER}
+        account = {'by': 'name', '_content': TEST_CONF['lambda_user']}
         resp = self.zc.request('GetAccountInfo', {'account': account})
         self.assertIsInstance(resp['cos']['id'], (str, unicode))
 
@@ -210,17 +213,23 @@ class PythonicAdminAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
-        cls.zc.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        cls.zc = ZimbraAdminClient(TEST_CONF['host'],
+                                   TEST_CONF['admin_password'])
+        cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
     def setUp(self):
         # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        self.HOST = TEST_CONF['host']
+        self.ADMIN_PASSWORD = TEST_CONF['admin_password']
+        self.ADMIN_LOGIN = TEST_CONF['admin_login']
+        self.LAMBDA_USER = TEST_CONF['lambda_user']
+        self.DOMAIN1 = TEST_CONF['domain1']
+        self.DOMAIN2 = TEST_CONF['domain2']
 
-        self.EXISTANT_DOMAIN = TEST_DOMAIN1
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
-        self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
+        self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.DOMAIN1
 
     def tearDown(self):
         try:
@@ -237,24 +246,24 @@ class PythonicAdminAPITests(unittest.TestCase):
         # Look for client1.unbound.oasiswork.fr
         found = False
         for i in doms:
-            if i.name == self.EXISTANT_DOMAIN:
+            if i.name == self.DOMAIN1:
                 found = True
 
         self.assertTrue(found)
 
     def test_get_domain(self):
-        dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
+        dom = self.zc.get_domain(Domain(name=self.DOMAIN1)
         self.assertIsInstance(dom, Domain)
-        self.assertEqual(dom.name, TEST_DOMAIN1)
+        self.assertEqual(dom.name, self.DOMAIN1)
 
     def test_modify_domain(self):
         rand_str = random.randint(0,10**9)
 
-        dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
+        dom = self.zc.get_domain(Domain(name=self.DOMAIN1))
         a = {'zimbraAutoProvNotificationBody': rand_str}
         self.zc.modify_domain(dom, a)
 
-        dom = self.zc.get_domain(Domain(name=TEST_DOMAIN1))
+        dom = self.zc.get_domain(Domain(name=self.DOMAIN1))
         self.assertEqual(dom['zimbraAutoProvNotificationBody'], rand_str)
 
     def test_get_all_accounts(self):
@@ -269,13 +278,13 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(accounts), 16)
 
     def test_get_all_accounts_by_single_domain(self):
-        test_domain = Domain(name=TEST_DOMAIN2)
+        test_domain = Domain(name=self.DOMAIN2)
         accounts = self.zc.get_all_accounts(domain=test_domain)
         self.assertIsInstance(accounts[0], Account)
         self.assertEqual(len(accounts), 5)
 
     def test_get_all_accounts_by_single_domain_and_server(self):
-        test_domain = Domain(name=TEST_DOMAIN2)
+        test_domain = Domain(name=self.DOMAIN2)
         test_server = Server(name='zimbratest.oasiswork.fr')
         accounts = self.zc.get_all_accounts(domain=test_domain,
                                             server=test_server)
@@ -283,8 +292,8 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(accounts), 5)
 
     def test_get_all_accounts_exclusion_filters(self):
-        # The TEST_DOMAIN1 contains 5 user accounts, 1 system and 1 admin
-        test_domain = Domain(name=TEST_DOMAIN1)
+        # The self.DOMAIN1 contains 5 user accounts, 1 system and 1 admin
+        test_domain = Domain(name=self.DOMAIN1)
 
         accounts = self.zc.get_all_accounts(
             domain=test_domain,
@@ -318,21 +327,21 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(resources), 2)
 
     def test_get_all_calendar_resources_by_single_domain(self):
-        test_domain = Domain(name=TEST_DOMAIN2)
+        test_domain = Domain(name=self.DOMAIN2)
         resources = self.zc.get_all_calendar_resources(domain=test_domain)
         self.assertEqual(len(resources), 1)
 
     def test_get_calendar_resource(self):
         calendar_resource = self.zc.get_calendar_resource(
-            CalendarResource(name=TEST_CALRES1))
+            CalendarResource(name=TEST_CONF['calres1']))
         self.assertIsInstance(calendar_resource, CalendarResource)
-        self.assertEqual(calendar_resource.name, TEST_CALRES1)
+        self.assertEqual(calendar_resource.name, TEST_CONF['calres1'])
 
         # Now grab it by ID
         calendar_resource_by_id = self.zc.get_calendar_resource(
             CalendarResource(id=calendar_resource.id))
         self.assertIsInstance(calendar_resource_by_id, CalendarResource)
-        self.assertEqual(calendar_resource_by_id.name, TEST_CALRES1)
+        self.assertEqual(calendar_resource_by_id.name, TEST_CONF['calres1'])
         self.assertEqual(calendar_resource_by_id.id, calendar_resource.id)
 
 
@@ -441,7 +450,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertIsInstance(stats['totalSize'], int)
 
     def test_count_account(self):
-        d = Domain(name=self.EXISTANT_DOMAIN)
+        d = Domain(name=self.DOMAIN1)
 
         # ex return: list: ((<ClassOfService object>, <int>), ...)
         cos_counts = self.zc.count_account(d)
@@ -503,50 +512,50 @@ class PythonicAdminAPITests(unittest.TestCase):
             self.zc.get_distribution_list(dl_full)
 
     def test_get_account(self):
-        account = self.zc.get_account(Account(name=TEST_LAMBDA_USER))
+        account = self.zc.get_account(Account(name=self.LAMBDA_USER))
         self.assertIsInstance(account, Account)
-        self.assertEqual(account.name, TEST_LAMBDA_USER)
+        self.assertEqual(account.name, self.LAMBDA_USER)
 
         # Now grab it by ID
         account_by_id = self.zc.get_account(Account(id=account.id))
         self.assertIsInstance(account_by_id, Account)
-        self.assertEqual(account_by_id.name, TEST_LAMBDA_USER)
+        self.assertEqual(account_by_id.name, self.LAMBDA_USER)
         self.assertEqual(account_by_id.id, account.id)
 
     def test_get_account_cos(self):
-        cos = self.zc.get_account_cos(Account(name=TEST_LAMBDA_USER))
+        cos = self.zc.get_account_cos(Account(name=self.LAMBDA_USER))
         self.assertIsInstance(cos, COS)
         self.assertEqual(cos.name, 'default')
         self.assertRegexpMatches(cos.id, r'[\w\-]{36}')
 
     def test_mk_auth_token_succeeds(self):
-        user = Account(name='admin@{0}'.format(TEST_DOMAIN1))
+        user = Account(name='admin@{0}'.format(self.DOMAIN1))
         tk = self.zc.mk_auth_token(user, 0)
         self.assertIsInstance(tk, str)
 
     def test_mk_auth_token_fails_if_no_key(self):
-        user = Account(name='admin@{0}'.format(TEST_DOMAIN2))
+        user = Account(name='admin@{0}'.format(self.DOMAIN2))
 
         with self.assertRaises(DomainHasNoPreAuthKey) as cm:
             self.zc.mk_auth_token(user, 0)
 
     def test_admin_get_logged_in_by(self):
-        new_zc = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
-        new_zc.get_logged_in_by(TEST_ADMIN_LOGIN, self.zc)
+        new_zc = ZimbraAdminClient(self.HOST, self.ADMIN_PORT)
+        new_zc.get_logged_in_by(self.ADMIN_LOGIN, self.zc)
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc._session.is_session_valid())
 
     def test_admin_delegate_auth(self):
-        zc_account = self.zc.delegate_auth(Account(name=TEST_LAMBDA_USER))
+        zc_account = self.zc.delegate_auth(Account(name=self.LAMBDA_USER))
         self.assertTrue(zc_account._session.is_logged_in())
         self.assertTrue(zc_account._session.is_session_valid())
 
     def test_admin_get_account_authToken1(self):
         """ From an existing account """
         authToken, lifetime = self.zc.get_account_authToken(
-            account=Account(name=TEST_LAMBDA_USER)
+            account=Account(name=self.LAMBDA_USER)
         )
-        new_zc = ZimbraAccountClient(TEST_HOST)
+        new_zc = ZimbraAccountClient(self.HOST)
         new_zc.login_with_authToken(authToken, lifetime)
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc._session.is_session_valid())
@@ -554,9 +563,9 @@ class PythonicAdminAPITests(unittest.TestCase):
     def test_admin_get_account_authToken2(self):
         """ From an account name """
         authToken, lifetime = self.zc.get_account_authToken(
-            account_name=TEST_LAMBDA_USER
+            account_name=self.LAMBDA_USER
         )
-        new_zc = ZimbraAccountClient(TEST_HOST)
+        new_zc = ZimbraAccountClient(self.HOST)
         new_zc.login_with_authToken(authToken, lifetime)
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc._session.is_session_valid())
@@ -564,24 +573,26 @@ class PythonicAdminAPITests(unittest.TestCase):
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        self.cli = ZimbraAdminClient(TEST_HOST, TEST_ADMIN_PORT)
+        self.cli = ZimbraAdminClient(self.HOST, self.ADMIN_PORT)
         self.session = ZimbraAPISession(self.cli)
+        self.ADMIN_LOGIN = TEST_CONF['admin_login']
+        self.ADMIN_PASSWORD = TEST_CONF['admin_password']
 
     def testInit(self):
         self.session = ZimbraAPISession(self.cli)
         self.assertFalse(self.session.is_logged_in())
 
     def testSuccessfullLogin(self):
-        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        self.session.login(self.ADMIN_LOGIN, self.ADMIN_PASSWORD)
 
         self.assertTrue(self.session.is_logged_in())
 
     def testGoodSessionValidates(self):
-        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        self.session.login(self.ADMIN_LOGIN, self.ADMIN_PASSWORD)
         self.assertTrue(self.session.is_session_valid())
 
     def testBadSessionFails(self):
-        self.session.login(TEST_ADMIN_LOGIN, TEST_ADMIN_PASSWORD)
+        self.session.login(self.ADMIN_LOGIN, self.ADMIN_PASSWORD)
         self.session.authToken = '42'
         self.assertFalse(self.session.is_session_valid())
 
