@@ -14,17 +14,7 @@ from zimsoap.client import ZimbraMailClient
 from zimsoap.zobjects import Task
 from zimsoap import utils
 
-TEST_HOST = '192.168.33.10'
-TEST_ADMIN_PORT = '7071'
-
-TEST_DOMAIN = 'zimbratest.oasiswork.fr'
-
-TEST_ADMIN_LOGIN = 'admin@' + TEST_DOMAIN
-TEST_ADMIN_PASSWORD = 'password'
-
-TEST_LAMBDA_USER = 'albacore@' + TEST_DOMAIN
-TEST_LAMBDA_PASSWORD = 'albacore'
-
+from test.properties import *
 
 class ZimbraMailAPITests(unittest.TestCase):
     """ Test logic and Zimbra Mail SOAP methods """
