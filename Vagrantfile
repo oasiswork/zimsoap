@@ -20,12 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.network :private_network, ip: "192.168.33.10"
 
-  config.vm.provision "puppet" do |puppet|
-    puppet.module_path = "modules"
-  end
-
-	# Adds a preauth key for the first domain if non-existant
+  # Adds a preauth key for the first domain and provision users/domains
   config.vm.provision "shell",
-	inline: "sudo su - zimbra -c  'zmprov gdpak zimbratest.oasiswork.fr  > /dev/null 2>&1 ;/bin/true'"
-
+	inline: "sudo su - zimbra -c  'zmprov -f /vagrant/tests/provision-test-data.zmprov > /dev/null 2>&1 ;/bin/true'"
 end

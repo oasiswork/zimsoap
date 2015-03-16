@@ -1,0 +1,21 @@
+createDomain zimbratest.oasiswork.fr
+createDomain zimbratest2.oasiswork.fr
+createDomain zimbratest3.oasiswork.fr
+
+createAccount albacore@zimbratest.oasiswork.fr albacorealbacore
+createAccount barracuda@zimbratest.oasiswork.fr barracudabarracuda
+createAccount carp@zimbratest.oasiswork.fr carpcarp
+createAccount dorado@zimbratest.oasiswork.fr doradodorado
+createAccount emperor@zimbratest.oasiswork.fr emperoremperor
+
+createAccount footballfish@zimbratest2.oasiswork.fr footballfishfootballfish
+createAccount grenadier@zimbratest2.oasiswork.fr grenadiergrenadier
+createAccount haddock@zimbratest2.oasiswork.fr haddockhaddock
+createAccount inanga@zimbratest2.oasiswork.fr inangainanga
+createAccount javelin@zimbratest2.oasiswork.fr javelinjavelin
+
+createAccount kokopu@zimbratest3.oasiswork.fr kokopukokopu
+createAccount longfin@zimbratest3.oasiswork.fr longfinlongfin
+createAccount mackerel@zimbratest3.oasiswork.fr mackerelmackerel
+createAccount nase@zimbratest3.oasiswork.fr nasenase
+createAccount opah@zimbratest3.oasiswork.fr opahopah
