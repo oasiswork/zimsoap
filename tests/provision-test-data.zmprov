@@ -1,5 +1,4 @@
 gdpak zimbratest.oasiswork.fr
-sp admin@zimbratest.oasiswork.fr password
 
 createDomain zimbratest.oasiswork.fr
 createDomain zimbratest2.oasiswork.fr
