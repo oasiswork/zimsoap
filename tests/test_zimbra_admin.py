@@ -67,7 +67,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
         # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
 
-        self.EXISTANT_DOMAIN = TEST_CONF['domain1']
+        self.EXISTANT_DOMAIN = TEST_CONF['domain_1']
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
         self.TEST_DL_NAME = 'unittest-test-list-1@%s' % self.EXISTANT_DOMAIN
@@ -91,9 +91,9 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         self.assertIsInstance(resp['account'], list)
 
     def testGetAlllCalendarResourcesReturnsSomething(self):
-        resp = self.zc.request('GetAllCalendarResources')
-        self.assertTrue(resp.has_key('calresource'), list)
-        self.assertIsInstance(resp['calresource'], list)
+        resp = self.zc.request_list('GetAllCalendarResources')
+        #self.assertTrue(resp.has_key('calresource'), list)
+        self.assertIsInstance(resp, list)
 
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.request('GetAllDomains')
@@ -214,7 +214,7 @@ class PythonicAdminAPITests(unittest.TestCase):
     def setUpClass(cls):
         # Login/connection is done at class initialization to reduce tests time
         cls.zc = ZimbraAdminClient(TEST_CONF['host'],
-                                   TEST_CONF['admin_password'])
+                                   TEST_CONF['admin_port'])
         cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
     def setUp(self):
@@ -222,10 +222,11 @@ class PythonicAdminAPITests(unittest.TestCase):
         # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
         self.HOST = TEST_CONF['host']
         self.ADMIN_PASSWORD = TEST_CONF['admin_password']
+        self.ADMIN_PORT = TEST_CONF['admin_port']
         self.ADMIN_LOGIN = TEST_CONF['admin_login']
         self.LAMBDA_USER = TEST_CONF['lambda_user']
-        self.DOMAIN1 = TEST_CONF['domain1']
-        self.DOMAIN2 = TEST_CONF['domain2']
+        self.DOMAIN1 = TEST_CONF['domain_1']
+        self.DOMAIN2 = TEST_CONF['domain_2']
 
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
@@ -252,7 +253,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertTrue(found)
 
     def test_get_domain(self):
-        dom = self.zc.get_domain(Domain(name=self.DOMAIN1)
+        dom = self.zc.get_domain(Domain(name=self.DOMAIN1))
         self.assertIsInstance(dom, Domain)
         self.assertEqual(dom.name, self.DOMAIN1)
 
@@ -413,7 +414,6 @@ class PythonicAdminAPITests(unittest.TestCase):
         with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_account(ac)
 
-
     def test_create_delete_account_alias(self):
 
         # prepare account
@@ -441,6 +441,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         ac_got = self.zc.get_account(Account(name=ac_name))
         self.assertNotIn(alias_name, ac_got['mail'])
 
+        self.zc.delete_account(ac)
 
 
     def test_get_mailbox_stats(self):
@@ -573,10 +574,13 @@ class PythonicAdminAPITests(unittest.TestCase):
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
-        self.cli = ZimbraAdminClient(self.HOST, self.ADMIN_PORT)
-        self.session = ZimbraAPISession(self.cli)
+        self.HOST = TEST_CONF['host']
+        self.ADMIN_PORT = TEST_CONF['admin_port']
         self.ADMIN_LOGIN = TEST_CONF['admin_login']
         self.ADMIN_PASSWORD = TEST_CONF['admin_password']
+
+        self.cli = ZimbraAdminClient(self.HOST, self.ADMIN_PORT)
+        self.session = ZimbraAPISession(self.cli)
 
     def testInit(self):
         self.session = ZimbraAPISession(self.cli)
@@ -595,4 +599,3 @@ class ZimbraAPISessionTests(unittest.TestCase):
         self.session.login(self.ADMIN_LOGIN, self.ADMIN_PASSWORD)
         self.session.authToken = '42'
         self.assertFalse(self.session.is_session_valid())
-

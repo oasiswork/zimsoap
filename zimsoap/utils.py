@@ -36,7 +36,9 @@ def wrap_in_cdata(s):
 def auto_type(s):
     """ Get a XML response and tries to convert it to Python base object
     """
-    if s == None:
+    if isinstance(s, bool):
+        return s
+    elif s == None:
         return ''
     elif s == 'TRUE':
         return True

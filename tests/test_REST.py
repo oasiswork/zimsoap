@@ -14,12 +14,12 @@ TEST_CONF = tests.get_config()
 class RESTClientTest(unittest.TestCase):
     @classmethod
     def setUp(cls):
-        self.HOST = TEST_CONF['host']
-        self.ADMIN_LOGIN = TEST_CONF['admin_login']
+        cls.HOST = TEST_CONF['host']
+        cls.ADMIN_LOGIN = TEST_CONF['admin_login']
 
         # Login/connection is done at class initialization to reduce tests time
-        cls.zc = ZimbraAdminClient(self.HOST, TEST_CONF['admin_port'])
-        cls.zc.login(self.ADMIN_LOGIN, TEST_CONF['admin_password'])
+        cls.zc = ZimbraAdminClient(cls.HOST, TEST_CONF['admin_port'])
+        cls.zc.login(cls.ADMIN_LOGIN, TEST_CONF['admin_password'])
 
         cls.lambda_account = Account(name=TEST_CONF['lambda_user'])
         domain_name = cls.lambda_account.get_domain()
@@ -39,7 +39,7 @@ class RESTClientTest(unittest.TestCase):
     def test_user_preauth_with_wrong_user_fails(self):
         with self.assertRaises(RESTClient.RESTBackendError) as cm:
             c = AccountRESTClient(self.HOST, preauth_key=self.ph_key_domain1)
-            c.get_preauth_token('idonotexist1234@'+TEST_CONF['domain1'])
+            c.get_preauth_token('idonotexist1234@'+TEST_CONF['domain_1'])
 
     def test_admin_preauth_returns_something(self):
         c = AdminRESTClient(self.HOST, preauth_key=self.ph_key_domain1)

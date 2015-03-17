@@ -306,19 +306,23 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertTrue(utils.is_zuuid(identities[0]['zimbraPrefIdentityId']))
 
     def test_modify_identity(self):
-        test_attr = 'zimbraPrefFromDisplay'
+        test_attr = 'zimbraPrefForwardReplyPrefixChar'
 
         # First get the default identity id
         def_identity = self.zc.get_identities()[0]
 
         initial_attrval = def_identity[test_attr]
+        if initial_attrval == '>':
+            new_attrval = '|'
+        else:
+            new_attrval = '>'
 
         i = Identity(id=def_identity.id)
-        i[test_attr] = 'Patapon'
+        i[test_attr] = new_attrval
         self.zc.modify_identity(i)
 
         modified_i = self.zc.get_identities()[0]
-        self.assertEqual(modified_i[test_attr], 'Patapon')
+        self.assertEqual(modified_i[test_attr], new_attrval)
 
         # Revert it back
         i[test_attr] = initial_attrval
