@@ -1,3 +1,6 @@
+gdpak zimbratest.oasiswork.fr
+sp admin@zimbratest.oasiswork.fr password
+
 createDomain zimbratest.oasiswork.fr
 createDomain zimbratest2.oasiswork.fr
 createDomain zimbratest3.oasiswork.fr
@@ -19,3 +22,6 @@ createAccount longfin@zimbratest3.oasiswork.fr longfinlongfin
 createAccount mackerel@zimbratest3.oasiswork.fr mackerelmackerel
 createAccount nase@zimbratest3.oasiswork.fr nasenase
 createAccount opah@zimbratest3.oasiswork.fr opahopah
+
+createCalendarResource camescope@zimbratest2.oasiswork.fr camescopecamescope displayName camescope zimbraCalResType Equipment
+createCalendarResource voiture@zimbratest.oasiswork.fr voiturevoiture displayName voiture zimbraCalResType Equipment
