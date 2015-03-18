@@ -4,14 +4,14 @@ from os.path import join, dirname
 defaults = {
     'host'           : '192.168.33.10',
     'admin_port'     : '7071',
-    'domain_1'       : 'zimbratest.oasiswork.fr',
-    'domain_2'       : 'zimbratest2.oasiswork.fr',
-    'domain_3'       : 'zimbratest3.oasiswork.fr',
-    'admin_login'    : 'admin@zimbratest.oasiswork.fr',
+    'domain_1'       : 'zimbratest.example.com',
+    'domain_2'       : 'zimbratest2.example.com',
+    'domain_3'       : 'zimbratest3.example.com',
+    'admin_login'    : 'admin@zimbratest.example.com',
     'admin_password' : 'password',
-    'lambda_user'    : 'albacore@zimbratest.oasiswork.fr',
+    'lambda_user'    : 'albacore@zimbratest.example.com',
     'lambda_password': 'albacorealbacore',
-    'calres1'        : 'camescope@zimbratest2.oasiswork.fr'}
+    'calres1'        : 'camescope@zimbratest2.example.com'}
 
 def get_config():
     parser = ConfigParser.SafeConfigParser(defaults=defaults)

@@ -53,7 +53,7 @@ class ZObjectsTests(unittest.TestCase):
         self.assertIsInstance(d.id, str)
         self.assertIsInstance(d.name, str)
         self.assertIsNotNone(d.id)
-        self.assertEqual(d.name, 'client1.unbound.oasiswork.fr')
+        self.assertEqual(d.name, 'client1.unbound.example.com')
         self.assertEqual(d.get_full_data(), data)
 
     def testDomainSelector(self):

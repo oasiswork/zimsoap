@@ -32,7 +32,7 @@ class ZimbraAdminClientTests(unittest.TestCase):
     def testBadLoginFailure(self):
         with self.assertRaises(ZimbraSoapServerError) as cm:
             zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
-            zc.login('badlogin@zimbratest.oasiswork.fr', self.TEST_PASSWORD)
+            zc.login('badlogin@zimbratest.example.com', self.TEST_PASSWORD)
 
         self.assertIn('authentication failed', cm.exception.http_msg)
 
@@ -46,7 +46,7 @@ class ZimbraAdminClientTests(unittest.TestCase):
 
     def testBadHostFailure(self):
         with self.assertRaises(urllib2.URLError) as cm:
-            zc = ZimbraAdminClient('nonexistenthost.oasiswork.fr', 7071)
+            zc = ZimbraAdminClient('nonexistanthost.example.com', 7071)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
     def testBadPortFailure(self):
@@ -64,8 +64,8 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
 
     def setUp(self):
-        # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        # self.zc = ZimbraAdminClient('zimbratest.example.com', 7071)
+        # self.zc.login('admin@zimbratest.example.com', 'admintest')
 
         self.EXISTANT_DOMAIN = TEST_CONF['domain_1']
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
@@ -218,8 +218,8 @@ class PythonicAdminAPITests(unittest.TestCase):
         cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
     def setUp(self):
-        # self.zc = ZimbraAdminClient('zimbratest.oasiswork.fr', 7071)
-        # self.zc.login('admin@zimbratest.oasiswork.fr', 'admintest')
+        # self.zc = ZimbraAdminClient('zimbratest.example.com', 7071)
+        # self.zc.login('admin@zimbratest.example.com', 'admintest')
         self.HOST = TEST_CONF['host']
         self.ADMIN_PASSWORD = TEST_CONF['admin_password']
         self.ADMIN_PORT = TEST_CONF['admin_port']
@@ -244,7 +244,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertIsInstance(doms, list)
         self.assertIsInstance(doms[0], Domain)
 
-        # Look for client1.unbound.oasiswork.fr
+        # Look for client1.unbound.example.com
         found = False
         for i in doms:
             if i.name == self.DOMAIN1:
@@ -273,7 +273,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(accounts), 16)
 
     def test_get_all_accounts_by_single_server(self):
-        test_server = Server(name='zimbratest.oasiswork.fr')
+        test_server = Server(name='zimbratest.example.com')
         accounts = self.zc.get_all_accounts(server=test_server)
         self.assertIsInstance(accounts[0], Account)
         self.assertEqual(len(accounts), 16)
@@ -286,7 +286,7 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_all_accounts_by_single_domain_and_server(self):
         test_domain = Domain(name=self.DOMAIN2)
-        test_server = Server(name='zimbratest.oasiswork.fr')
+        test_server = Server(name='zimbratest.example.com')
         accounts = self.zc.get_all_accounts(domain=test_domain,
                                             server=test_server)
         self.assertIsInstance(accounts[0], Account)
@@ -322,7 +322,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(resources), 2)
 
     def test_get_all_calendar_resources_by_single_server(self):
-        test_server = Server(name='zimbratest.oasiswork.fr')
+        test_server = Server(name='zimbratest.example.com')
         resources = self.zc.get_all_calendar_resources(server=test_server)
         self.assertIsInstance(resources[0], CalendarResource)
         self.assertEqual(len(resources), 2)
@@ -347,7 +347,7 @@ class PythonicAdminAPITests(unittest.TestCase):
 
 
     def test_create_get_update_delete_calendar_resource(self):
-        name = 'test-{}@zimbratest.oasiswork.fr'.format(
+        name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0,10**9))
         res_req = CalendarResource(name=name)
 
@@ -382,7 +382,7 @@ class PythonicAdminAPITests(unittest.TestCase):
             self.zc.get_calendar_resource(res)
 
     def test_create_get_update_delete_account(self):
-        name = 'test-{}@zimbratest.oasiswork.fr'.format(
+        name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0,10**9))
         password = 'pass124'
         ac_req = Account(name=name)
@@ -418,11 +418,11 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         # prepare account
 
-        ac_name = 'test-{}@zimbratest.oasiswork.fr'.format(
+        ac_name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0,10**9))
         ac = self.zc.create_account(ac_name, 'pass1234')
 
-        alias_name = 'test-{}@zimbratest.oasiswork.fr'.format(
+        alias_name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0,10**9))
 
         # CREATE

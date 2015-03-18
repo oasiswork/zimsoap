@@ -119,15 +119,15 @@ First delete all accounts/domains/calendar resources from your test server and r
 
 It will provision an admin account, but disabled. You have to set a password and enable the account
 
-    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov sp admin@zimbratest.oasiswork.fr mypassword'
-    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov ma admin@zimbratest.oasiswork.fr zimbraAccountStatus active'
+    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov sp admin@zimbratest.example.com mypassword'
+    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov ma admin@zimbratest.example.com zimbraAccountStatus active'
 
 Then create a *test_config.ini* in tests/ directory. Example content:
 
     [zimbra_server]
     host = mytestserver
     admin_port = 7071
-    admin_login = admin@zimbratest.oasiswork.fr
+    admin_login = admin@zimbratest.example.com
     admin_password = mypassword
 
 If you damaged the data with failed tests, you can just delete everything except

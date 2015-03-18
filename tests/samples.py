@@ -3,7 +3,7 @@
 
 # Zimbra XML samples, for unit-testing.
 
-MISNAMED_DOMAIN="""<demain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1.unbound.oasiswork.fr">
+MISNAMED_DOMAIN="""<demain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1.unbound.example.com">
                 <a n="zimbraGalLdapPageSize">1000</a>
                 <a n="zimbraAggregateQuotaLastUsage">401</a>
                 <a n="zimbraInternalSharingCrossDomainEnabled">TRUE</a>
@@ -33,7 +33,7 @@ MISNAMED_DOMAIN="""<demain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="clien
                 <a n="objectClass">amavisAccount</a>
                 <a n="zimbraFreebusyExchangeCachedIntervalStart">7d</a>
                 <a n="zimbraDomainAggregateQuotaPolicy">ALLOWSENDRECEIVE</a>
-                <a n="zimbraDomainName">client1.unbound.oasiswork.fr</a>
+                <a n="zimbraDomainName">client1.unbound.example.com</a>
                 <a n="zimbraDomainStatus">active</a>
                 <a n="zimbraDomainType">local</a>
                 <a n="zimbraAdminConsoleLDAPAuthEnabled">FALSE</a>
@@ -41,7 +41,7 @@ MISNAMED_DOMAIN="""<demain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="clien
                 <a n="zimbraGalLdapAttrMap">(certificate) userCertificate=userCertificate</a>
             </demain>"""
 
-SIMPLE_DOMAIN="""<domain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1.unbound.oasiswork.fr">
+SIMPLE_DOMAIN="""<domain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1.unbound.example.com">
 				<a n="zimbraGalLdapPageSize">1000</a>
 				<a n="zimbraAggregateQuotaLastUsage">401</a>
 				<a n="zimbraInternalSharingCrossDomainEnabled">TRUE</a>
@@ -72,7 +72,7 @@ SIMPLE_DOMAIN="""<domain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1
 				<a n="objectClass">amavisAccount</a>
 				<a n="zimbraFreebusyExchangeCachedIntervalStart">7d</a>
 				<a n="zimbraDomainAggregateQuotaPolicy">ALLOWSENDRECEIVE</a>
-				<a n="zimbraDomainName">client1.unbound.oasiswork.fr</a>
+				<a n="zimbraDomainName">client1.unbound.example.com</a>
 				<a n="zimbraDomainStatus">active</a>
 				<a n="zimbraDomainType">local</a>
 				<a n="zimbraAdminConsoleLDAPAuthEnabled">FALSE</a>
@@ -132,7 +132,7 @@ SIMPLE_DOMAIN="""<domain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1
 				<a n="zimbraGalAutoCompleteLdapFilter">externalLdapAutoComplete</a>
 				<a n="zimbraMobileMetadataMaxSizeEnabled">FALSE</a>
 				<a n="zimbraAdminConsoleSkinEnabled">FALSE</a>
-				<a n="o">client1.unbound.oasiswork.fr domain</a>
+				<a n="o">client1.unbound.example.com domain</a>
 				<a n="zimbraGalTokenizeSearchKey">and</a>
 				<a n="zimbraFileUploadMaxSizePerFile">2147483648</a>
 				<a n="zimbraGalDefinitionLastModifiedTime">20130910123204Z</a>
@@ -145,16 +145,16 @@ SIMPLE_DOMAIN="""<domain id="b37d6b98-dc8c-474a-9243-f5dfc3ecf6ac" name="client1
 MBOX = """<mbox accountId="d78fd9c9-f000-440b-bce6-ea938d40fa2d" changeCheckPoint="4000" contactCount="0" groupId="6" id="6" indexVolumeId="2" itemIdCheckPoint="256" lastSoapAccess="0" newMessages="0" sizeCheckPoint="0" trackingImap="0" trackingSync="0"/>"""
 
 DISTRIBUTION_LIST = """
-<dl dynamic="0" id="4d97616d-53fd-4744-8535-64e6a0776df1" name="newlist@client1.unbound.oasiswork.fr">
+<dl dynamic="0" id="4d97616d-53fd-4744-8535-64e6a0776df1" name="newlist@client1.unbound.example.com">
 	<a n="uid">newlist</a>
-	<a n="mail">newlist@client1.unbound.oasiswork.fr</a>
+	<a n="mail">newlist@client1.unbound.example.com</a>
 	<a n="zimbraMailStatus">enabled</a>
-	<a n="zimbraMailHost">zimbratest.saas.oasiswork.fr</a>
+	<a n="zimbraMailHost">zimbratest.example.com</a>
 	<a n="zimbraId">4d97616d-53fd-4744-8535-64e6a0776df1</a>
 	<a n="zimbraCreateTimestamp">20130924150950Z</a>
 	<a n="objectClass">zimbraDistributionList</a>
 	<a n="objectClass">zimbraMailRecipient</a>
-	<a n="zimbraMailAlias">newlist@client1.unbound.oasiswork.fr</a>
+	<a n="zimbraMailAlias">newlist@client1.unbound.example.com</a>
 </dl>
 
 """
@@ -204,14 +204,14 @@ IDENTITY="""
     <a name="zimbraPrefReplyToEnabled">FALSE</a>
     <a name="zimbraPrefReplyIncludeOriginalText">includeBody</a>
     <a name="zimbraPrefMailSignature">glglou</a>
-    <a name="zimbraPrefFromAddress">albacore@zimbratest.oasiswork.fr</a>
+    <a name="zimbraPrefFromAddress">albacore@zimbratest.example.com</a>
     <a name="zimbraPrefDefaultSignatureId">3560b35a-bea8-410e-9632-74eff288fc37</a>
     <a name="zimbraPrefWhenSentToEnabled">FALSE</a>
 </identity>
 """
 
 ADMIN_ACCOUNT="""
-<account id="a0d269c8-39d0-454f-9bdb-6923f8a2be76" name="admin@zimbratest.oasiswork.fr">
+<account id="a0d269c8-39d0-454f-9bdb-6923f8a2be76" name="admin@zimbratest.example.com">
             <a n="zimbraMobilePolicyAllowUnsignedApplications">1</a>
             <a n="zimbraPrefMailFlashTitle">FALSE</a>
             <a n="zimbraIsAdminAccount">TRUE</a>
@@ -265,7 +265,7 @@ ADMIN_ACCOUNT="""
             <a n="zimbraPrefAccountTreeOpen">TRUE</a>
             <a n="zimbraMailWhitelistMaxNumEntries">100</a>
             <a n="zimbraPrefIncludeTrashInSearch">FALSE</a>
-            <a n="zimbraMailHost">zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailHost">zimbratest.example.com</a>
             <a n="zimbraMobilePolicyMinDevicePasswordLength">4</a>
             <a n="zimbraFeatureSharingEnabled">TRUE</a>
             <a n="zimbraPrefGalSearchEnabled">TRUE</a>
@@ -298,9 +298,9 @@ ADMIN_ACCOUNT="""
             <a n="zimbraFeatureSavedSearchesEnabled">TRUE</a>
             <a n="zimbraCalendarKeepExceptionsOnSeriesTimeChange">FALSE</a>
             <a n="zimbraMobilePolicyPasswordRecoveryEnabled">TRUE</a>
-            <a n="mail">admin@zimbratest.oasiswork.fr</a>
-            <a n="mail">root@zimbratest.oasiswork.fr</a>
-            <a n="mail">postmaster@zimbratest.oasiswork.fr</a>
+            <a n="mail">admin@zimbratest.example.com</a>
+            <a n="mail">root@zimbratest.example.com</a>
+            <a n="mail">postmaster@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarNotifyDelegatedChanges">FALSE</a>
             <a n="zimbraImapEnabled">TRUE</a>
             <a n="zimbraContactMaxNumEntries">10000</a>
@@ -324,7 +324,7 @@ ADMIN_ACCOUNT="""
             <a n="objectClass">amavisAccount</a>
             <a n="zimbraPrefContactsDisableAutocompleteOnContactGroupMembers">FALSE</a>
             <a n="zimbraFreebusyExchangeCachedIntervalStart">7d</a>
-            <a n="zimbraMailTransport">lmtp:zimbratest.oasiswork.fr:7025</a>
+            <a n="zimbraMailTransport">lmtp:zimbratest.example.com:7025</a>
             <a n="zimbraFileAndroidCrashReportingEnabled">TRUE</a>
             <a n="zimbraPrefVoiceItemsPerPage">25</a>
             <a n="zimbraPrefIncludeSharedItemsInSearch">FALSE</a>
@@ -398,10 +398,10 @@ ADMIN_ACCOUNT="""
             <a n="zimbraPrefShowComposeDirection">FALSE</a>
             <a n="zimbraPrefCalendarWorkingHours">1:N:0800:1700,2:Y:0800:1700,3:Y:0800:1700,4:Y:0800:1700,5:Y:0800:1700,6:Y:0800:1700,7:N:0800:1700</a>
             <a n="zimbraPrefTasksReadingPaneLocation">right</a>
-            <a n="zimbraMailDeliveryAddress">admin@zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailDeliveryAddress">admin@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarShowPastDueReminders">TRUE</a>
-            <a n="zimbraMailAlias">root@zimbratest.oasiswork.fr</a>
-            <a n="zimbraMailAlias">postmaster@zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailAlias">root@zimbratest.example.com</a>
+            <a n="zimbraMailAlias">postmaster@zimbratest.example.com</a>
             <a n="zimbraMobilePolicyMinDevicePasswordComplexCharacters">0</a>
             <a n="zimbraSignatureMinNumEntries">1</a>
             <a n="zimbraPasswordEnforceHistory">0</a>
@@ -638,7 +638,7 @@ ADMIN_ACCOUNT="""
 """
 
 SYSTEM_ACCOUNT="""
-<account id="95431bce-8953-4f26-a944-fdc11c83c212" name="spam.idnpkyqtc@zimbratest.oasiswork.fr">
+<account id="95431bce-8953-4f26-a944-fdc11c83c212" name="spam.idnpkyqtc@zimbratest.example.com">
             <a n="zimbraMobilePolicyAllowUnsignedApplications">1</a>
             <a n="zimbraPrefMailFlashTitle">FALSE</a>
             <a n="zimbraMailForwardingAddressMaxNumAddrs">100</a>
@@ -690,7 +690,7 @@ SYSTEM_ACCOUNT="""
             <a n="zimbraPrefAccountTreeOpen">TRUE</a>
             <a n="zimbraMailWhitelistMaxNumEntries">100</a>
             <a n="zimbraPrefIncludeTrashInSearch">FALSE</a>
-            <a n="zimbraMailHost">zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailHost">zimbratest.example.com</a>
             <a n="zimbraMobilePolicyMinDevicePasswordLength">4</a>
             <a n="zimbraFeatureSharingEnabled">TRUE</a>
             <a n="zimbraPrefGalSearchEnabled">TRUE</a>
@@ -723,7 +723,7 @@ SYSTEM_ACCOUNT="""
             <a n="zimbraFeatureSavedSearchesEnabled">TRUE</a>
             <a n="zimbraCalendarKeepExceptionsOnSeriesTimeChange">FALSE</a>
             <a n="zimbraMobilePolicyPasswordRecoveryEnabled">TRUE</a>
-            <a n="mail">spam.idnpkyqtc@zimbratest.oasiswork.fr</a>
+            <a n="mail">spam.idnpkyqtc@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarNotifyDelegatedChanges">FALSE</a>
             <a n="zimbraImapEnabled">TRUE</a>
             <a n="zimbraContactMaxNumEntries">10000</a>
@@ -747,7 +747,7 @@ SYSTEM_ACCOUNT="""
             <a n="objectClass">amavisAccount</a>
             <a n="zimbraPrefContactsDisableAutocompleteOnContactGroupMembers">FALSE</a>
             <a n="zimbraFreebusyExchangeCachedIntervalStart">7d</a>
-            <a n="zimbraMailTransport">lmtp:zimbratest.oasiswork.fr:7025</a>
+            <a n="zimbraMailTransport">lmtp:zimbratest.example.com:7025</a>
             <a n="zimbraFileAndroidCrashReportingEnabled">TRUE</a>
             <a n="zimbraPrefVoiceItemsPerPage">25</a>
             <a n="zimbraPrefIncludeSharedItemsInSearch">FALSE</a>
@@ -821,7 +821,7 @@ SYSTEM_ACCOUNT="""
             <a n="zimbraPrefShowComposeDirection">FALSE</a>
             <a n="zimbraPrefCalendarWorkingHours">1:N:0800:1700,2:Y:0800:1700,3:Y:0800:1700,4:Y:0800:1700,5:Y:0800:1700,6:Y:0800:1700,7:N:0800:1700</a>
             <a n="zimbraPrefTasksReadingPaneLocation">right</a>
-            <a n="zimbraMailDeliveryAddress">spam.idnpkyqtc@zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailDeliveryAddress">spam.idnpkyqtc@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarShowPastDueReminders">TRUE</a>
             <a n="zimbraMobilePolicyMinDevicePasswordComplexCharacters">0</a>
             <a n="zimbraSignatureMinNumEntries">1</a>
@@ -1053,7 +1053,7 @@ SYSTEM_ACCOUNT="""
 """
 
 NORMAL_ACCOUNT ="""
-<account id="6baba381-86b3-48e6-a5bb-88fc29bdbc64" name="albacore@zimbratest.oasiswork.fr">
+<account id="6baba381-86b3-48e6-a5bb-88fc29bdbc64" name="albacore@zimbratest.example.com">
             <a n="zimbraMobilePolicyAllowUnsignedApplications">1</a>
             <a n="zimbraPrefMailFlashTitle">FALSE</a>
             <a n="zimbraMailForwardingAddressMaxNumAddrs">100</a>
@@ -1105,7 +1105,7 @@ NORMAL_ACCOUNT ="""
             <a n="zimbraPrefAccountTreeOpen">TRUE</a>
             <a n="zimbraMailWhitelistMaxNumEntries">100</a>
             <a n="zimbraPrefIncludeTrashInSearch">FALSE</a>
-            <a n="zimbraMailHost">zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailHost">zimbratest.example.com</a>
             <a n="zimbraMobilePolicyMinDevicePasswordLength">4</a>
             <a n="zimbraFeatureSharingEnabled">TRUE</a>
             <a n="zimbraPrefGalSearchEnabled">TRUE</a>
@@ -1137,7 +1137,7 @@ NORMAL_ACCOUNT ="""
             <a n="zimbraFeatureSavedSearchesEnabled">TRUE</a>
             <a n="zimbraCalendarKeepExceptionsOnSeriesTimeChange">FALSE</a>
             <a n="zimbraMobilePolicyPasswordRecoveryEnabled">TRUE</a>
-            <a n="mail">albacore@zimbratest.oasiswork.fr</a>
+            <a n="mail">albacore@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarNotifyDelegatedChanges">FALSE</a>
             <a n="zimbraImapEnabled">TRUE</a>
             <a n="zimbraContactMaxNumEntries">10000</a>
@@ -1162,7 +1162,7 @@ NORMAL_ACCOUNT ="""
             <a n="objectClass">amavisAccount</a>
             <a n="zimbraPrefContactsDisableAutocompleteOnContactGroupMembers">FALSE</a>
             <a n="zimbraFreebusyExchangeCachedIntervalStart">7d</a>
-            <a n="zimbraMailTransport">lmtp:zimbratest.oasiswork.fr:7025</a>
+            <a n="zimbraMailTransport">lmtp:zimbratest.example.com:7025</a>
             <a n="zimbraFileAndroidCrashReportingEnabled">TRUE</a>
             <a n="zimbraPrefVoiceItemsPerPage">25</a>
             <a n="zimbraPrefIncludeSharedItemsInSearch">FALSE</a>
@@ -1237,7 +1237,7 @@ NORMAL_ACCOUNT ="""
             <a n="zimbraPrefShowComposeDirection">FALSE</a>
             <a n="zimbraPrefCalendarWorkingHours">1:N:0800:1700,2:Y:0800:1700,3:Y:0800:1700,4:Y:0800:1700,5:Y:0800:1700,6:Y:0800:1700,7:N:0800:1700</a>
             <a n="zimbraPrefTasksReadingPaneLocation">right</a>
-            <a n="zimbraMailDeliveryAddress">albacore@zimbratest.oasiswork.fr</a>
+            <a n="zimbraMailDeliveryAddress">albacore@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarShowPastDueReminders">TRUE</a>
             <a n="zimbraMobilePolicyMinDevicePasswordComplexCharacters">0</a>
             <a n="zimbraSignatureMinNumEntries">1</a>
@@ -1462,7 +1462,7 @@ NORMAL_ACCOUNT ="""
             <a n="zimbraFeatureManageZimlets">TRUE</a>
             <a n="zimbraPasswordLockoutEnabled">FALSE</a>
             <a n="zimbraPrefSortOrder">BDLV:,CAL:,CLV:,CLV-main:dateDesc,CNS:,CNSRC:,CNTGT:,CV:,TKL:,TV:</a>
-            <a n="zimbraPrefFromAddress">albacore@zimbratest.oasiswork.fr</a>
+            <a n="zimbraPrefFromAddress">albacore@zimbratest.example.com</a>
             <a n="zimbraPrefCalendarToasterEnabled">FALSE</a>
             <a n="zimbraPrefCalendarApptVisibility">public</a>
             <a n="zimbraPrefCalendarUseQuickAdd">TRUE</a>
