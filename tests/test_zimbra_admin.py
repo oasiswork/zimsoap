@@ -23,6 +23,7 @@ class ZimbraAdminClientTests(unittest.TestCase):
         self.TEST_PASSWORD = TEST_CONF['admin_password']
         self.TEST_ADMIN_PORT = TEST_CONF['admin_port']
         self.LAMBDA_USER = TEST_CONF['lambda_user']
+        self.SERVER_NAME = TEST_CONF['server_name']
 
     def testLogin(self):
         zc = ZimbraAdminClient(self.TEST_SERVER, self.TEST_ADMIN_PORT)
@@ -227,6 +228,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.LAMBDA_USER = TEST_CONF['lambda_user']
         self.DOMAIN1 = TEST_CONF['domain_1']
         self.DOMAIN2 = TEST_CONF['domain_2']
+        self.SERVER_NAME = TEST_CONF['server_name']
 
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
@@ -273,7 +275,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(accounts), 16)
 
     def test_get_all_accounts_by_single_server(self):
-        test_server = Server(name='zimbratest.example.com')
+        test_server = Server(name=self.SERVER_NAME)
         accounts = self.zc.get_all_accounts(server=test_server)
         self.assertIsInstance(accounts[0], Account)
         self.assertEqual(len(accounts), 16)
@@ -286,7 +288,7 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_all_accounts_by_single_domain_and_server(self):
         test_domain = Domain(name=self.DOMAIN2)
-        test_server = Server(name='zimbratest.example.com')
+        test_server = Server(name=self.SERVER_NAME)
         accounts = self.zc.get_all_accounts(domain=test_domain,
                                             server=test_server)
         self.assertIsInstance(accounts[0], Account)
@@ -322,7 +324,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(len(resources), 2)
 
     def test_get_all_calendar_resources_by_single_server(self):
-        test_server = Server(name='zimbratest.example.com')
+        test_server = Server(name=self.SERVER_NAME)
         resources = self.zc.get_all_calendar_resources(server=test_server)
         self.assertIsInstance(resources[0], CalendarResource)
         self.assertEqual(len(resources), 2)

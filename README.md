@@ -126,9 +126,12 @@ Then create a *test_config.ini* in tests/ directory. Example content:
 
     [zimbra_server]
     host = mytestserver
+    server_name = zimbratest.example.com
     admin_port = 7071
     admin_login = admin@zimbratest.example.com
     admin_password = mypassword
+
+*note: server_name is the internal server name from your zimbra server list (generally matches the hostname)*
 
 If you damaged the data with failed tests, you can just delete everything except
 the admin account and then run :

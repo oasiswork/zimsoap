@@ -3,6 +3,7 @@ from os.path import join, dirname
 
 defaults = {
     'host'           : '192.168.33.10',
+    'server_name'    : 'zimbratest.example.com',
     'admin_port'     : '7071',
     'domain_1'       : 'zimbratest.example.com',
     'domain_2'       : 'zimbratest2.example.com',
