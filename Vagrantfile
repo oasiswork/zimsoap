@@ -20,7 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.network :private_network, ip: "192.168.33.10"
 
-  # Adds a preauth key for the first domain and provision users/domains
+  # Adds a preauth key for the first domain and provision users/domains, and sets admin password
   config.vm.provision "shell",
-	inline: "sudo su - zimbra -c  'zmprov -f /vagrant/tests/provision-test-data.zmprov > /dev/null 2>&1 ;/bin/true'"
+	inline: "sudo su - zimbra -c 'cat /vagrant/tests/*.zmprov |zmprov > /dev/null 2>&1 ;/bin/true'"
 end

@@ -65,36 +65,36 @@ If you want up-to-date code example, look at unit tests...
 Testing
 -------
 
-### Setting your environment for tests ###
+Most of tests are integration tests, they require a live zimbra server to be
+running.
 
-Integration tests are to be run either :
-
-- against a pre-configured VM, using vagrant
-- using any zimbra server you provide, after reading the above warning.
+The tests will assume some base data (provisioning scsripts included),
+create/update some, and cleanup after themselves. They may leave garbage data in
+case they crash.
 
 ----
 
 **DO NOT USE A PRODUCTION SERVER TO RUN TESTS.**
 
-Use a dedicated test server, unable to send emails over networks and consider
+Use a dedicated test server, unable to send emails over network and consider
 all Zimbra accounts/domains/settings are disposable for automated tests
 purposes.
 
 ----
 
 
+### Setting your environment for tests ###
+
+Most of tests are Integration tests are to be run either :
+
+- against a pre-configured VM, using vagrant
+- using any zimbra server you provide, after reading the above warning.
+
+
 #### Using the vagrant VM ####
 
-The first time you want to run tests, you have to grab submodules:
+There is a VM ready for you with vagrant, just make sure you have vagrant installed and then :
 
-    $ git submodule update --init
-
-The SOAP API tests are ran against a reference machine, so you have to grab,
-provision and run it, thanks to vagrant, it's pretty straightforward (but a bit
-of download time the first time) :
-
-    $ sudo apt-get install vagrant
-    $ cd zimsoap/tests/machines/
     $ vagrant up 8.0.5
     $ vagrant provision 8.0.5
 
@@ -104,32 +104,44 @@ status).
 *Warning*: the test VM requires 2GB RAM to function properly and may put heavy
  load on your machine.
 
-
 #### Using your own zimbra server ####
 
-You may want to create a *test_config.ini* in tests/ directory. Example content:
+Be sure to have a server:
+- running zimbra 8.x,
+- ports 7071 and 443 reachables
+- with an unix user having password-less sudo rights
+
+First delete all accounts/domains/calendar resources from your test server and run :
+
+    cat tests/provision-01-test-data.zmprov | ssh user@mytestserver -- sudo su - zimbra -c | zmprov
+
+(considering *mytestserver* is your server hostname and *user* is a unix user with admin sudo rights)
+
+It will provision an admin account, but disabled. You have to set a password and enable the account
+
+    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov sp admin@zimbratest.oasiswork.fr mypassword'
+    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov ma admin@zimbratest.oasiswork.fr zimbraAccountStatus active'
+
+Then create a *test_config.ini* in tests/ directory. Example content:
 
     [zimbra_server]
-    host = 192.168.33.10
+    host = mytestserver
     admin_port = 7071
-    domain_1 = zimbratest.oasiswork.fr
-    domain_2 = zimbratest2.oasiswork.fr
-    domain_3 = zimbratest3.oasiswork.fr
     admin_login = admin@zimbratest.oasiswork.fr
-    admin_password = password
-    lambda_user = albacore@zimbratest.oasiswork.fr
-    lambda_password = albacore
-    calres1 = camescope@zimbratest2.oasiswork.fr
+    admin_password = mypassword
 
+If you damaged the data with failed tests, you can just delete everything except
+the admin account and then run :
+
+    cat tests/provision-01-test-data.zmprov | ssh user@mytestserver -- sudo su - zimbra -c | zmprov
 
 ### Testing ###
 
-Code is covered by unit tests, you can run them (only Python needed):
+After you are all set, you can run tests
+[the standard python way](https://docs.python.org/2/library/unittest.html)
 
     $ python -m unittest discover
 
-To run only some tests, for example :
+… Or using [py.test](http://pytest.org/).
 
-    $ python -m unittest test.test_zobjects
-    $ python -m unittest test.test_zobjects.ZObjectTests
-    $ python -m unittest test.test_zobjects.ZObjectTests.testDomainSelector
+    $ py.test

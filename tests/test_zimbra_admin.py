@@ -299,12 +299,12 @@ class PythonicAdminAPITests(unittest.TestCase):
         accounts = self.zc.get_all_accounts(
             domain=test_domain,
             include_system_accounts=True, include_admin_accounts=True)
-        self.assertEqual(len(accounts), 10)
+        self.assertEqual(len(accounts), 7)
 
         accounts_no_admin = self.zc.get_all_accounts(
             domain=test_domain,
             include_system_accounts=True, include_admin_accounts=False)
-        self.assertEqual(len(accounts_no_admin), 9)
+        self.assertEqual(len(accounts_no_admin), 6)
 
         accounts_no_system = self.zc.get_all_accounts(
             domain=test_domain,

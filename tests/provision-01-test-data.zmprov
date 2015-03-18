@@ -1,0 +1,30 @@
+createDomain zimbratest.example.com
+createDomain zimbratest2.example.com
+createDomain zimbratest3.example.com
+
+gdpak zimbratest.example.com
+
+createAccount admin@zimbratest.example.com password zimbraIsAdminAccount TRUE zimbraAccountStatus locked
+createAccount albacore@zimbratest.example.com albacorealbacore
+createAccount barracuda@zimbratest.example.com barracudabarracuda
+createAccount carp@zimbratest.example.com carpcarp
+createAccount dorado@zimbratest.example.com doradodorado
+createAccount emperor@zimbratest.example.com emperoremperor
+
+createAccount footballfish@zimbratest2.example.com footballfishfootballfish
+createAccount grenadier@zimbratest2.example.com grenadiergrenadier
+createAccount haddock@zimbratest2.example.com haddockhaddock
+createAccount inanga@zimbratest2.example.com inangainanga
+createAccount javelin@zimbratest2.example.com javelinjavelin
+
+createAccount kokopu@zimbratest3.example.com kokopukokopu
+createAccount longfin@zimbratest3.example.com longfinlongfin
+createAccount mackerel@zimbratest3.example.com mackerelmackerel
+createAccount nase@zimbratest3.example.com nasenase
+createAccount opah@zimbratest3.example.com opahopah
+
+createAccount virus-quarantine.Zhn3PtuhNv@zimbratest.example.com fvKg1rQKUA amavisBypassSpamChecks TRUE zimbraAttachmentsIndexingEnabled FALSE zimbraIsSystemResource TRUE zimbraIsSystemAccount TRUE zimbraHideInGal TRUE zimbraMailMessageLifetime 7d zimbraMailQuota 0 description 'System account for Anti-virus quarantine.' zimbraAccountStatus locked
+mcf zimbraAmavisQuarantineAccount virus-quarantine.Zhn3PtuhNv@zimbratest.example.com
+
+createCalendarResource camescope@zimbratest2.example.com camescopecamescope displayName camescope zimbraCalResType Equipment
+createCalendarResource voiture@zimbratest.example.com voiturevoiture displayName voiture zimbraCalResType Equipment
