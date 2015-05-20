@@ -16,7 +16,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   # hostname
-  config.vm.hostname = "zimbratest.oasiswork.fr"
+  config.vm.hostname = "zimbratest.example.com"
 
   config.vm.network :private_network, ip: "192.168.33.10"
 
