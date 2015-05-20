@@ -647,6 +647,19 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         return zobjects.DistributionList.from_dict(resp)
 
+    def modify_distribution_list(self, dl_description, attrs):
+        """
+        :param dl_description : a DistributionList specifying either :
+                   - id:   the dl_list_id
+                   - dl_description: the name of the list
+        :param attrs  : a dictionary of attributes to set ({key:value,...})
+        """
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        self.request('ModifyDistributionList', {
+                'id': self._get_or_fetch_id(dl_description, self.get_distribution_list),
+                'a' : attrs
+        })
+
     def delete_distribution_list(self, dl):
         self.request('DeleteDistributionList', {
             'id': self._get_or_fetch_id(dl, self.get_distribution_list)
