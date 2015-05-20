@@ -504,6 +504,11 @@ class PythonicAdminAPITests(unittest.TestCase):
         dl_unmembered = self.zc.get_distribution_list(dl_req)
         self.assertEqual(dl_unmembered.members, ['another@example.com'])
 
+        rand = 'list-{}'.format(random.randint(0,10**9))
+        self.zc.modify_distribution_list(dl, {'displayName': rand})
+        dl_modified = self.zc.get_distribution_list(dl_req)
+        self.assertEqual(dl_modified.property('displayName'), rand)
+
         dl_got = self.zc.get_distribution_list(dl_req)
         self.assertIsInstance(dl_got, DistributionList)
         self.assertEqual(dl_got, dl_list[1])
