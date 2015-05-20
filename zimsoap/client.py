@@ -653,6 +653,12 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         })
 
     def add_distribution_list_member(self, distribution_list, members):
+        """ Adds members to the distribution list
+
+        :type distribution_list: zobjects.DistributionList
+        :param members:          list of email addresses you want to add
+        :type members:           list of str
+        """
         members = [{'_content': v} for v in members]
         resp = self.request_single('AddDistributionListMember', {
             'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
@@ -661,6 +667,12 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         return resp
 
     def remove_distribution_list_member(self, distribution_list, members):
+        """ Removes members from the distribution list
+
+        :type distribution_list: zobjects.DistributionList
+        :param members:          list of email addresses you want to remove
+        :type members:           list of str
+        """
         members = [{'_content': v} for v in members]
         resp = self.request_single('RemoveDistributionListMember', {
             'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
