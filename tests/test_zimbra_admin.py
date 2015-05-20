@@ -477,7 +477,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertTrue(hasattr(mbox, 's')) # size
 
 
-    def test_create_get_delete_distribution_list(self):
+    def test_create_get_modify_delete_distribution_list(self):
         name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
 
@@ -490,6 +490,19 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         dl_list = self.zc.get_all_distribution_lists()
         self.assertIsInstance(dl_list[0], DistributionList)
+
+        self.zc.add_distribution_list_member(
+            dl,['someone@example.com', 'another@example.com'])
+
+        dl_membered = self.zc.get_distribution_list(dl_req)
+        self.assertEqual(
+            set(dl_membered.members),
+            set(['someone@example.com', 'another@example.com']))
+
+        self.zc.remove_distribution_list_member(
+            dl,['someone@example.com'])
+        dl_unmembered = self.zc.get_distribution_list(dl_req)
+        self.assertEqual(dl_unmembered.members, ['another@example.com'])
 
         dl_got = self.zc.get_distribution_list(dl_req)
         self.assertIsInstance(dl_got, DistributionList)

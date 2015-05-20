@@ -383,7 +383,8 @@ class DistributionList(ZObject):
         o = super(DistributionList, cls).from_dict(d)
         o.members = []
         if d.has_key('dlm'):
-            o.members = [member["_content"] for member in d["dlm"]]
+            o.members = [member["_content"]
+                         for member in utils.as_list(d["dlm"])]
         return o
 
 class Signature(ZObject):
@@ -543,6 +544,3 @@ class Task(ZObject):
         }
 
         return task
-
-
-
