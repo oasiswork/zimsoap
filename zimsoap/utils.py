@@ -33,6 +33,13 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False
 def wrap_in_cdata(s):
     return "<![CDATA[{0}]]>".format(s)
 
+def as_list(obj):
+    if isinstance(obj, (list, tuple)):
+        return obj
+    else:
+        return [obj]
+
+
 def auto_type(s):
     """ Get a XML response and tries to convert it to Python base object
     """
