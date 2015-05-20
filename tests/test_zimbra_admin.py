@@ -489,7 +489,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(dl.name, name)
 
         dl_list = self.zc.get_all_distribution_lists()
-        self.assertIsInstance(dl_list[0], DistributionList)
+        self.assertIsInstance(dl_list[1], DistributionList)
 
         self.zc.add_distribution_list_member(
             dl,['someone@example.com', 'another@example.com'])
@@ -506,7 +506,7 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         dl_got = self.zc.get_distribution_list(dl_req)
         self.assertIsInstance(dl_got, DistributionList)
-        self.assertEqual(dl_got, dl_list[0])
+        self.assertEqual(dl_got, dl_list[1])
 
         self.zc.delete_distribution_list(dl_got)
 

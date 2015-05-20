@@ -23,6 +23,10 @@ createAccount mackerel@zimbratest3.example.com mackerelmackerel
 createAccount nase@zimbratest3.example.com nasenase
 createAccount opah@zimbratest3.example.com opahopah
 
+cdl birds@zimbratest.example.com
+adlm birds@zimbratest.example.com albatross@external.example.com
+adlm birds@zimbratest.example.com booby@external.example.com
+
 createAccount virus-quarantine.Zhn3PtuhNv@zimbratest.example.com fvKg1rQKUA amavisBypassSpamChecks TRUE zimbraAttachmentsIndexingEnabled FALSE zimbraIsSystemResource TRUE zimbraIsSystemAccount TRUE zimbraHideInGal TRUE zimbraMailMessageLifetime 7d zimbraMailQuota 0 description 'System account for Anti-virus quarantine.' zimbraAccountStatus locked
 mcf zimbraAmavisQuarantineAccount virus-quarantine.Zhn3PtuhNv@zimbratest.example.com
 
