@@ -1,6 +1,11 @@
 import ConfigParser
 from os.path import join, dirname
 
+# Something you don't want to see in production, but we allow
+# bad certs with zimbra test server
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
 defaults = {
     'host'           : '192.168.33.10',
     'server_name'    : 'zimbratest.example.com',
