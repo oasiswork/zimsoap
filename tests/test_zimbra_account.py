@@ -37,7 +37,7 @@ class ZimbraAccountClientTests(unittest.TestCase):
 
     def testGetSignaturesReturnsSomething(self):
         resp = self.zc.request('GetSignatures')
-        self.assertEqual(resp['xmlns'], 'urn:zimbraAccount')
+        self.assertEqual(resp, {})
 
         # Normally, the user has no signature by default
         self.assertFalse(resp.has_key('signature'))

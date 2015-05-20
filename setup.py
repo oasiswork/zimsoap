@@ -11,7 +11,7 @@ except IOError:
 
 
 setup(name='zimsoap',
-      version='0.3.3',
+      version='0.4',
       description='A high-level library to access programaticaly Zimbra \
                    SOAP API features',
       long_description=README,
@@ -19,5 +19,5 @@ setup(name='zimsoap',
       author_email='jdelalande@oasiswork.fr',
       url='https://github.com/oasiswork/zimsoap/',
       packages=['zimsoap'],
-      install_requires=['python-zimbra>=1.0']
+      install_requires=['python-zimbra>=2.0']
       )

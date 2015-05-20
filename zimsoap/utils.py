@@ -39,6 +39,16 @@ def as_list(obj):
     else:
         return [obj]
 
+def get_content(obj):
+    """ Works arround (sometimes) non predictible results of pythonzimbra
+
+    Sometime, the content of an XML tag is wrapped in {'_content': foo},
+    sometime it is accessible directly.
+    """
+    if isinstance(obj, dict):
+        return obj['_content']
+    else:
+        return obj
 
 def auto_type(s):
     """ Get a XML response and tries to convert it to Python base object

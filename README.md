@@ -24,13 +24,6 @@ http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/index.ht
 Installing
 ----------
 
-**Till [this PR](https://github.com/Zimbra-Community/python-zimbra/pull/16) is
-  worked out and released, requires a patched version of python-zimbra**.
-
-Install it with :
-
-    pip install git+https://github.com/oasiswork/python-zimbra.git@utf-encoding-requests
-
 Simple:
 
     pip install zimsoap

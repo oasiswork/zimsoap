@@ -129,9 +129,9 @@ class ZimbraSoapServerError(ZimSOAPException):
         self.response = response
 
         fault = response.get_response()['Fault']
-        self.msg = fault['Reason']['Text']['_content']
-        self.code = fault['Detail']['Error']['Code']['_content']
-        self.trace_url = fault['Detail']['Error']['Trace']['_content']
+        self.msg = fault['Reason']['Text']
+        self.code = fault['Detail']['Error']['Code']
+        self.trace_url = fault['Detail']['Error']['Trace']
 
     def __str__(self):
         return '{0}: {1}'.format(
@@ -779,8 +779,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         selector = account.to_selector()
         resp = self.request('DelegateAuth', {'account': selector})
 
-        lifetime = resp['lifetime']['_content']
-        authToken = resp['authToken']['_content']
+        lifetime = resp['lifetime']
+        authToken = resp['authToken']
 
         zc = ZimbraAccountClient(self._server_host)
         zc.login_with_authToken(authToken, lifetime)
@@ -799,8 +799,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         resp = self.request('DelegateAuth', {'account': selector})
 
-        authToken = resp['authToken']['_content']
-        lifetime = int(resp['lifetime']['_content'])
+        authToken = resp['authToken']
+        lifetime = int(resp['lifetime'])
 
         return authToken, lifetime
 
@@ -886,8 +886,8 @@ class ZimbraAPISession:
                 'password': {'_content': password}
              }
             , namespace)
-        self.authToken = data['authToken']['_content']
-        lifetime = int(data['lifetime']['_content'])
+        self.authToken = data['authToken']
+        lifetime = int(data['lifetime'])
 
         self.authToken = str(self.authToken)
         self.set_end_date(lifetime)

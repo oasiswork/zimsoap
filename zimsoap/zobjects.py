@@ -383,7 +383,7 @@ class DistributionList(ZObject):
         o = super(DistributionList, cls).from_dict(d)
         o.members = []
         if d.has_key('dlm'):
-            o.members = [member["_content"]
+            o.members = [utils.get_content(member)
                          for member in utils.as_list(d["dlm"])]
         return o
 
