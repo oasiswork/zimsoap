@@ -132,7 +132,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     def testGetMailboxRequest(self):
         try:
             EXISTANT_MBOX_ID = self.testGetAllMailboxes()[0]['accountId']
-        except e:
+        except Exception as e:
             raise e('failed in self.testGetAllMailboxes()')
 
         resp = self.zc.request('GetMailbox', {'mbox': {'id': EXISTANT_MBOX_ID}})
