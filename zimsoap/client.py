@@ -125,15 +125,18 @@ class DomainHasNoPreAuthKey(ZimSOAPException):
 
 class ZimbraSoapServerError(ZimSOAPException):
     r_soap_text = re.compile(r'<soap:Text>(.*)</soap:Text>')
-    def __init__(self, http_e, request, response):
-        self.http_e = http_e
+    def __init__(self, request, response):
         self.request = request
         self.response = response
-        self.http_msg = self.r_soap_text.search(self.http_e.read()).groups()[0]
+
+        fault = response.get_response()['Fault']
+        self.msg = fault['Reason']['Text']['_content']
+        self.code = fault['Detail']['Error']['Code']['_content']
+        self.trace_url = fault['Detail']['Error']['Trace']['_content']
 
     def __str__(self):
         return '{0}: {1}'.format(
-            self.http_e, self.http_msg)
+            self.code, self.msg)
 
 class ZimbraSoapUnexpectedResponse(ZimSOAPException):
     def __init__(self, request, response, msg=''):
@@ -187,17 +190,22 @@ class ZimbraAbstractClient(object):
         try:
             self.com.send_request(req, resp)
         except urllib2.HTTPError, e:
-            if e.code == 500:
-                raise ZimbraSoapServerError(e, req, resp)
+            if resp :
+                raise ZimbraSoapServerError(e.req, e.resp)
             else:
                 raise
 
         try:
-            return resp.get_response()[resp_name]
+            resp_content = resp.get_response()
+            return resp_content[resp_name]
         except KeyError:
+            if resp_content.has_key('Fault'):
+                raise ZimbraSoapServerError(req, resp)
             raise ZimbraSoapUnexpectedResponse(
                 req, resp, 'Cannot find {} in response "{}"'.format(
                     resp_name, resp.get_response()))
+
+        return resp_content
 
     def request_single(self, name, content={}):
         """ Simple wrapper arround request to extract a single response

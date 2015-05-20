@@ -35,7 +35,7 @@ class ZimbraAdminClientTests(unittest.TestCase):
             zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
             zc.login('badlogin@zimbratest.example.com', self.TEST_PASSWORD)
 
-        self.assertIn('authentication failed', cm.exception.http_msg)
+        self.assertIn('authentication failed', cm.exception.msg)
 
 
     def testBadPasswordFailure(self):
@@ -43,7 +43,7 @@ class ZimbraAdminClientTests(unittest.TestCase):
             zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
             zc.login(self.TEST_LOGIN, 'badpassword')
 
-        self.assertIn('authentication failed', cm.exception.http_msg)
+        self.assertIn('authentication failed', cm.exception.msg)
 
     def testBadHostFailure(self):
         with self.assertRaises(urllib2.URLError) as cm:
