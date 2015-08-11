@@ -443,6 +443,17 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             except AttributeError:
                 raise ValueError('Unqualified Resource')
 
+
+    def modify_config(self, attrs):
+        """
+        :param attrs:    a dictionary of attributes to set ({key:value,...})
+        """
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        self.request('ModifyConfig', {
+                'a' : attrs
+        })
+
+
     def get_all_domains(self):
         resp = self.request_list('GetAllDomains')
         return [zobjects.Domain.from_dict(d) for d in resp]
