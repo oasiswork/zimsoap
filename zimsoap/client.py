@@ -525,7 +525,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def modify_calendar_resource(self, calres, attrs):
         """
-        :param account: a zobjects.CalendarResource
+        :param calres: a zobjects.CalendarResource
         :param attrs:    a dictionary of attributes to set ({key:value,...})
         """
         attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
@@ -733,7 +733,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def delete_account(self, account):
         """
-        :param acccount: an account object to be used as a selector
+        :param account: an account object to be used as a selector
         """
         self.request('DeleteAccount', {
                 'id': self._get_or_fetch_id(account, self.get_account),
@@ -741,7 +741,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def add_account_alias(self, account, alias):
         """
-        :param acccount:  an account object to be used as a selector
+        :param account:  an account object to be used as a selector
         :param alias:     email alias address
         :returns:         None (the API itself returns nothing)
         """
@@ -752,7 +752,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def remove_account_alias(self, account, alias):
         """
-        :param acccount:  an account object to be used as a selector
+        :param account:  an account object to be used as a selector
         :param alias:     email alias address
         :returns:         None (the API itself returns nothing)
         """
