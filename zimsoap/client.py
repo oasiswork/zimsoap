@@ -423,6 +423,17 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    def get_all_config(self):
+        resp = self.request_list('GetAllConfig')
+        return [zobjects.Config.from_dict(d) for d in resp]
+
+
+    def get_config(self, attr):
+        selector = attr.to_selector()
+        resp = self.request_list('GetConfig', {'a': selector})
+        return [zobjects.Config.from_dict(d) for d in resp]
+
+
     def _get_or_fetch_id(self, zobj, fetch_func):
         """ Returns the ID of a Zobject wether it's already known or not
 
