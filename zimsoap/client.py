@@ -704,16 +704,26 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         })
         return resp
 
-    def get_account(self, account):
-        """ Fetches an account with all its attributes.
+    def get_account(self, account, attrs=None):
+        """ Fetches an account with some or all its attributes.
 
         :param account: an account object, with either id or name attribute set.
+        :param attrs: string of a comma seperated list of attributes
         :returns: a zobjects.Account object, filled.
         """
         selector = account.to_selector()
-        resp = self.request_single('GetAccount', {'account': selector})
-        return zobjects.Account.from_dict(resp)
 
+        if attrs:
+            resp = self.request_single('GetAccount', {'account': selector, 'attrs': attrs})
+            # in case only one attribute is returned, place it into a list like
+            # when there is more than one attribute
+            if isinstance(resp['a'], dict):
+                attr = resp['a']
+                resp['a'] = [ attr ]
+        else:
+            resp = self.request_single('GetAccount', {'account': selector})
+
+        return zobjects.Account.from_dict(resp)
 
     def modify_account(self, account, attrs):
         """
