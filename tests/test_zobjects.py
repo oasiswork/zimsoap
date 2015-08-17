@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 """ Unittests for zimsoap.zobjects """
 
 import unittest
 
+from six import text_type, binary_type
+
 from zimsoap.zobjects import *
 import zimsoap.utils
-
-import samples
+from . import samples
 
 
 class ZObjectsTests(unittest.TestCase):
@@ -159,7 +161,7 @@ class ZObjectsTests(unittest.TestCase):
     def test_Signature_dict_import(self):
         s = Signature.from_dict(self.signature_dict['signature'])
         self.assertIsInstance(s, Signature)
-        self.assertIsInstance(s.get_content(), (str, unicode))
+        self.assertIsInstance(s.get_content(), (text_type, binary_type))
         self.assertEqual(s.get_content(), 'CONTENT')
         self.assertEqual(s.get_content_type(), 'text/html')
 

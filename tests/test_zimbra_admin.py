@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 """ Integration tests against zimbraAdmin SOAP webservice
 
@@ -8,9 +9,13 @@ It has to be tested against a zimbra server (see README.md)
 
 import unittest
 import random
-
 from zimsoap.client import *
 from zimsoap.zobjects import *
+try:
+    from urllib2 import URLError
+except ImportError:
+    from urllib.request import URLError
+from six import text_type, binary_type, assertRegex
 
 import tests
 
@@ -46,12 +51,12 @@ class ZimbraAdminClientTests(unittest.TestCase):
         self.assertIn('authentication failed', cm.exception.msg)
 
     def testBadHostFailure(self):
-        with self.assertRaises(urllib2.URLError) as cm:
+        with self.assertRaises(URLError) as cm:
             zc = ZimbraAdminClient('nonexistanthost.example.com', 7071)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
     def testBadPortFailure(self):
-        with self.assertRaises(urllib2.URLError) as cm:
+        with self.assertRaises(URLError) as cm:
             zc = ZimbraAdminClient(self.TEST_SERVER, 9999)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
@@ -88,17 +93,16 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
     def testGetAllAccountsReturnsSomething(self):
         resp = self.zc.request('GetAllAccounts')
-        self.assertTrue(resp.has_key('account'), list)
+        self.assertTrue(('account' in resp), list)
         self.assertIsInstance(resp['account'], list)
 
     def testGetAlllCalendarResourcesReturnsSomething(self):
         resp = self.zc.request_list('GetAllCalendarResources')
-        #self.assertTrue(resp.has_key('calresource'), list)
         self.assertIsInstance(resp, list)
 
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.request('GetAllDomains')
-        self.assertTrue(resp.has_key('domain'), list)
+        self.assertTrue(('domain' in resp), list)
         self.assertIsInstance(resp['domain'], list)
 
     def testGetDomainReturnsDomain(self):
@@ -107,12 +111,12 @@ class ZimbraAdminClientRequests(unittest.TestCase):
                     '_content': self.EXISTANT_DOMAIN
         }})
         self.assertIsInstance(resp, dict)
-        self.assertTrue(resp.has_key('domain'))
+        self.assertTrue('domain' in resp)
         self.assertIsInstance(resp['domain'], dict)
 
     def testGetMailboxStatsReturnsSomething(self):
         resp = self.zc.request('GetMailboxStats')
-        self.assertTrue(resp.has_key('stats'))
+        self.assertTrue('stats' in resp)
         self.assertIsInstance(resp['stats'], dict)
 
     def testCountAccountReturnsSomething(self):
@@ -124,7 +128,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
             {'domain': {'by': 'name', '_content': self.EXISTANT_DOMAIN}}
         )
         first_cos = resp[0]
-        self.assertTrue(first_cos.has_key('id'))
+        self.assertTrue('id' in first_cos)
 
         # will fail if not convertible to int
         self.assertIsInstance(int(first_cos['_content']), int)
@@ -137,7 +141,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
         resp = self.zc.request('GetMailbox', {'mbox': {'id': EXISTANT_MBOX_ID}})
         self.assertIsInstance(resp['mbox'], dict)
-        self.assertTrue(resp['mbox'].has_key('mbxid'))
+        self.assertTrue('mbxid' in resp['mbox'])
 
 
     def testGetAllMailboxes(self):
@@ -161,7 +165,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
                                    {'dl': {'by': 'name', '_content': name}})
 
             self.assertIsInstance(resp['dl'], dict)
-            self.assertIsInstance(resp['dl']['id'], unicode)
+            self.assertIsInstance(resp['dl']['id'], text_type)
             return resp['dl']['id']
 
         def deleteDistributionList(dl_id):
@@ -203,7 +207,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
     def testGetAccountInfo(self):
         account = {'by': 'name', '_content': TEST_CONF['lambda_user']}
         resp = self.zc.request('GetAccountInfo', {'account': account})
-        self.assertIsInstance(resp['cos']['id'], (str, unicode))
+        self.assertIsInstance(resp['cos']['id'], (text_type, binary_type))
 
 
 class PythonicAdminAPITests(unittest.TestCase):
@@ -482,7 +486,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         dl_req = DistributionList(name=name)
 
         with self.assertRaises(ZimbraSoapServerError) as cm:
-            print self.zc.get_distribution_list(dl_req)
+            print(self.zc.get_distribution_list(dl_req))
 
         dl = self.zc.create_distribution_list(name)
         self.assertIsInstance(dl, DistributionList)
@@ -547,7 +551,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         cos = self.zc.get_account_cos(Account(name=self.LAMBDA_USER))
         self.assertIsInstance(cos, COS)
         self.assertEqual(cos.name, 'default')
-        self.assertRegexpMatches(cos.id, r'[\w\-]{36}')
+        assertRegex(self, cos.id, r'[\w\-]{36}')
 
     def test_mk_auth_token_succeeds(self):
         user = Account(name='admin@{0}'.format(self.DOMAIN1))

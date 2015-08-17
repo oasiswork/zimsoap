@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 """ Zimbra SOAP client pythonic abstraction
 
@@ -7,22 +8,24 @@ core classes for SOAP clients, there are also REST clients here, but used only
 for pre-authentification.
 """
 
-
 from os.path import dirname, abspath, join
 import datetime
-import urllib
-import urllib2
-import cookielib
+try:
+    from urllib2 import HTTPCookieProcessor, build_opener, HTTPError
+except ImportError:
+    from urllib.request import HTTPCookieProcessor, build_opener, HTTPError
 import time
 import re
 import warnings
 
+from six.moves import http_cookiejar, urllib
+from six import text_type, binary_type
 import pythonzimbra
-
 import pythonzimbra.tools.auth
 from pythonzimbra.communication import Communication
-import utils
-import zobjects
+
+from zimsoap import utils
+from zimsoap import zobjects
 
 
 class RESTClient:
@@ -59,7 +62,7 @@ class RESTClient:
         preauth_str = utils.build_preauth_str(self.preauth_key, account_name,
                                               ts, expires, admin=self.isadmin)
 
-        args = urllib.urlencode({
+        args = urllib.parse.urlencode({
                 'account'   : account_name,
                 'by'        : 'name',
                 'timestamp' : ts,
@@ -68,8 +71,8 @@ class RESTClient:
                 'preauth'   : preauth_str
                 })
 
-        cj = cookielib.CookieJar()
-        browser = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        cj = http_cookiejar.CookieJar()
+        browser = build_opener(HTTPCookieProcessor(cj))
 
         try:
             browser.open(self.preauth_url+args)
@@ -77,7 +80,7 @@ class RESTClient:
                 if cookie.name == self.TOKEN_COOKIE:
                     return cookie.value
 
-        except urllib2.HTTPError, e:
+        except HTTPError as e:
             raise self.RESTBackendError(e)
 
 
@@ -189,7 +192,7 @@ class ZimbraAbstractClient(object):
         req.add_request(req_name, content, namespace)
         try:
             self.com.send_request(req, resp)
-        except urllib2.HTTPError, e:
+        except HTTPError as e:
             if resp :
                 raise ZimbraSoapServerError(e.req, e.resp)
             else:
@@ -199,7 +202,7 @@ class ZimbraAbstractClient(object):
             resp_content = resp.get_response()
             return resp_content[resp_name]
         except KeyError:
-            if resp_content.has_key('Fault'):
+            if 'Fault' in resp_content:
                 raise ZimbraSoapServerError(req, resp)
             raise ZimbraSoapUnexpectedResponse(
                 req, resp, 'Cannot find {} in response "{}"'.format(
@@ -417,7 +420,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         """
         resp = self.request('GetIdentities')
 
-        if resp.has_key('identity'):
+        if 'identity' in resp:
             identities = resp['identity']
             if type(identities) != list:
                 identities = [identities]
@@ -461,7 +464,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         selector = attr.to_selector()
         resp = self.request_list('GetConfig', {'a': selector})
         return [zobjects.Config.from_dict(d) for d in resp]
-
 
     def _get_or_fetch_id(self, zobj, fetch_func):
         """ Returns the ID of a Zobject wether it's already known or not
@@ -960,7 +962,7 @@ class ZimbraAPISession:
         self.set_end_date(lifetime)
 
     def import_session(self, auth_token):
-        if not isinstance(auth_token, (str, unicode)):
+        if not isinstance(auth_token, (binary_type, text_type)):
             raise TypeError('auth_token should be a string, not {0}'.format(
                     type(auth_token)))
         self.authToken = auth_token
