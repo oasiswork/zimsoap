@@ -268,6 +268,11 @@ class ZimbraAbstractClient(object):
 
         self.login_with_authToken(authToken)
 
+
+    def is_session_valid(self):
+        # some classes may need to overload it
+        return self._session.is_session_valid()
+
     def get_host(self):
         return self._server_host
 
@@ -843,6 +848,13 @@ class ZimbraMailClient(ZimbraAbstractClient):
         super(ZimbraMailClient, self).__init__(
             server_host, server_port,
             *args, **kwargs)
+
+    def is_session_valid(self):
+        # zimbraMail do not have by itself an Auth request, so create a
+        # zimbraAccount client for that check.
+        zac = ZimbraAccountClient(self._server_host, self._server_port)
+        zac._session.import_session(self._session.authToken)
+        return zac.is_session_valid()
 
     def login(self, user, password):
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace

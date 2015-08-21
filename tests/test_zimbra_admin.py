@@ -564,12 +564,12 @@ class PythonicAdminAPITests(unittest.TestCase):
         new_zc = ZimbraAdminClient(self.HOST, self.ADMIN_PORT)
         new_zc.get_logged_in_by(self.ADMIN_LOGIN, self.zc)
         self.assertTrue(new_zc._session.is_logged_in())
-        self.assertTrue(new_zc._session.is_session_valid())
+        self.assertTrue(new_zc.is_session_valid())
 
     def test_admin_delegate_auth(self):
         zc_account = self.zc.delegate_auth(Account(name=self.LAMBDA_USER))
         self.assertTrue(zc_account._session.is_logged_in())
-        self.assertTrue(zc_account._session.is_session_valid())
+        self.assertTrue(zc_account.is_session_valid())
 
     def test_admin_get_account_authToken1(self):
         """ From an existing account """
@@ -579,7 +579,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         new_zc = ZimbraAccountClient(self.HOST)
         new_zc.login_with_authToken(authToken, lifetime)
         self.assertTrue(new_zc._session.is_logged_in())
-        self.assertTrue(new_zc._session.is_session_valid())
+        self.assertTrue(new_zc.is_session_valid())
 
     def test_admin_get_account_authToken2(self):
         """ From an account name """
@@ -589,7 +589,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         new_zc = ZimbraAccountClient(self.HOST)
         new_zc.login_with_authToken(authToken, lifetime)
         self.assertTrue(new_zc._session.is_logged_in())
-        self.assertTrue(new_zc._session.is_session_valid())
+        self.assertTrue(new_zc.is_session_valid())
 
 
 class ZimbraAPISessionTests(unittest.TestCase):

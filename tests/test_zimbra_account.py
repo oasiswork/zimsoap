@@ -337,4 +337,4 @@ class PythonicAccountAPITests(unittest.TestCase):
         new_zc.get_logged_in_by(TEST_CONF['lambda_user'], admin_zc)
 
         self.assertTrue(new_zc._session.is_logged_in())
-        self.assertTrue(new_zc._session.is_session_valid())
+        self.assertTrue(new_zc.is_session_valid())

@@ -51,4 +51,4 @@ class RESTClientTest(unittest.TestCase):
         token = c.get_preauth_token(self.ADMIN_LOGIN)
 
         self.zc._session.import_session(token)
-        self.assertTrue(self.zc._session.is_session_valid())
+        self.assertTrue(self.zc.is_session_valid())
