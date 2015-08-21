@@ -15,6 +15,7 @@ import urllib2
 import cookielib
 import time
 import re
+import warnings
 
 import pythonzimbra
 
@@ -828,6 +829,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
         It's the mechanism used with the "view email" button in admin console.
         """
+        warnings.warn("delegate_auth() on parent client is deprecated,"
+                      " use delegated_login() on child client instead",
+                      DeprecationWarning)
         selector = account.to_selector()
         resp = self.request('DelegateAuth', {'account': selector})
 
