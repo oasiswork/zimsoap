@@ -257,6 +257,10 @@ class ZimbraAbstractClient(object):
     def get_logged_in_by(self, login, parent_zc, duration=0):
         """Use another client to get logged in via preauth mechanism by an
         already logged in admin.
+
+        It required the domain of the admin user to have preAuthKey
+        The preauth key cannot be created by API, do it with zmprov :
+            zmprov gdpak <domain>
         """
         domain_name = zobjects.Account(name=login).get_domain()
         preauth_key = parent_zc.get_domain(domain_name)['zimbraPreAuthKey']
@@ -268,6 +272,25 @@ class ZimbraAbstractClient(object):
 
         self.login_with_authToken(authToken)
 
+    def delegated_login(self, login, admin_zc, duration=0):
+        """Use another client to get logged in via delegated_auth mechanism by an
+        already logged in admin.
+
+        :param admin_zc: An already logged-in admin client
+        :type admin_zc: ZimbraAdminClient
+        :param login: the user login (or email) you want to log as
+        """
+        # a duration of zero is interpretted literaly by the API...
+        selector = zobjects.Account(name=login).to_selector()
+        delegate_args = {'account': selector}
+        if duration:
+            delegate_args['duration': duration]
+        resp = admin_zc.request('DelegateAuth', delegate_args)
+
+        lifetime = resp['lifetime']
+        authToken = resp['authToken']
+
+        self.login_with_authToken(authToken, lifetime)
 
     def is_session_valid(self):
         # some classes may need to overload it
@@ -832,6 +855,10 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         lifetime = int(resp['lifetime'])
 
         return authToken, lifetime
+
+    def delegated_login(self, *args, **kwargs):
+        raise NotImplementedError(
+            'zimbraAdmin do not support to get logged-in by delegated auth')
 
 
 class ZimbraMailClient(ZimbraAbstractClient):

@@ -338,3 +338,14 @@ class PythonicAccountAPITests(unittest.TestCase):
 
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc.is_session_valid())
+
+    def test_account_delegated_login(self):
+        admin_zc = ZimbraAdminClient(TEST_CONF['host'],
+                                     TEST_CONF['admin_port'])
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
+
+        new_zc = ZimbraAccountClient(TEST_CONF['host'])
+        new_zc.delegated_login(TEST_CONF['lambda_user'], admin_zc)
+
+        self.assertTrue(new_zc._session.is_logged_in())
+        self.assertTrue(new_zc.is_session_valid())

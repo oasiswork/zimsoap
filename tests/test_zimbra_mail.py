@@ -9,7 +9,7 @@ It has to be tested against a zimbra server (see README.md).
 
 import unittest
 
-from zimsoap.client import ZimbraMailClient
+from zimsoap.client import ZimbraMailClient, ZimbraAdminClient
 from zimsoap.zobjects import Task
 from zimsoap import utils
 
@@ -137,6 +137,17 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         task = self.zc.get_task(task_id)
         self.assertIsInstance(task, Task)
         self.assertEqual(task.id, task_id)
+
+    def test_account_delegated_login(self):
+        admin_zc = ZimbraAdminClient(TEST_CONF['host'],
+                                     TEST_CONF['admin_port'])
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
+
+        new_zc = ZimbraMailClient(TEST_CONF['host'])
+        new_zc.delegated_login(TEST_CONF['lambda_user'], admin_zc)
+
+        self.assertTrue(new_zc._session.is_logged_in())
+        self.assertTrue(new_zc.is_session_valid())
 
 
 class ZobjectTaskTests(unittest.TestCase):
