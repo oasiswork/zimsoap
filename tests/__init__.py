@@ -4,7 +4,10 @@ from os.path import join, dirname
 # Something you don't want to see in production, but we allow
 # bad certs with zimbra test server
 import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
+try:
+    ssl._create_default_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass  # Versions < 2.7.9 do not check certificates and to not have that var
 
 defaults = {
     'host'           : '192.168.33.10',
