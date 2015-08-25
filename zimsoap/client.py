@@ -653,6 +653,28 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 'a' : attrs
         })
 
+    def create_domain(self, domain, attrs={}):
+        """
+        :param password: Doman name
+        :param attrs:    a dictionary of attributes to set ({key:value,...})
+        :returns:        the created zobjects.Domain
+        """
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        resp = self.request_single('CreateDomain', {
+                'name': domain,
+                'a': attrs,
+        })
+
+        return zobjects.Domain.from_dict(resp)
+
+    def delete_domain(self, domain):
+        """
+        :param domain: an domain object to be used as a selector
+        """
+        self.request('DeleteDomain', {
+                'id': self._get_or_fetch_id(domain, self.get_domain),
+        })
+
     def get_all_distribution_lists(self, domain=None):
         if domain:
             selectors = {'domain': domain.to_selector()}
