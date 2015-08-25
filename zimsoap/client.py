@@ -483,6 +483,17 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             except AttributeError:
                 raise ValueError('Unqualified Resource')
 
+
+    def modify_config(self, attrs):
+        """
+        :param attrs:    a dictionary of attributes to set ({key:value,...})
+        """
+        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        self.request('ModifyConfig', {
+                'a' : attrs
+        })
+
+
     def get_all_domains(self):
         resp = self.request_list('GetAllDomains')
         return [zobjects.Domain.from_dict(d) for d in resp]
@@ -733,16 +744,26 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         })
         return resp
 
-    def get_account(self, account):
-        """ Fetches an account with all its attributes.
+    def get_account(self, account, attrs=None):
+        """ Fetches an account with some or all its attributes.
 
         :param account: an account object, with either id or name attribute set.
+        :param attrs: string of a comma seperated list of attributes
         :returns: a zobjects.Account object, filled.
         """
         selector = account.to_selector()
-        resp = self.request_single('GetAccount', {'account': selector})
-        return zobjects.Account.from_dict(resp)
 
+        if attrs:
+            resp = self.request_single('GetAccount', {'account': selector, 'attrs': attrs})
+            # in case only one attribute is returned, place it into a list like
+            # when there is more than one attribute
+            if isinstance(resp['a'], dict):
+                attr = resp['a']
+                resp['a'] = [ attr ]
+        else:
+            resp = self.request_single('GetAccount', {'account': selector})
+
+        return zobjects.Account.from_dict(resp)
 
     def modify_account(self, account, attrs):
         """
