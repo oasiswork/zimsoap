@@ -156,7 +156,10 @@ class ZObject(object):
         props = {}
 
         if dic.has_key('a'):
-            childs = dic['a']
+            if len(dic['a']) == 2 and isinstance(dic['a'], dict): # transform to list if there is only one attribute
+                childs = [dic['a']]
+            else:
+                childs = dic['a']
         else:
             childs = []
 
