@@ -745,6 +745,16 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         resp = self.request_single('GetAccount', {'account': selector})
         return zobjects.Account.from_dict(resp)
 
+    def rename_account(self, account, new_name):
+        """ Rename an account.
+
+        :param account: a zobjects.Account
+        :param new_name: a string of new account name
+        """
+        self.request('RenameAccount', {
+                'id': self._get_or_fetch_id(account, self.get_account),
+                'newName': new_name
+        })
 
     def modify_account(self, account, attrs):
         """

@@ -387,7 +387,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_calendar_resource(res)
 
-    def test_create_get_update_delete_account(self):
+    def test_create_get_update_rename_delete_account(self):
         name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0,10**9))
         password = 'pass124'
@@ -414,8 +414,14 @@ class PythonicAdminAPITests(unittest.TestCase):
         ac_got = self.zc.get_account(ac_req)
         self.assertEqual(ac_got['displayName'], random_name_1)
 
+        # RENAME
+        self.zc.rename_account(ac_got, 'renamed_account@zimbratest.example.com')
+
+        renamed_ac_got = self.zc.get_account(Account(name='renamed_account@zimbratest.example.com'))
+        self.assertEqual(renamed_ac_got['mail'], 'renamed_account@zimbratest.example.com')
+
         # DELETE
-        self.zc.delete_account(ac_got)
+        self.zc.delete_account(renamed_ac_got)
 
         with self.assertRaises(ZimbraSoapServerError) as cm:
             self.zc.get_account(ac)
