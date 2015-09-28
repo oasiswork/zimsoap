@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 """ Misc tool functions """
 
 import pythonzimbra
@@ -9,6 +11,7 @@ import re
 import hmac
 import hashlib
 from xml.dom import minidom
+import six
 
 re_zuuid = re.compile(r'[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}')
 def is_zuuid(s):
@@ -28,7 +31,7 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False
     else:
         s = '{0}|name|{1}|{2}'.format(account_name, expires, timestamp)
 
-    return hmac.new(preauth_key,s,hashlib.sha1).hexdigest()
+    return hmac.new(preauth_key.encode('utf-8'), s.encode('utf-8'), hashlib.sha1).hexdigest()
 
 def wrap_in_cdata(s):
     return "<![CDATA[{0}]]>".format(s)

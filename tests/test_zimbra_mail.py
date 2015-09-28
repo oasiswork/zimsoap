@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
-#
 """ Integration tests against zimbraMail SOAP webservice
 
 It has to be tested against a zimbra server (see README.md).
@@ -12,7 +12,6 @@ import unittest
 from zimsoap.client import ZimbraMailClient, ZimbraAdminClient
 from zimsoap.zobjects import Task
 from zimsoap import utils
-
 import tests
 
 TEST_CONF = tests.get_config()

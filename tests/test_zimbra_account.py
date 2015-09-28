@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 
 """ Integration tests against zimbraAccount SOAP webservice
 
@@ -7,6 +9,8 @@ It has to be tested against a zimbra server (see README.md)
 """
 
 import unittest
+
+from six import text_type, binary_type
 
 from zimsoap.client import *
 from zimsoap.zobjects import *
@@ -28,7 +32,7 @@ class ZimbraAccountClientTests(unittest.TestCase):
                 resp = self.zc.request('DeleteSignature', {
                         'signature': {'name': signame}})
 
-            except ZimbraSoapServerError, e:
+            except ZimbraSoapServerError as e:
                 if 'no such signature' in str(e):
                     pass
 
@@ -40,7 +44,7 @@ class ZimbraAccountClientTests(unittest.TestCase):
         self.assertEqual(resp, {})
 
         # Normally, the user has no signature by default
-        self.assertFalse(resp.has_key('signature'))
+        self.assertFalse('signature' in resp)
 
     def testCreateSignatureReturnsSomething(self):
         resp = self.zc.request('CreateSignature', {
@@ -81,7 +85,7 @@ class ZimbraAccountClientTests(unittest.TestCase):
     def testGetAllPreferences(self):
         resp = self.zc.request('GetPrefs')
         prefs = resp['pref']
-        self.assertTrue(resp.has_key('pref'))
+        self.assertTrue('pref' in resp)
         self.assertIsInstance(resp['pref'], list)
 
     def testGetAPreference(self):
@@ -129,7 +133,7 @@ class PythonicAccountAPITests(unittest.TestCase):
         for i in ('unittest', 'unittest1'):
             try:
                 self.zc.request('DeleteSignature', {'signature': {'name': i}})
-            except ZimbraSoapServerError, e:
+            except ZimbraSoapServerError as e:
                 if 'no such signature' in str(e):
                     pass
                 else:
@@ -287,7 +291,7 @@ class PythonicAccountAPITests(unittest.TestCase):
         resp = self.zc.get_preference('zimbraPrefMailFlashTitle')
         self.assertIsInstance(resp, bool)
         resp = self.zc.get_preference('zimbraPrefComposeFormat')
-        self.assertIsInstance(resp, (str, unicode))
+        self.assertIsInstance(resp, (text_type, binary_type))
         resp = self.zc.get_preference('zimbraPrefCalendarDayHourEnd')
         self.assertIsInstance(resp, int)
 
@@ -295,7 +299,7 @@ class PythonicAccountAPITests(unittest.TestCase):
         prefs = self.zc.get_preferences()
         self.assertIsInstance(prefs, dict)
         self.assertIsInstance(prefs['zimbraPrefMailFlashTitle'], bool)
-        self.assertIsInstance(prefs['zimbraPrefComposeFormat'], (str, unicode))
+        self.assertIsInstance(prefs['zimbraPrefComposeFormat'], (text_type, binary_type))
         self.assertIsInstance(prefs['zimbraPrefCalendarDayHourEnd'], int)
 
     def test_get_identities(self):

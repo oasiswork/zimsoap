@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 """ Integration tests against REST webservices (Zimbra)
 
 It has to be tested against a zimbra server (see README.md).
@@ -7,8 +8,8 @@ import unittest
 
 from zimsoap.client import *
 from zimsoap.zobjects import *
-
 import tests
+
 TEST_CONF = tests.get_config()
 
 class RESTClientTest(unittest.TestCase):

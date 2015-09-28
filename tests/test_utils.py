@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 """ Unittests for zimsoap.utils """
 
 import unittest
 
+from six import text_type
+import pythonzimbra
+from pythonzimbra.communication import Communication
+
 import zimsoap
 from zimsoap import utils
-
-import pythonzimbra
-
-from pythonzimbra.communication import Communication
 
 
 class ZimsoapUtilsTests(unittest.TestCase):
@@ -46,7 +47,7 @@ class ZimsoapUtilsTests(unittest.TestCase):
         self.assertIsInstance(utils.auto_type('4.2'), float)
 
     def test_auto_type_str(self):
-        self.assertIsInstance(utils.auto_type('forty-two'), str)
+        self.assertIsInstance(utils.auto_type('forty-two'), text_type)
 
     def test_auto_type_bool(self):
         self.assertIsInstance(utils.auto_type('TRUE'), bool)

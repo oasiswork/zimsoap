@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 """ Zimbra specific objects, handle (un)parsing to/from XML and other glue-code.
 
@@ -8,7 +9,9 @@ zimbra API. It is left to
 ZimbraAdminClient/ZimbraAccountClient/ZimbraMailClient...
 """
 
-import utils
+from six import text_type, binary_type
+
+from zimsoap import utils
 
 class NotEnoughInformation(Exception):
     """Raised when we try to get information on an object but have too litle
@@ -108,7 +111,7 @@ class ZObject(object):
 
     def _import_attributes(self, dic):
         for k, v in dic.items():
-            if (k != '_content') and (type(v) in (unicode, str)):
+            if (k != '_content') and (isinstance(v, (binary_type, text_type))):
                 setattr(self, k, str(v))
 
     def property(self, property_name, default=Ellipsis):
@@ -126,7 +129,7 @@ class ZObject(object):
                 raise
 
     def has_property(self, property_name):
-        return self._a_tags.has_key(property_name)
+        return (property_name in self._a_tags)
 
     def property_as_list(self, property_name):
         """ property() but encapsulates it in a list, if it's a
@@ -155,7 +158,7 @@ class ZObject(object):
         """
         props = {}
 
-        if dic.has_key('a'):
+        if 'a' in dic:
             childs = dic['a']
         else:
             childs = []
@@ -171,9 +174,9 @@ class ZObject(object):
                 v = utils.auto_type(str(v))
             except UnicodeEncodeError:
                 # Some times, str() fails because of accents...
-                v = utils.auto_type(unicode(v))
+                v = utils.auto_type(v)
 
-            if props.has_key(k):
+            if k in props:
                 prev_v = props[k]
                 if type(prev_v) != list:
                     props[k] = [prev_v,]
@@ -227,7 +230,6 @@ class Config(ZObject):
         return  {'n': val}
 
 
-
 class Domain(ZObject):
     """A domain, matching something like:
        <domain id="b37...dfc3ecf6ac" name="sub.domain.tld">
@@ -271,7 +273,7 @@ class AbstractAddressableZObject(ZObject):
         try:
             domain_name = self.name.split('@')[1]
             return Domain(name=domain_name)
-        except AttributeError, e:
+        except AttributeError as e:
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
@@ -279,7 +281,7 @@ class AbstractAddressableZObject(ZObject):
         try:
             domain_name = self.name.split('@')[0]
             return Domain(name=domain_name)
-        except AttributeError, e:
+        except AttributeError as e:
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
@@ -395,7 +397,7 @@ class DistributionList(ZObject):
         """
         o = super(DistributionList, cls).from_dict(d)
         o.members = []
-        if d.has_key('dlm'):
+        if 'dlm' in d:
             o.members = [utils.get_content(member)
                          for member in utils.as_list(d["dlm"])]
         return o
@@ -409,7 +411,7 @@ class Signature(ZObject):
         """ Override default, adding the capture of content and contenttype.
         """
         o = super(Signature, cls).from_dict(d)
-        if d.has_key('content'):
+        if 'content' in d:
         #	Sometimes, several contents, (one txt, other  html), take last
             try:
                 o._content = d['content']['_content']

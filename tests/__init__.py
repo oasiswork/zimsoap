@@ -1,4 +1,6 @@
-import ConfigParser
+from __future__ import unicode_literals
+
+from six.moves import configparser
 from os.path import join, dirname
 
 # Something you don't want to see in production, but we allow
@@ -23,7 +25,7 @@ defaults = {
     'calres1'        : 'camescope@zimbratest2.example.com'}
 
 def get_config():
-    parser = ConfigParser.SafeConfigParser(defaults=defaults)
+    parser = configparser.SafeConfigParser(defaults=defaults)
     parser.read(join(dirname(__file__),'test_config.ini'))
     try:
         return {k:v for k,v in parser.items('zimbra_server')}

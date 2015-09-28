@@ -41,7 +41,7 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    print 'WARNING: this is an example script, do not use in production'
+    print("WARNING: this is an example script, do not use in production")
     args = parse_args()
     password = getpass.getpass('Password for %s: ' % args.username)
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     try:
         zc.login(args.username, password)
     except (zimsoap.client.ZimbraSoapServerError, URLError) as sf:
-        print sf
+        print(sf)
         exit(5)
 
     if args.domain:
@@ -59,13 +59,13 @@ if __name__ == '__main__':
 
     total_accounts = 0
 
-    print "\nPrint accounts count, per-COS:"
+    print("\nPrint accounts count, per-COS:")
     for domain in domains_to_inspect:
-        print
-        print "Domain %s" % domain.name
+        print()
+        print("Domain %s" % domain.name)
         for cos , count in zc.count_account(domain):
-            print '{0:.<20}{1}'.format(cos.name, count)
+            print('{0:.<20}{1}'.format(cos.name, count))
             total_accounts += count
 
-print '\nTOTAL ACCOUNTS ({0} domains): {1}'.format(
-    len(domains_to_inspect), total_accounts)
+print('\nTOTAL ACCOUNTS ({0} domains): {1}'.format(
+    len(domains_to_inspect), total_accounts))
