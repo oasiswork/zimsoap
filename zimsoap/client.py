@@ -914,7 +914,6 @@ class ZimbraMailClient(ZimbraAbstractClient):
         self._session.login(user, password, 'urn:zimbraAccount')
 
     # Ranking action
-
     def reset_ranking(self):
         """Reset the contact ranking table for the account
         """
@@ -928,6 +927,8 @@ class ZimbraMailClient(ZimbraAbstractClient):
         self.request('RankingAction', {'action': {'op': 'reset',
                                                   'email': email
                                                   }})
+
+    # Task
 
     def create_task(self, subject, desc):
         """Create a task
@@ -956,6 +957,72 @@ class ZimbraMailClient(ZimbraAbstractClient):
             return zobjects.Task.from_dict(task)
         else:
             return None
+
+    # Contact
+
+    def create_contact(self, attrs, folder_id=None, tags=None):
+        """Create a contact
+
+        Does not include VCARD nor group membership yet
+
+        XML example :
+        <cn l="7> ## ContactSpec
+            <a n="lastName">MARTIN</a>
+            <a n="firstName">Pierre</a>
+            <a n="email">pmartin@example.com</a>
+        </cn>
+        Which would be in zimsoap : attrs = { 'lastname': 'MARTIN',
+                                        'firstname': 'Pierre',
+                                        'email': 'pmartin@example.com' }
+                                    folder_id = 7
+
+        :param folder_id: a string of the ID's folder where to create
+        contact. Default '7'
+        :param tags:     comma-separated list of tag names
+        :param attrs:   a dictionary of attributes to set ({key:value,...}). At
+        least one attr is required
+        :returns:       the created zobjects.Contact
+        """
+        cn = {}
+        if folder_id:
+            cn['l'] = str(folder_id)
+        if tags:
+            cn['tn'] = tags
+
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
+        cn['a'] = attrs
+        resp = self.request_single('CreateContact', {'cn': cn})
+
+        return zobjects.Contact.from_dict(resp)
+
+    def get_contacts(self, ids=None):
+        """ Get all contacts for the current user
+
+        :param ids: An coma separated list of contact's ID to look for
+
+        :returns: a list of zobjects.Contact
+        """
+        # TODO: put "a", "ma" and all others params available for
+        params = {}
+        if ids:
+            params['cn'] = {'id': ids}
+
+        contacts = self.request_list('GetContacts', params)
+
+        return [zobjects.Contact.from_dict(i) for i in contacts]
+
+    def delete_contacts(self, ids):
+        """ Delete selected contacts for the current user
+
+        :param ids: list of ids
+        """
+        if not isinstance(ids, list):
+            raise TypeError('ids should be a list of inttegers, \
+not {0}'.format(type(ids)))
+
+        str_ids = ','.join(str(i) for i in ids)
+        self.request('ContactAction', {'action': {'op': 'delete',
+                                                  'id': str_ids}})
 
 
 class ZimbraAPISession:
