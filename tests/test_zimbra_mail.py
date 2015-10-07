@@ -149,6 +149,18 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc.is_session_valid())
 
+    # Raking actions
+
+    def test_delete_ranking(self):
+        # No means to check it's really deleted because we
+        # can't access the list and no error is thrown if
+        # there is no entry with this address.
+        self.zc.delete_ranking(email='p.martin@example.com')
+
+    def test_reset_ranking(self):
+        # Same as above, no means to check it's really reseted.
+        self.zc.reset_ranking()
+
 
 class ZobjectTaskTests(unittest.TestCase):
     """ Tests the Task zobject.
