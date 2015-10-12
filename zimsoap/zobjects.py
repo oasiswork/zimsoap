@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-""" Zimbra specific objects, handle (un)parsing to/from XML and other glue-code.
+""" Zimbra specific objects, handle (un)parsing to/from XML and other glue-code
 
 Note that they do *not* handle themselves communication with
 zimbra API. It is left to
@@ -13,10 +13,12 @@ from six import text_type, binary_type
 
 from zimsoap import utils
 
+
 class NotEnoughInformation(Exception):
     """Raised when we try to get information on an object but have too litle
     data to infer it."""
     pass
+
 
 class ZObject(object):
     """ An abstract class to handle Zimbra Concepts
@@ -27,7 +29,7 @@ class ZObject(object):
     typed to str.
     """
     # In <a name="zimbraPrefForwardReply">&gt;</a> it would be 'name'
-    ATTRNAME_PROPERTY='n'
+    ATTRNAME_PROPERTY = 'n'
 
     @classmethod
     def from_dict(cls, d):
@@ -66,8 +68,8 @@ class ZObject(object):
 
     def __eq__(self, other):
         if type(self) != type(other):
-            raise TypeError('Cannot compare %s with %s' %\
-                                (type(self), type(other)))
+            raise TypeError('Cannot compare %s with %s' %
+                            (type(self), type(other)))
 
         try:
             if not utils.is_zuuid(self.id) or not utils.is_zuuid(other.id):
@@ -145,8 +147,6 @@ class ZObject(object):
         else:
             return [res]
 
-
-
     @classmethod
     def _parse_a_tags(cls, dic):
         """ Iterates over all <a> tags and builds a dict with those.
@@ -179,7 +179,7 @@ class ZObject(object):
             if k in props:
                 prev_v = props[k]
                 if type(prev_v) != list:
-                    props[k] = [prev_v,]
+                    props[k] = [prev_v]
 
                 props[k].append(v)
 
@@ -209,12 +209,13 @@ class ZObject(object):
                 selector = s
 
         if selector is None:
-            raise ValueError("At least one %s has to be set as attr."\
-                    % str(self.SELECTORS))
+            raise ValueError("At least one %s has to be set as attr."
+                             % str(self.SELECTORS))
 
         val = getattr(self, selector)
 
-        return  {'by': selector,'_content': val}
+        return {'by': selector, '_content': val}
+
 
 class Config(ZObject):
     """
@@ -227,7 +228,7 @@ class Config(ZObject):
     def to_selector(self):
         val = getattr(self, 'n')
 
-        return  {'n': val}
+        return {'n': val}
 
 
 class Domain(ZObject):
@@ -245,9 +246,9 @@ class Domain(ZObject):
           - zimbraDomainAliasTargetId: cd330216-ac40-48a2-abe9-812091879714
           - zimbraMailCatchAllForwardingAddress: @zimbratest.example.fr
 
-          Here we parse the zimbraMailCatchAllForwardingAddress to extract domain
+        Here we parse the zimbraMailCatchAllForwardingAddress to extract domain
 
-          :rtype: str
+        :rtype: str
         """
         prop = str(self.property('zimbraMailCatchAllForwardingAddress', ''))
         if prop:
@@ -256,10 +257,10 @@ class Domain(ZObject):
             return prop
 
 
-
 class COS(ZObject):
     TAG_NAME = 'cos'
     SELECTORS = ('id', 'name')
+
 
 class Server(ZObject):
     """ A Zimbra server object
@@ -273,7 +274,7 @@ class AbstractAddressableZObject(ZObject):
         try:
             domain_name = self.name.split('@')[1]
             return Domain(name=domain_name)
-        except AttributeError as e:
+        except AttributeError:
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
@@ -281,7 +282,7 @@ class AbstractAddressableZObject(ZObject):
         try:
             domain_name = self.name.split('@')[0]
             return Domain(name=domain_name)
-        except AttributeError as e:
+        except AttributeError:
             raise NotEnoughInformation(
                 'Cannot get domain without self.name filled')
 
@@ -290,8 +291,8 @@ class Account(AbstractAddressableZObject):
     """An account object
     """
     TAG_NAME = 'account'
-    SELECTORS = ('adminName','appAdminName','id',
-                 'foreignPrincipal','name','krb5Principal')
+    SELECTORS = ('adminName', 'appAdminName', 'id',
+                 'foreignPrincipal', 'name', 'krb5Principal')
 
     def is_admin(self):
         """ Is it an admin account ?
@@ -323,11 +324,12 @@ class Account(AbstractAddressableZObject):
         except KeyError:
             return False
 
+
 class CalendarResource(AbstractAddressableZObject):
     """A CalendarResource object
     """
     TAG_NAME = 'calresource'
-    SELECTORS = ('id','name')
+    SELECTORS = ('id', 'name')
 
     EQUIPMENT_TYPE = 'Equipment'
     LOCATION_TYPE = 'Location'
@@ -337,7 +339,7 @@ class Identity(ZObject):
     """An account object
     """
     TAG_NAME = 'identity'
-    ATTRNAME_PROPERTY='name'
+    ATTRNAME_PROPERTY = 'name'
 
     def to_creator(self):
         """ Returns the dict suitable for CreateIdentity or ModifyIdentity
@@ -356,7 +358,8 @@ class Identity(ZObject):
 
     def is_default(self):
         """ Is it the default identity ? """
-        # it's not just a convention : default identity name cannot be changed...
+        # it's not just a convention : default identity name cannot be
+        # changed...
         return self.name == 'DEFAULT'
 
 
@@ -388,7 +391,7 @@ class Mailbox(ZObject):
 
 
 class DistributionList(ZObject):
-    TAG_NAME='dl'
+    TAG_NAME = 'dl'
     SELECTORS = ('id', 'name')
 
     @classmethod
@@ -402,8 +405,9 @@ class DistributionList(ZObject):
                          for member in utils.as_list(d["dlm"])]
         return o
 
+
 class Signature(ZObject):
-    TAG_NAME='signature'
+    TAG_NAME = 'signature'
     SELECTORS = ('id', 'name')
 
     @classmethod
@@ -412,7 +416,7 @@ class Signature(ZObject):
         """
         o = super(Signature, cls).from_dict(d)
         if 'content' in d:
-        #	Sometimes, several contents, (one txt, other  html), take last
+            # Sometimes, several contents, (one txt, other  html), take last
             try:
                 o._content = d['content']['_content']
                 o._contenttype = d['content']['type']
@@ -440,13 +444,12 @@ class Signature(ZObject):
 
         return {selector: val}
 
-    def get_content(self, content):
+    def get_content(self):
         return self._content
 
     def set_content(self, content, contenttype='text/html'):
         self._content = content
         self._contenttype = contenttype
-
 
     def to_creator(self, for_modify=False):
         """ Returns a dict object suitable for a 'CreateSignature'.
@@ -504,12 +507,10 @@ class Signature(ZObject):
             # A creation request should have a content
             if not for_modify:
                 raise AttributeError(
-                    'too little information on signature, run setContent before')
+                    'too little information on signature, '
+                    'run setContent before')
 
         return signature
-
-    def get_content(self):
-        return self._content
 
     def has_content(self):
         return (hasattr(self, '_content') and hasattr(self, '_contenttype'))

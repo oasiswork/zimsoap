@@ -7,8 +7,6 @@ from __future__ import unicode_literals
 import unittest
 
 from six import text_type
-import pythonzimbra
-from pythonzimbra.communication import Communication
 
 import zimsoap
 from zimsoap import utils
@@ -17,7 +15,7 @@ from zimsoap import utils
 class ZimsoapUtilsTests(unittest.TestCase):
     def testValidZuuid(self):
         self.assertTrue(zimsoap.utils.is_zuuid(
-                'd78fd9c9-f000-440b-bce6-ea938d40fa2d'))
+            'd78fd9c9-f000-440b-bce6-ea938d40fa2d'))
 
     def testEmptyZuuid(self):
         self.assertFalse(zimsoap.utils.is_zuuid(''))
@@ -25,20 +23,20 @@ class ZimsoapUtilsTests(unittest.TestCase):
     def testInvalidZuuid(self):
         # Just missing a char
         self.assertFalse(zimsoap.utils.is_zuuid(
-                'd78fd9c9-f000-440b-bce6-ea938d40fa2'))
+            'd78fd9c9-f000-440b-bce6-ea938d40fa2'))
 
     def test_build_preauth_str(self):
         """ Taken from http://wiki.zimbra.com/wiki/Preauth
         """
         res = zimsoap.utils.build_preauth_str(
-            preauth_key = '6b7ead4bd425836e8cf0079cd6c1a05acc127acd07c8ee4b61023e19250e929c',
-            account_name = 'john.doe@domain.com',
-            timestamp = 1135280708088,
-            expires = 0
+            preauth_key=('6b7ead4bd425836e8cf0079cd6c1a05acc'
+                         '127acd07c8ee4b61023e19250e929c'),
+            account_name='john.doe@domain.com',
+            timestamp=1135280708088,
+            expires=0
             )
         self.assertIsInstance(res, str)
         self.assertEqual(res, 'b248f6cfd027edd45c5369f8490125204772f844')
-
 
     def test_auto_type_int(self):
         self.assertIsInstance(utils.auto_type('42'), int)
@@ -62,7 +60,6 @@ class ZimsoapUtilsTests(unittest.TestCase):
 
     def test_auto_untype_any(self):
         self.assertEqual(utils.auto_untype('foo'), 'foo')
-
 
     def test_xml_str_to_dict(self):
         xml = (

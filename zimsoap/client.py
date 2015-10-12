@@ -8,7 +8,6 @@ core classes for SOAP clients, there are also REST clients here, but used only
 for pre-authentification.
 """
 
-from os.path import dirname, abspath, join
 import datetime
 try:
     from urllib2 import HTTPCookieProcessor, build_opener, HTTPError
@@ -46,7 +45,8 @@ class RESTClient:
             self.preauth_url = 'https://{0}:{1}/service/preauth?'.format(
                 server_host, server_port)
         else:
-            self.preauth_url = 'https://{0}/service/preauth?'.format(server_host)
+            self.preauth_url = 'https://{0}/service/preauth?'.format(
+                server_host)
 
         self.set_preauth_key(preauth_key)
 
@@ -63,13 +63,13 @@ class RESTClient:
                                               ts, expires, admin=self.isadmin)
 
         args = urllib.parse.urlencode({
-                'account'   : account_name,
-                'by'        : 'name',
-                'timestamp' : ts,
-                'expires'   : expires*1000,
-                'admin'     : "1" if self.isadmin else "0",
-                'preauth'   : preauth_str
-                })
+            'account': account_name,
+            'by': 'name',
+            'timestamp': ts,
+            'expires': expires*1000,
+            'admin': "1" if self.isadmin else "0",
+            'preauth': preauth_str
+        })
 
         cj = http_cookiejar.CookieJar()
         browser = build_opener(HTTPCookieProcessor(cj))
@@ -86,27 +86,31 @@ class RESTClient:
 
 class AdminRESTClient(RESTClient):
     TOKEN_COOKIE = 'ZM_ADMIN_AUTH_TOKEN'
+
     def __init__(self, server_host, server_port=7071, preauth_key=None):
         self.isadmin = True
-        RESTClient.__init__(self,server_host, server_port, preauth_key)
+        RESTClient.__init__(self, server_host, server_port, preauth_key)
 
 
 class AccountRESTClient(RESTClient):
     TOKEN_COOKIE = 'ZM_AUTH_TOKEN'
+
     def __init__(self, *args, **kwargs):
         self.isadmin = False
         RESTClient.__init__(self, *args, **kwargs)
-
 
 
 class MailRESTClient(RESTClient):
     TOKEN_COOKIE = 'ZM_MAIL_AUTH_TOKEN'
+
     def __init__(self, *args, **kwargs):
         self.isadmin = False
         RESTClient.__init__(self, *args, **kwargs)
 
+
 class ZimSOAPException(Exception):
     pass
+
 
 class ShouldAuthenticateFirst(ZimSOAPException):
     """ Error fired when an operation requiring auth is intented before the auth
@@ -117,17 +121,20 @@ class ShouldAuthenticateFirst(ZimSOAPException):
 
 class DomainHasNoPreAuthKey(ZimSOAPException):
     """ Error fired when the server has no preauth key
-    pass"""
+    """
     def __init__(self, domain):
         # Call the base class constructor with the parameters it needs
-        msg = '"{0}" has no preauth key, make one first, see {1}'.format(
+        self.msg = '"{0}" has no preauth key, make one first, see {1}'.format(
             domain.name,
-            'http://wiki.zimbra.com/wiki/Preauth#Preparing_a_domain_for_preauth'
+            'http://wiki.zimbra.com/wiki/Preauth'
+            '#Preparing_a_domain_for_preauth'
             )
         Exception.__init__(self)
 
+
 class ZimbraSoapServerError(ZimSOAPException):
     r_soap_text = re.compile(r'<soap:Text>(.*)</soap:Text>')
+
     def __init__(self, request, response):
         self.request = request
         self.response = response
@@ -140,6 +147,7 @@ class ZimbraSoapServerError(ZimSOAPException):
     def __str__(self):
         return '{0}: {1}'.format(
             self.code, self.msg)
+
 
 class ZimbraSoapUnexpectedResponse(ZimSOAPException):
     def __init__(self, request, response, msg=''):
@@ -183,7 +191,7 @@ class ZimbraAbstractClient(object):
 
         req_name = name+'Request'
         resp_name = name+'Response'
-        req = auth_request = pythonzimbra.request_xml.RequestXml()
+        req = pythonzimbra.request_xml.RequestXml()
         resp = pythonzimbra.response_xml.ResponseXml()
 
         if self._session.is_logged_in():
@@ -193,7 +201,7 @@ class ZimbraAbstractClient(object):
         try:
             self.com.send_request(req, resp)
         except HTTPError as e:
-            if resp :
+            if resp:
                 raise ZimbraSoapServerError(e.req, e.resp)
             else:
                 raise
@@ -228,7 +236,6 @@ class ZimbraAbstractClient(object):
 
         return None
 
-
     def request_list(self, name, content={}):
         """ Simple wrapper arround request to extract a list of response
 
@@ -249,14 +256,11 @@ class ZimbraAbstractClient(object):
 
     def login(self, user, password):
         self._session.login(user, password)
-        #self['context'] = self._session.get_context_header()
 
     def login_with_authToken(self, authToken, lifetime=None):
         self._session.import_session(authToken)
-        #self['context'] = self._session.get_context_header()
         if lifetime:
             self._session.set_end_date(int(lifetime))
-
 
     def get_logged_in_by(self, login, parent_zc, duration=0):
         """Use another client to get logged in via preauth mechanism by an
@@ -310,9 +314,9 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     API ref is
     http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAccount/service-summary.html
     """
-    NAMESPACE='urn:zimbraAccount'
-    LOCATION='service/soap'
-    REST_PREAUTH=AccountRESTClient
+    NAMESPACE = 'urn:zimbraAccount'
+    LOCATION = 'service/soap'
+    REST_PREAUTH = AccountRESTClient
 
     def __init__(self, server_host, server_port='443', *args, **kwargs):
         super(ZimbraAccountClient, self).__init__(
@@ -368,7 +372,6 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         else:
             return None
 
-
     def delete_signature(self, signature):
         """ Delete a signature by name or id
 
@@ -379,8 +382,8 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def modify_signature(self, signature):
         """ Modify an existing signature
 
-        Can modify the content, contenttype and name. An unset attribute will not
-        delete the attribute but leave it untouched.
+        Can modify the content, contenttype and name. An unset attribute will
+        not delete the attribute but leave it untouched.
         :param: signature a zobject.Signature object, with modified
                          content/contentype/name, the id should be present and
                           valid, the name does not allows to identify the
@@ -432,8 +435,8 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def modify_identity(self, identity):
         """ Modify some attributes of an identity or its name.
 
-        :param: identity a zobjects.Identity with `id` set (mandatory). Also set
-               items you want to modify/set and/or the `name` attribute to
+        :param: identity a zobjects.Identity with `id` set (mandatory). Also
+               set items you want to modify/set and/or the `name` attribute to
                rename the identity.
         """
         self.request('ModifyIdentity', {'identity': identity.to_creator()})
@@ -445,9 +448,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     API ref is
     http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAdmin/service-summary.html
     """
-    NAMESPACE='urn:zimbraAdmin'
-    LOCATION='service/admin/soap'
-    REST_PREAUTH=AdminRESTClient
+    NAMESPACE = 'urn:zimbraAdmin'
+    LOCATION = 'service/admin/soap'
+    REST_PREAUTH = AdminRESTClient
 
     def __init__(self, server_host, server_port='7071',
                  *args, **kwargs):
@@ -458,7 +461,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def get_all_config(self):
         resp = self.request_list('GetAllConfig')
         return [zobjects.Config.from_dict(d) for d in resp]
-
 
     def get_config(self, attr):
         selector = attr.to_selector()
@@ -489,7 +491,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         resp = self.request_list('GetAllDomains')
         return [zobjects.Domain.from_dict(d) for d in resp]
 
-
     def get_all_accounts(self, domain=None, server=None,
                          include_system_accounts=False,
                          include_admin_accounts=True,
@@ -512,7 +513,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                 not include_admin_accounts and account.is_admin()
                 or
                 not include_virtual_accounts and account.is_virtual()
-                ):
+            ):
                 accounts.append(account)
 
         return accounts
@@ -538,7 +539,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def get_calendar_resource(self, cal_resource):
         """ Fetches an calendar resource with all its attributes.
 
-        :param: account, a CalendarResource, with either id or name attribute set.
+        :param account: a CalendarResource, with either id or
+                        name attribute set.
         :returns: a CalendarResource object, filled.
         """
         selector = cal_resource.to_selector()
@@ -552,8 +554,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                      zimbraCalResType
         """
         args = {
-            'name'    : name,
-            'a'       : [{'n': k, '_content': v} for k,v in attrs.items()]
+            'name': name,
+            'a': [{'n': k, '_content': v} for k, v in attrs.items()]
             }
         if password:
             args['password'] = password
@@ -562,7 +564,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def delete_calendar_resource(self, calresource):
         self.request('DeleteCalendarResource', {
-            'id': self._get_or_fetch_id(calresource, self.get_calendar_resource),
+            'id': self._get_or_fetch_id(calresource,
+                                        self.get_calendar_resource),
         })
 
     def modify_calendar_resource(self, calres, attrs):
@@ -570,10 +573,11 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param calres: a zobjects.CalendarResource
         :param attrs:    a dictionary of attributes to set ({key:value,...})
         """
-        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
         self.request('ModifyCalendarResource', {
-                'id': self._get_or_fetch_id(calres, self.get_calendar_resource),
-                'a' : attrs
+            'id': self._get_or_fetch_id(
+                calres, self.get_calendar_resource),
+            'a': attrs
         })
 
     # Mailbox stats
@@ -587,7 +591,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         """
         resp = self.request_single('GetMailboxStats')
         ret = {}
-        for k,v in resp.items():
+        for k, v in resp.items():
             ret[k] = int(v)
 
         return ret
@@ -606,7 +610,6 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             ret.append((zobjects.ClassOfService.from_dict(i),  count))
 
         return list(ret)
-
 
     def get_all_mailboxes(self):
         resp = self.request_list('GetAllMailboxes')
@@ -642,17 +645,16 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         resp = self.request_single('GetDomain', {'domain': selector})
         return zobjects.Domain.from_dict(resp)
 
-
     def modify_domain(self, domain, attrs):
         """
         :type domain: a zobjects.Domain
         :param attrs: attributes to modify
         :type attrs dict
         """
-        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
         self.request('ModifyDomain', {
-                'id': self._get_or_fetch_id(domain, self.get_domain),
-                'a' : attrs
+            'id': self._get_or_fetch_id(domain, self.get_domain),
+            'a': attrs
         })
 
     def get_all_distribution_lists(self, domain=None):
@@ -684,7 +686,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param dynamic:
         :return: a zobjects.DistributionList
         """
-        args = {'name'   : name, 'dynamic': str(dynamic)}
+        args = {'name': name, 'dynamic': str(dynamic)}
         resp = self.request_single('CreateDistributionList', args)
 
         return zobjects.DistributionList.from_dict(resp)
@@ -696,10 +698,11 @@ class ZimbraAdminClient(ZimbraAbstractClient):
                    - dl_description: the name of the list
         :param attrs  : a dictionary of attributes to set ({key:value,...})
         """
-        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
         self.request('ModifyDistributionList', {
-                'id': self._get_or_fetch_id(dl_description, self.get_distribution_list),
-                'a' : attrs
+            'id': self._get_or_fetch_id(dl_description,
+                                        self.get_distribution_list),
+            'a': attrs
         })
 
     def delete_distribution_list(self, dl):
@@ -716,7 +719,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         """
         members = [{'_content': v} for v in members]
         resp = self.request_single('AddDistributionListMember', {
-            'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
+            'id': self._get_or_fetch_id(distribution_list,
+                                        self.get_distribution_list),
             'dlm': members
         })
         return resp
@@ -730,7 +734,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         """
         members = [{'_content': v} for v in members]
         resp = self.request_single('RemoveDistributionListMember', {
-            'id': self._get_or_fetch_id(distribution_list, self.get_distribution_list),
+            'id': self._get_or_fetch_id(distribution_list,
+                                        self.get_distribution_list),
             'dlm': members
         })
         return resp
@@ -738,7 +743,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     def get_account(self, account):
         """ Fetches an account with all its attributes.
 
-        :param account: an account object, with either id or name attribute set.
+        :param account: an account object, with either id or name attribute set
         :returns: a zobjects.Account object, filled.
         """
         selector = account.to_selector()
@@ -752,8 +757,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param new_name: a string of new account name
         """
         self.request('RenameAccount', {
-                'id': self._get_or_fetch_id(account, self.get_account),
-                'newName': new_name
+            'id': self._get_or_fetch_id(account, self.get_account),
+            'newName': new_name
         })
 
     def modify_account(self, account, attrs):
@@ -761,10 +766,10 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param account: a zobjects.Account
         :param attrs  : a dictionary of attributes to set ({key:value,...})
         """
-        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
         self.request('ModifyAccount', {
-                'id': self._get_or_fetch_id(account, self.get_account),
-                'a' : attrs
+            'id': self._get_or_fetch_id(account, self.get_account),
+            'a': attrs
         })
 
     def create_account(self, email, password, attrs={}):
@@ -774,11 +779,11 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param attrs:    a dictionary of attributes to set ({key:value,...})
         :returns:        the created zobjects.Account
         """
-        attrs = [{'n': k, '_content': v} for k,v in attrs.items()]
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
         resp = self.request_single('CreateAccount', {
-                'name': email,
-                'password' : password,
-                'a': attrs,
+            'name': email,
+            'password': password,
+            'a': attrs,
         })
 
         return zobjects.Account.from_dict(resp)
@@ -788,7 +793,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :param account: an account object to be used as a selector
         """
         self.request('DeleteAccount', {
-                'id': self._get_or_fetch_id(account, self.get_account),
+            'id': self._get_or_fetch_id(account, self.get_account),
         })
 
     def add_account_alias(self, account, alias):
@@ -798,8 +803,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :returns:         None (the API itself returns nothing)
         """
         self.request('AddAccountAlias', {
-                'id': self._get_or_fetch_id(account, self.get_account),
-                'alias': alias,
+            'id': self._get_or_fetch_id(account, self.get_account),
+            'alias': alias,
         })
 
     def remove_account_alias(self, account, alias):
@@ -809,10 +814,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :returns:         None (the API itself returns nothing)
         """
         self.request('RemoveAccountAlias', {
-                'id': self._get_or_fetch_id(account, self.get_account),
-                'alias': alias,
+            'id': self._get_or_fetch_id(account, self.get_account),
+            'alias': alias,
         })
-
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.
@@ -950,12 +954,12 @@ class ZimbraAPISession:
         """ Performs the login against zimbra
         (sends AuthRequest, receives AuthResponse).
 
-        :param: namespace if specified, the namespace used for authetication (if
-                         the client namespace is not suitable for
+        :param namespace: if specified, the namespace used for authetication
+                         (if the client namespace is not suitable for
                          authentication).
         """
 
-        if namespace == None:
+        if namespace is None:
             namespace = self.client.NAMESPACE
 
         data = self.client.request(
@@ -963,8 +967,8 @@ class ZimbraAPISession:
             {
                 'account': zobjects.Account(name=username).to_selector(),
                 'password': {'_content': password}
-             }
-            , namespace)
+            },
+            namespace)
         self.authToken = data['authToken']
         lifetime = int(data['lifetime'])
 
@@ -974,7 +978,7 @@ class ZimbraAPISession:
     def import_session(self, auth_token):
         if not isinstance(auth_token, (binary_type, text_type)):
             raise TypeError('auth_token should be a string, not {0}'.format(
-                    type(auth_token)))
+                type(auth_token)))
         self.authToken = auth_token
 
     def is_logged_in(self, force_check=False):

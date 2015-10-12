@@ -6,11 +6,13 @@ It has to be tested against a zimbra server (see README.md).
 
 import unittest
 
-from zimsoap.client import *
-from zimsoap.zobjects import *
+from zimsoap.client import (ZimbraAdminClient, RESTClient,
+                            AccountRESTClient, AdminRESTClient)
+from zimsoap.zobjects import Account
 import tests
 
 TEST_CONF = tests.get_config()
+
 
 class RESTClientTest(unittest.TestCase):
     @classmethod
@@ -26,9 +28,8 @@ class RESTClientTest(unittest.TestCase):
         domain_name = cls.lambda_account.get_domain()
         cls.ph_key_domain1 = cls.zc.get_domain(domain_name)['zimbraPreAuthKey']
 
-
     def test_user_preauth_without_key_fails(self):
-        with self.assertRaises(RESTClient.NoPreauthKeyProvided) as cm:
+        with self.assertRaises(RESTClient.NoPreauthKeyProvided):
             c = AccountRESTClient(self.HOST)
             c.get_preauth_token(self.lambda_account.name)
 
@@ -38,7 +39,7 @@ class RESTClientTest(unittest.TestCase):
         self.assertIsInstance(token, str)
 
     def test_user_preauth_with_wrong_user_fails(self):
-        with self.assertRaises(RESTClient.RESTBackendError) as cm:
+        with self.assertRaises(RESTClient.RESTBackendError):
             c = AccountRESTClient(self.HOST, preauth_key=self.ph_key_domain1)
             c.get_preauth_token('idonotexist1234@'+TEST_CONF['domain_1'])
 

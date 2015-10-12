@@ -11,9 +11,10 @@ import re
 import hmac
 import hashlib
 from xml.dom import minidom
-import six
 
 re_zuuid = re.compile(r'[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}')
+
+
 def is_zuuid(s):
     """ Is it a zimbraUUID ?
 
@@ -21,26 +22,32 @@ def is_zuuid(s):
     """
     return re_zuuid.match(s)
 
-def build_preauth_str(preauth_key, account_name, timestamp, expires, admin=False):
-    """ Builds the preauthentification string and hmac it, following the zimbra spec.
 
-    spec and examples are here http://wiki.zimbra.com/wiki/Preauth
+def build_preauth_str(preauth_key, account_name, timestamp, expires,
+                      admin=False):
+    """ Builds the preauth string and hmac it, following the zimbra spec.
+
+    Spec and examples are here http://wiki.zimbra.com/wiki/Preauth
     """
     if admin:
         s = '{0}|1|name|{1}|{2}'.format(account_name, expires, timestamp)
     else:
         s = '{0}|name|{1}|{2}'.format(account_name, expires, timestamp)
 
-    return hmac.new(preauth_key.encode('utf-8'), s.encode('utf-8'), hashlib.sha1).hexdigest()
+    return hmac.new(preauth_key.encode('utf-8'), s.encode('utf-8'), hashlib.sha1)\
+               .hexdigest()
+
 
 def wrap_in_cdata(s):
     return "<![CDATA[{0}]]>".format(s)
+
 
 def as_list(obj):
     if isinstance(obj, (list, tuple)):
         return obj
     else:
         return [obj]
+
 
 def get_content(obj):
     """ Works arround (sometimes) non predictible results of pythonzimbra
@@ -53,12 +60,13 @@ def get_content(obj):
     else:
         return obj
 
+
 def auto_type(s):
     """ Get a XML response and tries to convert it to Python base object
     """
     if isinstance(s, bool):
         return s
-    elif s == None:
+    elif s is None:
         return ''
     elif s == 'TRUE':
         return True
@@ -78,16 +86,18 @@ def auto_type(s):
         except ValueError:
             return s
 
+
 def auto_untype(arg):
     """ The oposite of auto_type : takes a python base object and tries to
     convert it to XML typed string.
     """
-    if arg == True:
+    if arg is True:
         return 'TRUE'
-    elif arg == False:
+    elif arg is False:
         return 'FALSE'
     else:
         return arg
+
 
 def xml_str_to_dict(s):
     """ Transforms an XML string it to python-zimbra dict format
