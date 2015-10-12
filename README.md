@@ -1,6 +1,8 @@
 ZimSOAP : a programmatic python interface to zimbra
 ===================================================
 
+[![Build Status](https://travis-ci.org/oasiswork/zimsoap.svg?branch=master)](https://travis-ci.org/oasiswork/zimsoap)
+
 ZimSOAP allows to access the [SOAP Zimbra API] through a programmatic,
 data-type-aware  interface high-level. It also handle  authentification,
 sessions, pre-authentication and delegated authentication.
