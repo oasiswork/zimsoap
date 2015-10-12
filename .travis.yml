@@ -10,7 +10,7 @@ install:
   - python setup.py develop
 
 before_script:
-  flake8 --exclude=build,dist .
+  make lint
 
 script:
   # At the moment CI is only used to check unit tests
