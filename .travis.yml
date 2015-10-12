@@ -1,0 +1,19 @@
+language: "python"
+python:
+  - "2.7"
+  - "3.2"
+  - "3.3"
+  - "3.4"
+
+install:
+  - pip install -r test-requirements.txt
+  - python setup.py develop
+
+before_script:
+  flake8 --exclude=build,dist .
+
+script:
+  # At the moment CI is only used to check unit tests
+  # not functional / integration, which requires running
+  # zimbra server
+  python -m unittest tests.test_utils tests.test_zobjects
