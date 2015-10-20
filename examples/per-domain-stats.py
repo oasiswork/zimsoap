@@ -10,21 +10,27 @@
 
 import argparse
 import getpass
+import os
+import sys
 
-import sys; import os; sys.path.append(os.path.dirname(__file__)+'/../')
+sys.path.append(os.path.dirname(__file__)+'/../')
 
 from urllib2 import URLError
 
 import zimsoap.client
-from zimsoap.zobjects import *
+from zimsoap.zobjects import Domain
+
+""" Counts Zimbra accounts, globally or for a subset, of domains
+
+Sorted by cos.
+"""
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description=\
-      'Counts Zimbra accounts, globally or for a subset of domains, sorted by cos.')
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-u", "--username", required=True,
                         help="zimbra admin username (user@domain.tld)")
-    parser.add_argument("-s", "--server",required=True,
+    parser.add_argument("-s", "--server", required=True,
                         help="zimbra server host or proxy")
 
     parser.add_argument("-p", "--port", default=7071,
@@ -63,7 +69,7 @@ if __name__ == '__main__':
     for domain in domains_to_inspect:
         print()
         print("Domain %s" % domain.name)
-        for cos , count in zc.count_account(domain):
+        for cos, count in zc.count_account(domain):
             print('{0:.<20}{1}'.format(cos.name, count))
             total_accounts += count
 

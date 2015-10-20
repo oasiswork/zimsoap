@@ -16,6 +16,7 @@ import tests
 
 TEST_CONF = tests.get_config()
 
+
 class ZimbraMailAPITests(unittest.TestCase):
     """ Test logic and Zimbra Mail SOAP methods """
 

@@ -9,8 +9,12 @@ It has to be tested against a zimbra server (see README.md)
 
 import unittest
 import random
-from zimsoap.client import *
-from zimsoap.zobjects import *
+from zimsoap.client import (
+    DomainHasNoPreAuthKey, ZimbraAccountClient, ZimbraAdminClient,
+    ZimbraAPISession, ZimbraSoapServerError)
+from zimsoap.zobjects import (
+    Account, CalendarResource, ClassOfService, COS, DistributionList, Domain,
+    Mailbox, Server)
 try:
     from urllib2 import URLError
 except ImportError:
@@ -20,6 +24,7 @@ from six import text_type, binary_type, assertRegex
 import tests
 
 TEST_CONF = tests.get_config()
+
 
 class ZimbraAdminClientTests(unittest.TestCase):
     def setUp(self):
@@ -42,7 +47,6 @@ class ZimbraAdminClientTests(unittest.TestCase):
 
         self.assertIn('authentication failed', cm.exception.msg)
 
-
     def testBadPasswordFailure(self):
         with self.assertRaises(ZimbraSoapServerError) as cm:
             zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
@@ -51,12 +55,12 @@ class ZimbraAdminClientTests(unittest.TestCase):
         self.assertIn('authentication failed', cm.exception.msg)
 
     def testBadHostFailure(self):
-        with self.assertRaises(URLError) as cm:
+        with self.assertRaises(URLError):
             zc = ZimbraAdminClient('nonexistanthost.example.com', 7071)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
     def testBadPortFailure(self):
-        with self.assertRaises(URLError) as cm:
+        with self.assertRaises(URLError):
             zc = ZimbraAdminClient(self.TEST_SERVER, 9999)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
@@ -67,7 +71,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # Login/connection is done at class initialization to reduce tests time
         cls.zc = ZimbraAdminClient(TEST_CONF['host'], TEST_CONF['admin_port'])
         cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
-
 
     def setUp(self):
         # self.zc = ZimbraAdminClient('zimbratest.example.com', 7071)
@@ -82,7 +85,7 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # Try to delete a relief test distribution list (if any)
         try:
             resp = self.zc.request('GetDistributionList', {
-                    'dl': {'by': 'name', '_content': self.TEST_DL_NAME}
+                'dl': {'by': 'name', '_content': self.TEST_DL_NAME}
             })
 
             dl_id = resp['dl']['id']
@@ -106,9 +109,9 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         self.assertIsInstance(resp['domain'], list)
 
     def testGetDomainReturnsDomain(self):
-        resp = self.zc.request('GetDomain', {'domain' : {
-                    'by': 'name',
-                    '_content': self.EXISTANT_DOMAIN
+        resp = self.zc.request('GetDomain', {'domain': {
+            'by': 'name',
+            '_content': self.EXISTANT_DOMAIN
         }})
         self.assertIsInstance(resp, dict)
         self.assertTrue('domain' in resp)
@@ -121,7 +124,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
 
     def testCountAccountReturnsSomething(self):
         """Count accounts on the first of domains"""
-        first_domain_name = self.zc.get_all_domains()[0].name
 
         resp = self.zc.request_list(
             'CountAccount',
@@ -139,10 +141,10 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         except Exception as e:
             raise e('failed in self.testGetAllMailboxes()')
 
-        resp = self.zc.request('GetMailbox', {'mbox': {'id': EXISTANT_MBOX_ID}})
+        resp = self.zc.request(
+            'GetMailbox', {'mbox': {'id': EXISTANT_MBOX_ID}})
         self.assertIsInstance(resp['mbox'], dict)
         self.assertTrue('mbxid' in resp['mbox'])
-
 
     def testGetAllMailboxes(self):
         resp = self.zc.request('GetAllMailboxes')
@@ -169,10 +171,10 @@ class ZimbraAdminClientRequests(unittest.TestCase):
             return resp['dl']['id']
 
         def deleteDistributionList(dl_id):
-            resp = self.zc.request('DeleteDistributionList', {'id': dl_id})
+            self.zc.request('DeleteDistributionList', {'id': dl_id})
 
         # Should not exist
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             getDistributionList(self.TEST_DL_NAME)
 
         createDistributionList(self.TEST_DL_NAME)
@@ -183,18 +185,16 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         deleteDistributionList(list_id)
 
         # Should no longer exists
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             getDistributionList(self.TEST_DL_NAME)
 
-
     def testCheckDomainMXRecord(self):
-
         domain = {'by': 'name', '_content': self.EXISTANT_DOMAIN}
         try:
-            resp = self.zc.request('CheckDomainMXRecord', {'domain': domain})
+            self.zc.request('CheckDomainMXRecord', {'domain': domain})
 
         except ZimbraSoapServerError as sf:
-            if not 'NameNotFoundException' in str(sf):
+            if 'NameNotFoundException' not in str(sf):
                 # Accept for the moment this exception as it's kind a response
                 # from server.
                 raise
@@ -264,7 +264,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(dom.name, self.DOMAIN1)
 
     def test_modify_domain(self):
-        rand_str = random.randint(0,10**9)
+        rand_str = random.randint(0, 10**9)
 
         dom = self.zc.get_domain(Domain(name=self.DOMAIN1))
         a = {'zimbraAutoProvNotificationBody': rand_str}
@@ -351,18 +351,17 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(calendar_resource_by_id.name, TEST_CONF['calres1'])
         self.assertEqual(calendar_resource_by_id.id, calendar_resource.id)
 
-
     def test_create_get_update_delete_calendar_resource(self):
         name = 'test-{}@zimbratest.example.com'.format(
-            random.randint(0,10**9))
+            random.randint(0, 10**9))
         res_req = CalendarResource(name=name)
 
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_calendar_resource(res_req)
 
         # CREATE
         res = self.zc.create_calendar_resource(name, attrs={
-            'displayName'     : 'test display name',
+            'displayName': 'test display name',
             'zimbraCalResType': CalendarResource.EQUIPMENT_TYPE
         })
 
@@ -375,8 +374,9 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(res.name, name)
 
         # UPDATE
-        random_name_1 =  'test-{}'.format(random.randint(0,10**9))
-        self.zc.modify_calendar_resource(res_got, {'displayName': random_name_1})
+        random_name_1 = 'test-{}'.format(random.randint(0, 10**9))
+        self.zc.modify_calendar_resource(res_got,
+                                         {'displayName': random_name_1})
 
         res_got = self.zc.get_calendar_resource(res_req)
         self.assertEqual(res_got['displayName'], random_name_1)
@@ -384,16 +384,16 @@ class PythonicAdminAPITests(unittest.TestCase):
         # DELETE
         self.zc.delete_calendar_resource(res_got)
 
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_calendar_resource(res)
 
     def test_create_get_update_rename_delete_account(self):
         name = 'test-{}@zimbratest.example.com'.format(
-            random.randint(0,10**9))
+            random.randint(0, 10**9))
         password = 'pass124'
         ac_req = Account(name=name)
 
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_account(ac_req)
 
         # CREATE
@@ -408,22 +408,25 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(ac_got.name, name)
 
         # UPDATE
-        random_name_1 =  'test-{}'.format(random.randint(0,10**9))
+        random_name_1 = 'test-{}'.format(random.randint(0, 10**9))
         self.zc.modify_account(ac_got, {'displayName': random_name_1})
 
         ac_got = self.zc.get_account(ac_req)
         self.assertEqual(ac_got['displayName'], random_name_1)
 
         # RENAME
-        self.zc.rename_account(ac_got, 'renamed_account@zimbratest.example.com')
+        self.zc.rename_account(
+            ac_got, 'renamed_account@zimbratest.example.com')
 
-        renamed_ac_got = self.zc.get_account(Account(name='renamed_account@zimbratest.example.com'))
-        self.assertEqual(renamed_ac_got['mail'], 'renamed_account@zimbratest.example.com')
+        renamed_ac_got = self.zc.get_account(
+            Account(name='renamed_account@zimbratest.example.com'))
+        self.assertEqual(renamed_ac_got['mail'],
+                         'renamed_account@zimbratest.example.com')
 
         # DELETE
         self.zc.delete_account(renamed_ac_got)
 
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_account(ac)
 
     def test_create_delete_account_alias(self):
@@ -431,11 +434,11 @@ class PythonicAdminAPITests(unittest.TestCase):
         # prepare account
 
         ac_name = 'test-{}@zimbratest.example.com'.format(
-            random.randint(0,10**9))
+            random.randint(0, 10**9))
         ac = self.zc.create_account(ac_name, 'pass1234')
 
         alias_name = 'test-{}@zimbratest.example.com'.format(
-            random.randint(0,10**9))
+            random.randint(0, 10**9))
 
         # CREATE
         retval = self.zc.add_account_alias(Account(name=ac_name), alias_name)
@@ -455,7 +458,6 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         self.zc.delete_account(ac)
 
-
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
         self.assertIsInstance(stats, dict)
@@ -470,7 +472,8 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         self.assertIsInstance(cos_counts, list)
         self.assertIsInstance(cos_counts[0], tuple)
-        self.assertIsInstance(cos_counts[0][0], ClassOfService)
+        self.assertIsInstance(cos_counts[0][0],
+                              ClassOfService)
         self.assertIsInstance(cos_counts[0][1], int)
 
     def test_get_all_mailboxes(self):
@@ -484,14 +487,13 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         mbox = self.zc.get_account_mailbox(first_account_id)
         self.assertTrue(hasattr(mbox, 'mbxid'))
-        self.assertTrue(hasattr(mbox, 's')) # size
-
+        self.assertTrue(hasattr(mbox, 's'))  # size
 
     def test_create_get_modify_delete_distribution_list(self):
         name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
 
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             print(self.zc.get_distribution_list(dl_req))
 
         dl = self.zc.create_distribution_list(name)
@@ -502,7 +504,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertIsInstance(dl_list[1], DistributionList)
 
         self.zc.add_distribution_list_member(
-            dl,['someone@example.com', 'another@example.com'])
+            dl, ['someone@example.com', 'another@example.com'])
 
         dl_membered = self.zc.get_distribution_list(dl_req)
         self.assertEqual(
@@ -510,11 +512,11 @@ class PythonicAdminAPITests(unittest.TestCase):
             set(['someone@example.com', 'another@example.com']))
 
         self.zc.remove_distribution_list_member(
-            dl,['someone@example.com'])
+            dl, ['someone@example.com'])
         dl_unmembered = self.zc.get_distribution_list(dl_req)
         self.assertEqual(dl_unmembered.members, ['another@example.com'])
 
-        rand = 'list-{}'.format(random.randint(0,10**9))
+        rand = 'list-{}'.format(random.randint(0, 10**9))
         self.zc.modify_distribution_list(dl, {'displayName': rand})
         dl_modified = self.zc.get_distribution_list(dl_req)
         self.assertEqual(dl_modified.property('displayName'), rand)
@@ -525,7 +527,7 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         self.zc.delete_distribution_list(dl_got)
 
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_distribution_list(dl)
 
     def test_delete_distribution_list_by_name(self):
@@ -535,11 +537,11 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.zc.delete_distribution_list(dl_req)
 
         # List with such a name does not exist
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_distribution_list(dl_req)
 
         # List with such an ID does not exist
-        with self.assertRaises(ZimbraSoapServerError) as cm:
+        with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_distribution_list(dl_full)
 
     def test_get_account(self):
@@ -567,7 +569,7 @@ class PythonicAdminAPITests(unittest.TestCase):
     def test_mk_auth_token_fails_if_no_key(self):
         user = Account(name='admin@{0}'.format(self.DOMAIN2))
 
-        with self.assertRaises(DomainHasNoPreAuthKey) as cm:
+        with self.assertRaises(DomainHasNoPreAuthKey):
             self.zc.mk_auth_token(user, 0)
 
     def test_admin_get_logged_in_by(self):

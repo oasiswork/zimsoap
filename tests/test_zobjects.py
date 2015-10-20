@@ -8,8 +8,9 @@ import unittest
 
 from six import text_type, binary_type
 
-from zimsoap.zobjects import *
 import zimsoap.utils
+from zimsoap.zobjects import (
+    Account, Domain, Identity, Mailbox, Signature, ZObject)
 from . import samples
 
 
@@ -190,8 +191,6 @@ class ZObjectsTests(unittest.TestCase):
         self.assertEqual(adm.is_admin(), True)
         self.assertEqual(norm.is_admin(), False)
 
-
     def test_property(self):
         norm = Account.from_dict(self.normal_account_dict['account'])
         self.assertEqual(norm.property('zimbraFeatureSignaturesEnabled'), True)
-

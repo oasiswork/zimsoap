@@ -143,3 +143,8 @@ After you are all set, you can run tests
 … Or using [py.test](http://pytest.org/).
 
     $ py.test
+
+For contributing code, you may also want to run the *flake8* linter:
+
+    $ pip install -r test-requirements.txt
+    $ make lint

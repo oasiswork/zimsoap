@@ -12,11 +12,14 @@ import unittest
 
 from six import text_type, binary_type
 
-from zimsoap.client import *
-from zimsoap.zobjects import *
+from . import utils
+from zimsoap.client import (ZimbraAccountClient, ZimbraSoapServerError,
+                            ZimbraAdminClient)
+from zimsoap.zobjects import Signature, Identity
 import tests
 
 TEST_CONF = tests.get_config()
+
 
 class ZimbraAccountClientTests(unittest.TestCase):
     @classmethod
@@ -29,8 +32,9 @@ class ZimbraAccountClientTests(unittest.TestCase):
         # Delete the test signature (if any)
         for signame in ('unittest', 'renamed-unittest'):
             try:
-                resp = self.zc.request('DeleteSignature', {
-                        'signature': {'name': signame}})
+                self.zc.request('DeleteSignature', {
+                    'signature': {'name': signame}
+                })
 
             except ZimbraSoapServerError as e:
                 if 'no such signature' in str(e):
@@ -48,32 +52,31 @@ class ZimbraAccountClientTests(unittest.TestCase):
 
     def testCreateSignatureReturnsSomething(self):
         resp = self.zc.request('CreateSignature', {
-                'signature': {
-                    'name': 'unittest',
-                    'content':
-                        {'type': 'text/plain', '_content': 'TEST SIGNATURE'}
-                    }
-                })
+            'signature': {
+                'name': 'unittest',
+                'content':
+                {'type': 'text/plain', '_content': 'TEST SIGNATURE'}
+            }
+        })
 
         sig = resp['signature']
         self.assertEqual(sig['name'], 'unittest')
         return sig
 
     def testDeleteSignatureReturnsProperly(self):
-        sig = self.testCreateSignatureReturnsSomething()
-        resp = self.zc.request('DeleteSignature', {
-                'signature': {'name': 'unittest'}})
+        self.testCreateSignatureReturnsSomething()
+        self.zc.request('DeleteSignature', {
+            'signature': {'name': 'unittest'}})
 
     def testModifySignatureWorks(self):
         sig = self.testCreateSignatureReturnsSomething()
 
-        resp = self.zc.request('ModifySignature', {
-                'signature': {
-                    'id': sig['id'],
-                    'content': {'type': 'text/plain', '_content': 'MODIFSIG'}
-                }
+        self.zc.request('ModifySignature', {
+            'signature': {
+                'id': sig['id'],
+                'content': {'type': 'text/plain', '_content': 'MODIFSIG'}
+            }
         })
-
 
         resp_getsig = self.zc.request('GetSignatures')
         sig = resp_getsig['signature']
@@ -84,9 +87,9 @@ class ZimbraAccountClientTests(unittest.TestCase):
 
     def testGetAllPreferences(self):
         resp = self.zc.request('GetPrefs')
+        self.assertIn('pref', resp)
         prefs = resp['pref']
-        self.assertTrue('pref' in resp)
-        self.assertIsInstance(resp['pref'], list)
+        self.assertIsInstance(prefs, list)
 
     def testGetAPreference(self):
         resp = self.zc.request('GetPrefs',
@@ -104,14 +107,14 @@ class ZimbraAccountClientTests(unittest.TestCase):
         self.assertIsInstance(identities['identity'], dict)
 
     def modifyIdentity(self):
-        resp1 = self.zc.request('ModifyIdentity', {'identity': {
-                    'name': 'DEFAULT',
-                    'a': {'name': 'zimbraPrefSaveToSent', '_content': 'FALSE' }
+        self.zc.request('ModifyIdentity', {'identity': {
+            'name': 'DEFAULT',
+            'a': {'name': 'zimbraPrefSaveToSent', '_content': 'FALSE'}
         }})
 
-        resp2 = self.zc.request('ModifyIdentity', {'identity': {
-                    'name': 'DEFAULT',
-                    'a': {'name': 'zimbraPrefSaveToSent', '_content': 'TRUE' }
+        self.zc.request('ModifyIdentity', {'identity': {
+            'name': 'DEFAULT',
+            'a': {'name': 'zimbraPrefSaveToSent', '_content': 'TRUE'}
         }})
 
         # just checks that it succeeds
@@ -185,7 +188,6 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertEqual(a_sig.get_content(), 'CONTENT')
         self.assertEqual(a_sig.get_content_type(), 'text/html')
 
-
     def test_get_all_signatures_nonempty(self):
         self.zc.create_signature('unittest', 'CONTENT', "text/html")
         self.zc.create_signature('unittest1', 'CONTENT', "text/html")
@@ -200,7 +202,6 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertEqual(a_sig.get_content(), 'CONTENT')
         self.assertEqual(a_sig.get_content_type(), 'text/html')
 
-
     def test_create_signature_special_char(self):
         self.zc.create_signature('unittest', '&nbsp;', "text/html")
 
@@ -214,7 +215,6 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertEqual(a_sig.get_content(), '&nbsp;')
         self.assertEqual(a_sig.get_content_type(), 'text/html')
 
-
     def test_get_a_signature_by_signature(self):
         sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
         sig2 = self.zc.create_signature('unittest1', 'CONTENT', "text/html")
@@ -227,10 +227,9 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(resp, Signature)
         self.assertEqual(resp, sig2)
 
-
     def test_get_a_signature_by_name(self):
         sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
-        sig2 = self.zc.create_signature('unittest1', 'CONTENT', "text/html")
+        self.zc.create_signature('unittest1', 'CONTENT', "text/html")
 
         resp = self.zc.get_signature(Signature(name='unittest'))
         self.assertIsInstance(resp, Signature)
@@ -242,7 +241,7 @@ class PythonicAccountAPITests(unittest.TestCase):
 
     def test_get_a_signature_by_nonexistant_id_returns_none(self):
         resp = self.zc.get_signature(Signature(
-                id='42428c6a-d764-479f-ae7d-d2d626b44242'))
+            id='42428c6a-d764-479f-ae7d-d2d626b44242'))
         self.assertEqual(resp, None)
 
     def test_get_a_signature_by_id(self):
@@ -257,7 +256,6 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(resp, Signature)
         self.assertEqual(resp, sig2)
 
-
     def test_modify_signature_content(self):
         sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
         sig1.set_content('NEW-CONTENT', "text/plain")
@@ -266,7 +264,6 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertEqual(modified_sig1.name, 'unittest')
         self.assertEqual(modified_sig1.get_content(), 'NEW-CONTENT')
         self.assertEqual(modified_sig1._contenttype, 'text/plain')
-
 
     def test_modify_signature_name(self):
         sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
@@ -284,7 +281,7 @@ class PythonicAccountAPITests(unittest.TestCase):
     def test_modify_signature_without_id_attribute_error(self):
         sig1 = Signature(name='foo')
         sig1.set_content('NEW-CONTENT', "text/plain")
-        with self.assertRaises(AttributeError) as cm:
+        with self.assertRaises(AttributeError):
             self.zc.modify_signature(sig1)
 
     def test_get_preference(self):
@@ -299,7 +296,8 @@ class PythonicAccountAPITests(unittest.TestCase):
         prefs = self.zc.get_preferences()
         self.assertIsInstance(prefs, dict)
         self.assertIsInstance(prefs['zimbraPrefMailFlashTitle'], bool)
-        self.assertIsInstance(prefs['zimbraPrefComposeFormat'], (text_type, binary_type))
+        self.assertIsInstance(prefs['zimbraPrefComposeFormat'],
+                              (text_type, binary_type))
         self.assertIsInstance(prefs['zimbraPrefCalendarDayHourEnd'], int)
 
     def test_get_identities(self):
@@ -332,9 +330,9 @@ class PythonicAccountAPITests(unittest.TestCase):
         i[test_attr] = initial_attrval
         self.zc.modify_identity(i)
 
-
     def test_account_get_logged_in_by(self):
-        admin_zc = ZimbraAdminClient(TEST_CONF['host'], TEST_CONF['admin_port'])
+        admin_zc = ZimbraAdminClient(TEST_CONF['host'],
+                                     TEST_CONF['admin_port'])
         admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
         new_zc = ZimbraAccountClient(TEST_CONF['host'])
