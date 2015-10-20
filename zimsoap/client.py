@@ -907,6 +907,22 @@ class ZimbraMailClient(ZimbraAbstractClient):
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
 
+    # Ranking action
+
+    def reset_ranking(self):
+        """Reset the contact ranking table for the account
+        """
+        self.request('RankingAction', {'action': {'op': 'reset'}})
+
+    def delete_ranking(self, email):
+        """Delete a specific address in the auto-completion of the users
+
+        :param email: the address to remove
+        """
+        self.request('RankingAction', {'action': {'op': 'reset',
+                                                  'email': email
+                                                  }})
+
     def create_task(self, subject, desc):
         """Create a task
 
