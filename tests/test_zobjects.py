@@ -81,6 +81,16 @@ class ZObjectsTests(unittest.TestCase):
         # Just check one of the <a> tags
         self.assertEqual(props['zimbraAuthMech'], 'zimbra')
 
+    def test_ZObjects_get_single_tag_list(self):
+        contact_dic = {'a': {'_content': 'test@example.com', 'n': 'email'},
+                       'l': '7',
+                       'd': '1445446429000',
+                       'id': '298',
+                       'rev': '24825',
+                       'fileAsStr': ''}
+        props = self.NullZObject._parse_a_tags(contact_dic)
+        self.assertEqual(props['email'], 'test@example.com')
+
     def test_ZObjects_import_a_tags_multivalue(self):
         props = Domain._parse_a_tags(self.simple_domain_dict['domain'])
         self.assertIsInstance(props['objectClass'], list)
