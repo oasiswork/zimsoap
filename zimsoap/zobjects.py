@@ -160,6 +160,10 @@ class ZObject(object):
 
         if 'a' in dic:
             childs = dic['a']
+            # If there is only one "a", it's not presentend as
+            # a list, that's why we put it in a list
+            if not isinstance(childs, (list, tuple)):
+                childs = [childs]
         else:
             childs = []
 
