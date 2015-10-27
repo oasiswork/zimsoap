@@ -12,7 +12,7 @@ import unittest
 
 from six import text_type, binary_type
 
-from . import utils
+from zimsoap import utils
 from zimsoap.client import (ZimbraAccountClient, ZimbraSoapServerError,
                             ZimbraAdminClient)
 from zimsoap.zobjects import Signature, Identity
