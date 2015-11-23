@@ -12,7 +12,7 @@ import unittest
 
 from six import text_type, binary_type
 
-from . import utils
+from zimsoap import utils
 from zimsoap.client import (ZimbraAccountClient, ZimbraSoapServerError,
                             ZimbraAdminClient)
 from zimsoap.zobjects import Signature, Identity
@@ -232,6 +232,19 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.zc.create_signature('unittest1', 'CONTENT', "text/html")
 
         resp = self.zc.get_signature(Signature(name='unittest'))
+        self.assertIsInstance(resp, Signature)
+        self.assertEqual(resp, sig1)
+
+    def test_get_a_signature_by_name_case_insensitive(self):
+        """ Zimbra considers that the signature name should be unique
+
+        two signatures with same name, diferently cased is not allowed, so it's
+        logical to be able to query a signature with any case.
+        """
+        sig1 = self.zc.create_signature('unittest', 'CONTENT', "text/html")
+        self.zc.create_signature('unittest1', 'CONTENT', "text/html")
+
+        resp = self.zc.get_signature(Signature(name='unitTEST'))
         self.assertIsInstance(resp, Signature)
         self.assertEqual(resp, sig1)
 

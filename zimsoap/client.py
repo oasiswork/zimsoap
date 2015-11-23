@@ -348,6 +348,8 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     def get_signature(self, signature):
         """Retrieve one signature, discriminated by name or id.
 
+        Note that signature name is not case sensitive.
+
         :param: a zobjects.Signature describing the signature
                like "Signature(name='my-sig')"
 
@@ -364,7 +366,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
                 if hasattr(signature, 'id'):
                     its_this_one = (sig.id == signature.id)
                 elif hasattr(signature, 'name'):
-                    its_this_one = (sig.name == signature.name)
+                    its_this_one = (sig.name.upper() == signature.name.upper())
                 else:
                     raise ValueError('should mention one of id,name')
                 if its_this_one:
