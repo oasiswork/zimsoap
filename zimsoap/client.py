@@ -75,11 +75,15 @@ class RESTClient:
         browser = build_opener(HTTPCookieProcessor(cj))
 
         try:
-            browser.open(self.preauth_url+args)
+            url = browser.open(self.preauth_url+args)
+            url.read()
+            value = ""
             for cookie in cj:
                 if cookie.name == self.TOKEN_COOKIE:
-                    return cookie.value
-
+                    value = cookie.value
+            url.close()
+            browser.close()
+            return value
         except HTTPError as e:
             raise self.RESTBackendError(e)
 
