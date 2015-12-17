@@ -568,4 +568,5 @@ class Task(ZObject):
 
 class QuotaUsage(ZObject):
     TAG_NAME = 'QuotaUsage'
-    SELECTORS = ('domain', 'allServers', 'limit', 'offset', 'sortBy', 'sortAscending', 'refresh')
+    SELECTORS = ('domain', 'allServers', 'limit', 'offset', 'sortBy',
+                 'sortAscending', 'refresh')

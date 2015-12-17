@@ -464,7 +464,9 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
-    def get_quota_usage(self, domain=None, all_servers=None, limit=None, offset=None, sort_by=None, sort_ascending=None, refresh=None):
+    def get_quota_usage(self, domain=None, all_servers=None,
+                        limit=None, offset=None, sort_by=None,
+                        sort_ascending=None, refresh=None):
         content = {}
         if domain:
             content['domain'] = domain
