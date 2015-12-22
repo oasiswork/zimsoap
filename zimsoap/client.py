@@ -646,6 +646,21 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             'GetAccountInfo', {'account': account.to_selector()})
         return zobjects.COS.from_dict(resp['cos'])
 
+    def create_domain(self, name):
+        """
+        :param name: A string, NOT a zObject
+        :return: a zobjects.Domain
+        """
+        args = {'name': name}
+        resp = self.request_single('CreateDomain', args)
+
+        return zobjects.Domain.from_dict(resp)
+
+    def delete_domain(self, domain):
+        self.request('DeleteDomain', {
+            'id': self._get_or_fetch_id(domain, self.get_domain)
+        })
+
     def get_domain(self, domain):
         selector = domain.to_selector()
         resp = self.request_single('GetDomain', {'domain': selector})

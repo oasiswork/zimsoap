@@ -232,6 +232,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.LAMBDA_USER = TEST_CONF['lambda_user']
         self.DOMAIN1 = TEST_CONF['domain_1']
         self.DOMAIN2 = TEST_CONF['domain_2']
+        self.TMP_DOMAIN = 'oazimtools.test'
         self.SERVER_NAME = TEST_CONF['server_name']
 
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
@@ -257,6 +258,21 @@ class PythonicAdminAPITests(unittest.TestCase):
                 found = True
 
         self.assertTrue(found)
+
+    def test_create_delete_domain(self):
+
+        # CREATE
+        self.zc.create_domain(self.TMP_DOMAIN)
+        dom = self.zc.get_domain(Domain(name=self.TMP_DOMAIN))
+
+        self.assertIsInstance(dom, Domain)
+        self.assertEqual(dom.name, self.TMP_DOMAIN)
+
+        # DELETE
+        self.zc.delete_domain(dom)
+
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_domain(dom)
 
     def test_get_domain(self):
         dom = self.zc.get_domain(Domain(name=self.DOMAIN1))
