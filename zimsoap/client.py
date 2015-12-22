@@ -661,6 +661,38 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             'id': self._get_or_fetch_id(domain, self.get_domain)
         })
 
+    def delete_domain_forced(self, domain):
+        # Remove aliases and accounts
+        # we take all accounts because there might be an alias
+        # for an account of an other domain
+        accounts = self.get_all_accounts()
+        for a in accounts:
+            if 'zimbraMailAlias' in a._a_tags:
+                aliases = a._a_tags['zimbraMailAlias']
+                if isinstance(aliases, list):
+                    for alias in aliases:
+                        if alias.split('@')[1] == domain.name:
+                            self.remove_account_alias(a, alias)
+                else:
+                    if aliases.split('@')[1] == domain.name:
+                        self.remove_account_alias(a, aliases)
+            if a.name.split('@')[1] == domain.name:
+                self.delete_account(a)
+
+        # Remove resources
+        resources = self.get_all_calendar_resources(domain=domain)
+        for r in resources:
+            self.delete_calendar_resource(r)
+
+        # Remove distribution lists
+        dls = self.get_all_distribution_lists(domain)
+        for dl in dls:
+            self.delete_distribution_list(dl)
+
+        self.request('DeleteDomain', {
+            'id': self._get_or_fetch_id(domain, self.get_domain)
+        })
+
     def get_domain(self, domain):
         selector = domain.to_selector()
         resp = self.request_single('GetDomain', {'domain': selector})

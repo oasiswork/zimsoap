@@ -274,6 +274,33 @@ class PythonicAdminAPITests(unittest.TestCase):
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_domain(dom)
 
+    def test_create_delete_forced_domain(self):
+        account_mail = 'test_user@' + self.TMP_DOMAIN
+        cal_res_mail = 'test_res@' + self.TMP_DOMAIN
+        alias_name = self.LAMBDA_USER.split('@')[0] + '@' + self.TMP_DOMAIN
+        dl_mail = 'test_dl@' + self.TMP_DOMAIN
+
+        # CREATE
+        self.zc.create_domain(self.TMP_DOMAIN)
+        dom = self.zc.get_domain(Domain(name=self.TMP_DOMAIN))
+
+        self.assertIsInstance(dom, Domain)
+        self.assertEqual(dom.name, self.TMP_DOMAIN)
+
+        self.zc.create_account(account_mail, 'pass1234')
+        self.zc.create_calendar_resource(cal_res_mail, attrs={
+            'displayName': 'test display name',
+            'zimbraCalResType': CalendarResource.EQUIPMENT_TYPE
+        })
+        self.zc.add_account_alias(Account(name=self.LAMBDA_USER), alias_name)
+        self.zc.create_distribution_list(dl_mail)
+
+        # DELETE
+        self.zc.delete_domain_forced(dom)
+
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_domain(dom)
+
     def test_get_domain(self):
         dom = self.zc.get_domain(Domain(name=self.DOMAIN1))
         self.assertIsInstance(dom, Domain)
