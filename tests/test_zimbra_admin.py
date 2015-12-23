@@ -351,6 +351,16 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(calendar_resource_by_id.name, TEST_CONF['calres1'])
         self.assertEqual(calendar_resource_by_id.id, calendar_resource.id)
 
+    def test_get_quota_usage(self):
+        resp = self.zc.get_quota_usage()
+        for account in resp:
+            if account['name'] == 'mackerel@zimbratest3.example.com':
+                quota_user = account
+
+        self.assertIsInstance(resp, list)
+        self.assertEqual(quota_user['used'], '0')
+        self.assertEqual(quota_user['limit'], '0')
+
     def test_create_get_update_delete_calendar_resource(self):
         name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0, 10**9))

@@ -464,6 +464,27 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    def get_quota_usage(self, domain=None, all_servers=None,
+                        limit=None, offset=None, sort_by=None,
+                        sort_ascending=None, refresh=None):
+        content = {}
+        if domain:
+            content['domain'] = domain
+        if all_servers:
+            content['allServers'] = all_servers
+        if limit:
+            content['limit'] = limit
+        if sort_by:
+            content['sortBy'] = sort_by
+        if sort_ascending:
+            content['sortAscending'] = sort_ascending
+        if refresh:
+            content['refresh'] = refresh
+
+        resp = self.request_list('GetQuotaUsage', content)
+
+        return resp
+
     def get_all_config(self):
         resp = self.request_list('GetAllConfig')
         return [zobjects.Config.from_dict(d) for d in resp]
