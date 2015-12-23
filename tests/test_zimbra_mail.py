@@ -8,9 +8,11 @@ It has to be tested against a zimbra server (see README.md).
 """
 
 import unittest
+import random
 
-from zimsoap.client import ZimbraMailClient, ZimbraAdminClient
-from zimsoap.zobjects import Task
+from zimsoap.client import (ZimbraMailClient, ZimbraAdminClient,
+                            ZimbraSoapServerError)
+from zimsoap.zobjects import Task, Contact
 from zimsoap import utils
 import tests
 
@@ -31,6 +33,7 @@ class ZimbraMailAPITests(unittest.TestCase):
         self.TEST_LOGIN = TEST_CONF['lambda_user']
         self.TEST_PASSWORD = TEST_CONF['lambda_password']
         self.task_id = None
+        self.contact_id = None
 
     """
     def tearDown(self):
@@ -160,6 +163,31 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
     def test_reset_ranking(self):
         # Same as above, no means to check it's really reseted.
         self.zc.reset_ranking()
+
+    # Contact
+
+    def test_create_get_delete_contact(self):
+        random_address = 'email' + str(random.randint(0, 10**9))
+
+        # CREATE
+        attrs = {'firstName': 'Pierre',
+                 'lastName': 'MARTIN',
+                 'email': random_address}
+        contact = self.zc.create_contact(attrs=attrs)
+
+        self.assertIsInstance(contact, Contact)
+        self.assertEqual(contact._a_tags.get('email'), random_address)
+
+        # GET
+        contacts = self.zc.get_contacts(ids=contact.id)
+        self.assertIsInstance(contacts[0], Contact)
+
+        # UPDATE (TO DO)
+
+        # DELETE
+        self.zc.delete_contacts([contact.id])
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_contacts(ids=contact.id)
 
 
 class ZobjectTaskTests(unittest.TestCase):

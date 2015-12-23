@@ -523,6 +523,13 @@ class Signature(ZObject):
         return self._contenttype
 
 
+class Contact(AbstractAddressableZObject):
+    """A contact object
+    """
+    TAG_NAME = 'contact'
+    SELECTORS = 'email'
+
+
 class Task(ZObject):
     TAG_NAME = 'task'
     ATTRNAME_PROPERTY = 'id'
