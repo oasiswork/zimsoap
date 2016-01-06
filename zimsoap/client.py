@@ -779,6 +779,22 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             'a': attrs
         })
 
+    def rename_distribution_list(self, dl_description, new_dl_name):
+        """
+        :param dl_description : a DistributionList specifying either :
+                   - id:   the dl_list_id
+                   - dl_description: the name of the list
+        :param new_dl_name: new name of the list
+        :return: a zobjects.DistributionList
+        """
+        resp = self.request('RenameDistributionList', {
+            'id': self._get_or_fetch_id(dl_description,
+                                        self.get_distribution_list),
+            'newName': new_dl_name
+        })
+
+        return zobjects.DistributionList.from_dict(resp['dl'])
+
     def delete_distribution_list(self, dl):
         self.request('DeleteDistributionList', {
             'id': self._get_or_fetch_id(dl, self.get_distribution_list)
