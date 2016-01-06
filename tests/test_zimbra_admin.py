@@ -542,20 +542,23 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertTrue(hasattr(mbox, 'mbxid'))
         self.assertTrue(hasattr(mbox, 's'))  # size
 
-    def test_create_get_modify_delete_distribution_list(self):
+    def test_create_get_modify_rename_delete_distribution_list(self):
         name = self.TEST_DL_NAME
         dl_req = DistributionList(name=name)
 
         with self.assertRaises(ZimbraSoapServerError):
             print(self.zc.get_distribution_list(dl_req))
 
+        # CREATE
         dl = self.zc.create_distribution_list(name)
         self.assertIsInstance(dl, DistributionList)
         self.assertEqual(dl.name, name)
 
+        # GET ALL
         dl_list = self.zc.get_all_distribution_lists()
         self.assertIsInstance(dl_list[1], DistributionList)
 
+        # MODIFY
         self.zc.add_distribution_list_member(
             dl, ['someone@example.com', 'another@example.com'])
 
@@ -574,11 +577,19 @@ class PythonicAdminAPITests(unittest.TestCase):
         dl_modified = self.zc.get_distribution_list(dl_req)
         self.assertEqual(dl_modified.property('displayName'), rand)
 
+        # GET
         dl_got = self.zc.get_distribution_list(dl_req)
         self.assertIsInstance(dl_got, DistributionList)
         self.assertEqual(dl_got, dl_list[1])
 
-        self.zc.delete_distribution_list(dl_got)
+        # RENAME
+        new_dl = self.zc.rename_distribution_list(
+            dl_got,
+            'new_dl_name@zimbratest.example.com')
+        self.assertEqual(new_dl.name, 'new_dl_name@zimbratest.example.com')
+
+        # DELETE
+        self.zc.delete_distribution_list(new_dl)
 
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_distribution_list(dl)
