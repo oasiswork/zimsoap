@@ -189,6 +189,81 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_contacts(ids=contact.id)
 
+    # Conversation
+
+    def test_get_move_delete_conversation(self):
+        # Adding a message to create a conversation
+        with open('tests/data/email.msg') as f:
+            message_content = f.read()
+            msg = self.zc.add_message(
+                message_content,
+                folder="/Inbox",
+                d='1451579153000'
+            )
+
+        conv_id = msg['m']['cid']
+        # GET
+        conv = self.zc.get_conversation(conv_id)
+        self.assertEqual(abs(int(conv['c']['m']['id'])), abs(int(conv_id)))
+
+        # MOVE
+        self.zc.move_conversations(conv_id.split(), 3)
+        conv = self.zc.get_conversation(conv_id)
+        self.assertEqual(conv['c']['m']['l'], '3')
+
+        # DELETE
+        self.zc.delete_conversations(conv_id.split())
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_conversation(conv_id)
+
+    # Message
+
+    def test_add_get_delete_message(self):
+        # ADD
+        with open('tests/data/email.msg') as f:
+            message_content = f.read()
+            msg = self.zc.add_message(
+                message_content,
+                folder="/Inbox",
+                d='1451579153000'
+            )
+
+        self.assertEqual(msg['m']['d'], '1451579153000')
+
+        # GET
+        msg_get = self.zc.get_message(msg['m']['id'])
+
+        self.assertEqual(msg['m']['id'], msg_get['m']['id'])
+
+        # DELETE
+        self.zc.delete_messages(msg['m']['id'].split())
+
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_message(msg['m']['id'])
+
+    # Folder
+
+    def test_get_folder(self):
+        folder = self.zc.get_folder(path="/Inbox")
+        self.assertEqual(folder['folder']['id'], '2')
+
+    # Search
+
+    def test_search(self):
+        with open('tests/data/email.msg') as f:
+            message_content = f.read()
+            msg = self.zc.add_message(
+                message_content,
+                folder="/Inbox",
+                d='1451579153000'
+            )
+        msg_req = self.zc.search(query="in:/Inbox date:12/31/15")
+
+        # Clean
+        self.zc.delete_messages(msg['m']['id'].split())
+
+        self.assertEqual(msg['m']['id'], msg_req['c']['m']['id'])
+
 
 class ZobjectTaskTests(unittest.TestCase):
     """ Tests the Task zobject.

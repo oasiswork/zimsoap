@@ -1092,6 +1092,120 @@ not {0}'.format(type(ids)))
         self.request('ContactAction', {'action': {'op': 'delete',
                                                   'id': str_ids}})
 
+    # Folder
+
+    def get_folder(self, f_id=None, path=None, uuid=None):
+        request = {'folder': {}}
+        if f_id:
+            request['folder']['l'] = str(f_id)
+        if uuid:
+            request['folder']['uuid'] = str(uuid)
+        if path:
+            request['folder']['path'] = str(path)
+
+        return self.request('GetFolder', request)
+
+    # Conversation
+
+    def get_conversation(self, conv_id, **kwargs):
+        content = {'c': kwargs}
+        content['c']['id'] = int(conv_id)
+
+        return self.request('GetConv', content)
+
+    def delete_conversations(self, ids):
+        """ Delete selected conversations
+
+        :params ids: list of ids
+        """
+        if not isinstance(ids, list):
+            raise TypeError('ids should be a list of inttegers, \
+not {0}'.format(type(ids)))
+
+        str_ids = ','.join(str(i) for i in ids)
+        self.request('ConvAction', {'action': {'op': 'delete',
+                                               'id': str_ids
+                                               }})
+
+    def move_conversations(self, ids, folder):
+        """ Move selected conversations to an other folder
+
+        :params ids: list of ids
+        :params folder: folder id
+        """
+        if not isinstance(ids, list):
+            raise TypeError('ids should be a list of inttegers, \
+not {0}'.format(type(ids)))
+
+        str_ids = ','.join(str(i) for i in ids)
+        self.request('ConvAction', {'action': {'op': 'move',
+                                               'id': str_ids,
+                                               'l': str(folder)}})
+
+    # Messages
+
+    def add_message(self, msg_content, folder, **kwargs):
+        """ Inject a message
+
+        :params string msg_content: The entire message's content.
+        :params string folder: Folder pathname (starts with '/') or folder ID
+        """
+        content = {'m': kwargs}
+        content['m']['l'] = str(folder)
+        content['m']['content'] = {'_content': msg_content}
+
+        return self.request('AddMsg', content)
+
+    def get_message(self, msg_id, **kwargs):
+        content = {'m': kwargs}
+        content['m']['id'] = str(msg_id)
+
+        return self.request('GetMsg', content)
+
+    def delete_messages(self, ids):
+        """ Delete selected messages for the current user
+
+        :param ids: list of ids
+        """
+        if not isinstance(ids, list):
+            raise TypeError('ids should be a list of integers, \
+not {0}'.format(type(ids)))
+        str_ids = ','.join(str(i) for i in ids)
+        return self.request('MsgAction', {'action': {'op': 'delete',
+                                                     'id': str_ids}})
+
+    # Search
+    def search(self, query, **kwargs):
+        """ Search object in account
+
+        :returns: a dic where value c contains the list of results (if there
+        is any). Example : {
+            'more': '0',
+            'offset': '0',
+            'sortBy': 'dateDesc',
+            'c': [
+                {
+                    'id': '-261',
+                    'm': {'id': '261',
+                          's': '2556',
+                          'l': '2'},
+                    'u': '0', 'd': '1450714720000',
+                    'sf': '1450714720000',
+                    'e': {'t': 'f',
+                          'd': 'kokopu',
+                          'a': 'kokopu@zimbratest3.example.com'},
+                    'n': '1',
+                    'fr': {'_content': 'Hello there !'},
+                    'su': {'_content': 'The subject is cool'}
+                }
+            ]
+        """
+
+        content = kwargs
+        content['query'] = {'_content': query}
+
+        return self.request('Search', content)
+
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
