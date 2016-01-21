@@ -487,12 +487,39 @@ class ZimbraAdminClient(ZimbraAbstractClient):
 
     def get_all_config(self):
         resp = self.request_list('GetAllConfig')
-        return [zobjects.Config.from_dict(d) for d in resp]
+        config = {}
+        for attr in resp:
+            # If there is multiple attributes with the same name
+            if attr['n'] in config:
+                if isinstance(config[attr['n']], str):
+                    config[attr['n']] = [config[attr['n']], attr['_content']]
+                else:
+                    config[attr['n']].append(attr['_content'])
+            else:
+                config[attr['n']] = attr['_content']
+        return config
 
     def get_config(self, attr):
-        selector = attr.to_selector()
-        resp = self.request_list('GetConfig', {'a': selector})
-        return [zobjects.Config.from_dict(d) for d in resp]
+        resp = self.request_list('GetConfig', {'a': {'n': attr}})
+        if len(resp) > 1:
+            config = {attr: []}
+            for a in resp:
+                config[attr].append(a['_content'])
+        elif len(resp) == 1:
+            config = {attr: resp[0]['_content']}
+        else:
+            raise KeyError('{} not found'.format(attr))
+        return config
+
+    def modify_config(self, attr, value):
+        self.request('ModifyConfig', {
+            'a': {
+                'n': attr,
+                '_content': value
+            }})
+        if attr[0] == '-' or attr[0] == '+':
+            attr = attr[1::]
+        return self.get_config(attr)
 
     def _get_or_fetch_id(self, zobj, fetch_func):
         """ Returns the ID of a Zobject wether it's already known or not
