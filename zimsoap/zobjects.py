@@ -221,20 +221,6 @@ class ZObject(object):
         return {'by': selector, '_content': val}
 
 
-class Config(ZObject):
-    """
-    <GetConfigResponse> ## GetConfigResponse
-        <a n="{key}" /> ## Attr)*
-    </GetConfigResponse>"""
-
-    TAG_NAME = 'a'
-
-    def to_selector(self):
-        val = getattr(self, 'n')
-
-        return {'n': val}
-
-
 class Domain(ZObject):
     """A domain, matching something like:
        <domain id="b37...dfc3ecf6ac" name="sub.domain.tld">

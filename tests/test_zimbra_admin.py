@@ -668,6 +668,20 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc.is_session_valid())
 
+    def test_get_modify_config(self):
+        attr = 'zimbraMtaMaxMessageSize'
+        new_value = '42'
+        ori_value = '10240000'
+        self.assertEqual(
+            self.zc.get_config(attr)[attr],
+            ori_value
+        )
+        modified_conf = self.zc.modify_config(attr, new_value)
+        self.assertEqual(modified_conf[attr], new_value)
+
+        # Undo
+        self.zc.modify_config(attr, ori_value)
+
 
 class ZimbraAPISessionTests(unittest.TestCase):
     def setUp(self):
