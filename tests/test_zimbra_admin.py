@@ -407,6 +407,8 @@ class PythonicAdminAPITests(unittest.TestCase):
     def test_create_get_update_delete_calendar_resource(self):
         name = 'test-{}@zimbratest.example.com'.format(
             random.randint(0, 10**9))
+        new_name = 'new-{}@zimbratest.example.com'.format(
+            random.randint(0, 10**9))
         res_req = CalendarResource(name=name)
 
         with self.assertRaises(ZimbraSoapServerError):
@@ -433,6 +435,10 @@ class PythonicAdminAPITests(unittest.TestCase):
 
         res_got = self.zc.get_calendar_resource(res_req)
         self.assertEqual(res_got['displayName'], random_name_1)
+
+        # RENAME
+        new_r = self.zc.rename_calendar_resource(res_got, new_name)
+        self.assertEqual(new_r.name, new_name)
 
         # DELETE
         self.zc.delete_calendar_resource(res_got)
