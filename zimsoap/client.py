@@ -632,6 +632,22 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             'a': attrs
         })
 
+    def rename_calendar_resource(self, r_description, new_r_name):
+        """
+        :param r_description : a CalendarResource specifying either :
+                   - id:   the ressource ID
+                   - r_description: the name of the ressource
+        :param new_r_name: new name of the list
+        :return: a zobjects.CalendarResource
+        """
+        resp = self.request('RenameCalendarResource', {
+            'id': self._get_or_fetch_id(r_description,
+                                        self.get_calendar_resource),
+            'newName': new_r_name
+        })
+
+        return zobjects.CalendarResource.from_dict(resp['calresource'])
+
     # Mailbox stats
 
     def get_mailbox_stats(self):
