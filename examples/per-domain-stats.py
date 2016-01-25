@@ -12,13 +12,12 @@ import argparse
 import getpass
 import os
 import sys
-
-sys.path.append(os.path.dirname(__file__)+'/../')
-
 from urllib2 import URLError
 
 import zimsoap.client
 from zimsoap.zobjects import Domain
+
+sys.path.append(os.path.dirname(__file__)+'/../')
 
 """ Counts Zimbra accounts, globally or for a subset, of domains
 

@@ -34,8 +34,8 @@ def build_preauth_str(preauth_key, account_name, timestamp, expires,
     else:
         s = '{0}|name|{1}|{2}'.format(account_name, expires, timestamp)
 
-    return hmac.new(preauth_key.encode('utf-8'), s.encode('utf-8'), hashlib.sha1)\
-               .hexdigest()
+    return hmac.new(preauth_key.encode('utf-8'), s.encode('utf-8'),
+                    hashlib.sha1).hexdigest()
 
 
 def wrap_in_cdata(s):

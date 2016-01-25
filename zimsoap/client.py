@@ -562,10 +562,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             account = zobjects.Account.from_dict(i)
 
             if not (
-                not include_system_accounts and account.is_system()
-                or
-                not include_admin_accounts and account.is_admin()
-                or
+                not include_system_accounts and account.is_system() or
+                not include_admin_accounts and account.is_admin() or
                 not include_virtual_accounts and account.is_virtual()
             ):
                 accounts.append(account)
