@@ -588,6 +588,29 @@ class PythonicAdminAPITests(unittest.TestCase):
             'new_dl_name@zimbratest.example.com')
         self.assertEqual(new_dl.name, 'new_dl_name@zimbratest.example.com')
 
+        # ALIAS
+        alias_name = 'new_dl_name_alias@zimbratest.example.com'
+        self.zc.add_distribution_list_alias(new_dl, alias_name)
+        new_dl_got = self.zc.get_distribution_list(
+            DistributionList(name=new_dl.name)
+        )
+        if alias_name in new_dl_got.property('zimbraMailAlias'):
+            alias_present = True
+        else:
+            alias_present = False
+        self.assertTrue(alias_present)
+
+        self.zc.remove_distribution_list_alias(new_dl, alias_name)
+
+        new_dl_got = self.zc.get_distribution_list(
+            DistributionList(name=new_dl.name)
+        )
+        if alias_name in new_dl_got.property('zimbraMailAlias'):
+            alias_present = True
+        else:
+            alias_present = False
+        self.assertFalse(alias_present)
+
         # DELETE
         self.zc.delete_distribution_list(new_dl)
 

@@ -562,10 +562,8 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             account = zobjects.Account.from_dict(i)
 
             if not (
-                not include_system_accounts and account.is_system()
-                or
-                not include_admin_accounts and account.is_admin()
-                or
+                not include_system_accounts and account.is_system() or
+                not include_admin_accounts and account.is_admin() or
                 not include_virtual_accounts and account.is_virtual()
             ):
                 accounts.append(account)
@@ -756,6 +754,34 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         self.request('ModifyDomain', {
             'id': self._get_or_fetch_id(domain, self.get_domain),
             'a': attrs
+        })
+
+    def add_distribution_list_alias(self, distribution_list, alias):
+        """
+        :param distribution_list:  a distribution list object to be used as
+         a selector
+        :param alias:     email alias address
+        :returns:         None (the API itself returns nothing)
+        """
+        self.request('AddDistributionListAlias', {
+            'id': self._get_or_fetch_id(
+                distribution_list, self.get_distribution_list
+                ),
+            'alias': alias,
+        })
+
+    def remove_distribution_list_alias(self, distribution_list, alias):
+        """
+        :param distribution_list:  an distribution list object to be used as
+        a selector
+        :param alias:     email alias address
+        :returns:         None (the API itself returns nothing)
+        """
+        self.request('RemoveDistributionListAlias', {
+            'id': self._get_or_fetch_id(
+                distribution_list, self.get_distribution_list
+            ),
+            'alias': alias,
         })
 
     def get_all_distribution_lists(self, domain=None):
