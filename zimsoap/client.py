@@ -931,7 +931,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             'a': attrs
         })
 
-    def create_account(self, email, password, attrs={}):
+    def create_account(self, email, password=None, attrs={}):
         """
         :param email:    Full email with domain eg: login@domain.com
         :param password: Password for local auth
@@ -939,11 +939,13 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         :returns:        the created zobjects.Account
         """
         attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
-        resp = self.request_single('CreateAccount', {
-            'name': email,
-            'password': password,
-            'a': attrs,
-        })
+
+        params = {'name': email, 'a': attrs}
+
+        if password:
+            params['password'] = password
+
+        resp = self.request_single('CreateAccount', params)
 
         return zobjects.Account.from_dict(resp)
 
