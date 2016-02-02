@@ -1381,15 +1381,48 @@ not {0}'.format(type(ids)))
 
         return self.request('GetMsg', content)
 
+    def move_messages(self, ids, folder_id):
+        """ Move selected messages to an other folder
+
+        :param msg_ids: list of message's ids to move
+        :param folder_id: folder's id where to move messages
+        """
+        str_ids = self._return_comma_list(ids)
+        params = {'action': {
+            'id': str_ids,
+            'op': 'move',
+            'l': folder_id
+        }}
+
+        self.request('MsgAction', params)
+
+    def update_messages_flag(self, ids, flag):
+        """
+        List of flags :
+        u -> unread                 f -> flagged
+        a -> has attachment         s -> sent by me
+        r -> replied                w -> forwarded
+        d -> draft                  x -> deleted
+        n -> notification sent
+
+        by default a message priority is "normal" otherwise:
+        ! -> priority high          ? -> priority low
+        """
+        str_ids = self._return_comma_list(ids)
+        params = {'action': {
+            'id': str_ids,
+            'op': 'update',
+            'f': flag
+        }}
+
+        self.request('MsgAction', params)
+
     def delete_messages(self, ids):
         """ Delete selected messages for the current user
 
         :param ids: list of ids
         """
-        if not isinstance(ids, list):
-            raise TypeError('ids should be a list of integers, \
-not {0}'.format(type(ids)))
-        str_ids = ','.join(str(i) for i in ids)
+        str_ids = self._return_comma_list(ids)
         return self.request('MsgAction', {'action': {'op': 'delete',
                                                      'id': str_ids}})
 
