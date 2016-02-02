@@ -1055,6 +1055,19 @@ class ZimbraMailClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    def _return_comma_list(self, l):
+        """ get a list and return a string with comma separated list values
+        Examples ['to', 'ta'] will return 'to,ta'.
+        """
+
+        if not isinstance(l, list):
+            raise TypeError(l, ' should be a list of integers, \
+not {0}'.format(type(l)))
+
+        str_ids = ','.join(str(i) for i in l)
+
+        return str_ids
+
     def is_session_valid(self):
         # zimbraMail do not have by itself an Auth request, so create a
         # zimbraAccount client for that check.
@@ -1065,6 +1078,44 @@ class ZimbraMailClient(ZimbraAbstractClient):
     def login(self, user, password):
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
+
+    # Permissions
+
+    def get_permission(self, right):
+        return self.request(
+            'GetPermission',
+            {'ace': {'right': {'_content': right}}}
+        )
+
+    def grant_permission(self, right, zid=None, grantee_name=None, gt='usr'):
+        params = {'ace': {
+            'gt': gt,
+            'right': right
+        }}
+
+        if grantee_name:
+            params['ace']['d'] = grantee_name
+        elif zid:
+            params['ace']['zid'] = zid
+        else:
+            raise TypeError('at least zid or grantee_name should be set')
+
+        return self.request('GrantPermission', params)
+
+    def revoke_permission(self, right, zid=None, grantee_name=None, gt='usr'):
+        params = {'ace': {
+            'gt': gt,
+            'right': right
+        }}
+
+        if grantee_name:
+            params['ace']['d'] = grantee_name
+        elif zid:
+            params['ace']['zid'] = zid
+        else:
+            raise TypeError('missing zid or grantee_name')
+
+        self.request('RevokePermission', params)
 
     # Ranking action
     def reset_ranking(self):
@@ -1179,6 +1230,44 @@ not {0}'.format(type(ids)))
 
     # Folder
 
+    def create_folder(self, name, parent_id='1'):
+        params = {'folder': {
+            'name': name,
+            'l': parent_id
+        }}
+
+        return self.request('CreateFolder', params)['folder']
+
+    def create_mountpoint(self, name, path=None, owner=None, parent_id='1'):
+        """
+        :param name: Mountpoint path
+        :param parent_id: folder id of where mountpoint will be created
+        :param path:  Path to shared item
+        :param owner:  Primary email address of the owner of the
+        linked-to resource
+        """
+        params = {'link': {
+            'name': name,
+            'l': parent_id,
+            'path': path,
+            'owner': owner
+        }}
+
+        return self.request('CreateMountpoint', params)['link']
+
+    def delete_folder(self, folder_ids):
+        """
+        :param folder_ids: list of ids
+        """
+        f_ids = self._return_comma_list(folder_ids)
+
+        params = {'action': {
+            'id': f_ids,
+            'op': 'delete'
+        }}
+
+        self.request('FolderAction', params)
+
     def get_folder(self, f_id=None, path=None, uuid=None):
         request = {'folder': {}}
         if f_id:
@@ -1189,6 +1278,49 @@ not {0}'.format(type(ids)))
             request['folder']['path'] = str(path)
 
         return self.request('GetFolder', request)
+
+    def get_folder_grant(self, **kwargs):
+        folder = self.get_folder(**kwargs)
+
+        return folder['folder']['acl']
+
+    def modify_folder_grant(
+        self,
+        folder_ids,
+        perm,
+        zid=None,
+        grantee_name=None,
+        gt='usr'
+    ):
+        """
+        :param folder_ids: list of ids
+        :param perm: permission to grant to the user on folder(s)
+        :param zid: id of user to grant rights
+        :param grantee_name: email address of user to grant rights
+        """
+        f_ids = self._return_comma_list(folder_ids)
+
+        params = {'action': {
+            'id': f_ids,
+            'op': 'grant',
+            'grant': {'perm': perm, 'gt': gt}
+        }}
+
+        if perm == 'none':
+            params['action']['op'] = '!grant'
+            params['action']['zid'] = zid
+            # Remove key to raise Zimsoap exception if no zid provided
+            if not zid:
+                params['action'].pop('zid', None)
+
+        if grantee_name:
+            params['action']['grant']['d'] = grantee_name
+        elif zid:
+            params['action']['grant']['zid'] = zid
+        else:
+            raise TypeError('missing zid or grantee_name')
+
+        self.request('FolderAction', params)
 
     # Conversation
 

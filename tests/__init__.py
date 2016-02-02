@@ -22,6 +22,8 @@ defaults = {
     'admin_password': 'password',
     'lambda_user': 'albacore@zimbratest.example.com',
     'lambda_password': 'albacorealbacore',
+    'lambda_user2': 'carp@zimbratest.example.com',
+    'lambda_password2': 'carpcarp',
     'calres1': 'camescope@zimbratest2.example.com'}
 
 
