@@ -12,7 +12,7 @@ import random
 
 from zimsoap.client import (ZimbraMailClient, ZimbraAdminClient,
                             ZimbraSoapServerError)
-from zimsoap.zobjects import Task, Contact
+from zimsoap.zobjects import Task, Contact, Account
 from zimsoap import utils
 import tests
 
@@ -120,6 +120,29 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         zc = ZimbraMailClient(self.TEST_SERVER)
         zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
         self.assertTrue(zc._session.is_logged_in())
+
+    def test_grant_get_revoke_permission(self):
+        admin_zc = ZimbraAdminClient(
+            TEST_CONF['host'], TEST_CONF['admin_port']
+        )
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
+
+        right = 'sendAs'
+
+        self.zc.grant_permission(
+            right=right,
+            grantee_name=TEST_CONF['lambda_user2']
+        )
+
+        perm = self.zc.get_permission(right)
+        self.assertTrue(perm['ace']['d'], TEST_CONF['lambda_user2'])
+
+        self.zc.revoke_permission(
+            right=right,
+            grantee_name=TEST_CONF['lambda_user2']
+        )
+        perm = self.zc.get_permission(right)
+        self.assertEqual(perm, {})
 
     def test_create_task(self):
         subject = 'test_create_task'
@@ -243,9 +266,66 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
 
     # Folder
 
+    def test_create_delete_folder(self):
+        folder_name = 'TestingFolder'
+        folder = self.zc.create_folder(folder_name)
+        new_folder = self.zc.get_folder(f_id=folder['id'])['folder']
+        self.assertEqual(folder_name, new_folder['name'])
+
+        self.zc.delete_folder([new_folder['id']])
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_folder(f_id=new_folder['id'])
+
     def test_get_folder(self):
         folder = self.zc.get_folder(path="/Inbox")
         self.assertEqual(folder['folder']['id'], '2')
+
+    def test_folder_grant_mount_revoke(self):
+        admin_zc = ZimbraAdminClient(TEST_CONF['host'],
+                                     TEST_CONF['admin_port'])
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
+
+        grantee_zc = ZimbraMailClient(TEST_CONF['host'])
+        grantee_zc.delegated_login(TEST_CONF['lambda_user2'], admin_zc)
+
+        grantee_id = admin_zc.get_account(
+            Account(name=TEST_CONF['lambda_user2'])
+        )._a_tags['zimbraId']
+
+        right = 'rwidx'
+        self.zc.modify_folder_grant(
+            folder_ids=['1'],
+            perm=right,
+            zid=grantee_id
+        )
+
+        f_gt = self.zc.get_folder_grant(path='/')
+        self.assertEqual(f_gt['grant']['perm'], right)
+        self.assertEqual(f_gt['grant']['d'], TEST_CONF['lambda_user2'])
+
+        mount_name = 'MountedZimsoapTest'
+        grantee_zc.create_mountpoint(
+            name=mount_name,
+            path='/',
+            owner=TEST_CONF['lambda_user'],
+            parent_id='1'
+        )
+        mount_path = '/' + mount_name
+        link = grantee_zc.get_folder(path=mount_path)['link']
+        self.assertEqual(link['name'], mount_name)
+        self.assertEqual(link['owner'], TEST_CONF['lambda_user'])
+
+        # Clean grantee
+        grantee_zc.delete_folder([link['id']])
+
+        # Revoke rights
+        self.zc.modify_folder_grant(
+            folder_ids=['1'],
+            perm='none',
+            zid=grantee_id
+        )
+        f_gt = self.zc.get_folder_grant(path='/')
+        self.assertEqual(f_gt, {})
 
     # Search
 
