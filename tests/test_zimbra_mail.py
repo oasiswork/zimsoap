@@ -241,7 +241,7 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
 
     # Message
 
-    def test_add_get_delete_message(self):
+    def test_add_get_update_delete_message(self):
         # ADD
         with open('tests/data/email.msg') as f:
             message_content = f.read()
@@ -254,9 +254,19 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         self.assertEqual(msg['m']['d'], '1451579153000')
 
         # GET
-        msg_get = self.zc.get_message(msg['m']['id'])
+        msg_id = msg['m']['id']
+        msg_get = self.zc.get_message(msg_id)
 
-        self.assertEqual(msg['m']['id'], msg_get['m']['id'])
+        self.assertEqual(msg_id, msg_get['m']['id'])
+
+        # MOVE
+        self.zc.move_messages([msg_id], '3')
+
+        self.zc.update_messages_flag([msg_id], 'f')
+        msg_get_after_mod = self.zc.get_message(msg_id)
+
+        self.assertEqual(msg_get_after_mod['m']['l'], '3')
+        self.assertEqual(msg_get_after_mod['m']['f'], 'f')
 
         # DELETE
         self.zc.delete_messages(msg['m']['id'].split())
