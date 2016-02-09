@@ -119,6 +119,24 @@ class ZimbraAccountClientTests(unittest.TestCase):
 
         # just checks that it succeeds
 
+    def testAddRemoveGetBlackWhiteLists(self):
+        addr = 'test@external.com'
+        self.zc.add_to_blacklist([addr])
+        wbl = self.zc.get_white_black_lists()
+        self.assertEqual(wbl['blackList']['addr'], addr)
+
+        self.zc.remove_from_blacklist([addr])
+        wbl = self.zc.get_white_black_lists()
+        self.assertEqual(wbl['blackList'], {})
+
+        self.zc.add_to_whitelist([addr])
+        wbl = self.zc.get_white_black_lists()
+        self.assertEqual(wbl['whiteList']['addr'], addr)
+
+        self.zc.remove_from_whitelist([addr])
+        wbl = self.zc.get_white_black_lists()
+        self.assertEqual(wbl['whiteList'], {})
+
 
 class PythonicAccountAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
