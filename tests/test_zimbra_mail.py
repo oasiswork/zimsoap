@@ -212,6 +212,45 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_contacts(ids=contact.id)
 
+    def test_create_delete_group(self):
+        random_address = 'email' + str(random.randint(0, 10**9))
+        group_name = 'group_test'
+
+        # CREATE
+
+        # create a contact to add into the group
+        contact_attrs = {
+            'firstName': 'Pierre',
+            'lastName': 'MARTIN',
+            'email': random_address
+        }
+        contact = self.zc.create_contact(attrs=contact_attrs)
+
+        members = [
+            {'type': 'C', 'value': contact.id},
+            {'type': 'I', 'value': 'manual_addresse@example.com'},
+            {'type': 'G',
+             'value': 'uid=albacore,ou=people,dc=zimbratest,dc=example,dc=com'}
+        ]
+
+        group_attrs = {
+            'nickname': group_name,
+            'type': 'group'
+        }
+
+        group = self.zc.create_group(attrs=group_attrs, members=members)
+
+        self.assertIsInstance(group, Contact)
+        self.assertEqual(group['nickname'], group_name)
+
+        # UPDATE (TO DO)
+
+        # DELETE
+        self.zc.delete_contacts([group.id])
+        with self.assertRaises(ZimbraSoapServerError):
+            self.zc.get_contacts(ids=group.id)
+        self.zc.delete_contacts([contact.id])
+
     # Conversation
 
     def test_get_move_delete_conversation(self):

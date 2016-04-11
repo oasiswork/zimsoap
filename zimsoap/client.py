@@ -1199,7 +1199,7 @@ not {0}'.format(type(l)))
 
     # Contact
 
-    def create_contact(self, attrs, folder_id=None, tags=None):
+    def create_contact(self, attrs, members=None, folder_id=None, tags=None):
         """Create a contact
 
         Does not include VCARD nor group membership yet
@@ -1227,6 +1227,8 @@ not {0}'.format(type(l)))
             cn['l'] = str(folder_id)
         if tags:
             cn['tn'] = tags
+        if members:
+            cn['m'] = members
 
         attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
         cn['a'] = attrs
@@ -1262,6 +1264,44 @@ not {0}'.format(type(ids)))
         str_ids = ','.join(str(i) for i in ids)
         self.request('ContactAction', {'action': {'op': 'delete',
                                                   'id': str_ids}})
+
+    def create_group(self, attrs, members, folder_id=None, tags=None):
+        """Create a contact group
+
+        XML example :
+        <cn l="7> ## ContactSpec
+            <a n="lastName">MARTIN</a>
+            <a n="firstName">Pierre</a>
+            <a n="email">pmartin@example.com</a>
+        </cn>
+        Which would be in zimsoap : attrs = { 'lastname': 'MARTIN',
+                                        'firstname': 'Pierre',
+                                        'email': 'pmartin@example.com' }
+                                    folder_id = 7
+
+        :param folder_id: a string of the ID's folder where to create
+        contact. Default '7'
+        :param tags:     comma-separated list of tag names
+        :param members:  list of dict. Members with their type. Example
+        {'type': 'I', 'value': 'manual_addresse@example.com'}.
+        :param attrs:   a dictionary of attributes to set ({key:value,...}). At
+        least one attr is required
+        :returns:       the created zobjects.Contact
+        """
+        cn = {}
+        cn['m'] = members
+
+        if folder_id:
+            cn['l'] = str(folder_id)
+        if tags:
+            cn['tn'] = tags
+
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
+        attrs.append({'n': 'type', '_content': 'group'})
+        cn['a'] = attrs
+        resp = self.request_single('CreateContact', {'cn': cn})
+
+        return zobjects.Contact.from_dict(resp)
 
     # Folder
 
