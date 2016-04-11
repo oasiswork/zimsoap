@@ -1365,13 +1365,15 @@ not {0}'.format(type(ids)))
         perm,
         zid=None,
         grantee_name=None,
-        gt='usr'
+        gt='usr',
+        flags=None
     ):
         """
         :param folder_ids: list of ids
         :param perm: permission to grant to the user on folder(s)
         :param zid: id of user to grant rights
         :param grantee_name: email address of user to grant rights
+        :param flags: folder's flags
         """
         f_ids = self._return_comma_list(folder_ids)
 
@@ -1394,6 +1396,43 @@ not {0}'.format(type(ids)))
             params['action']['grant']['zid'] = zid
         else:
             raise TypeError('missing zid or grantee_name')
+
+        self.request('FolderAction', params)
+
+    def modify_folders(
+        self, folder_ids, color=None, flags=None, parent_folder=None,
+        name=None, num_days=None, rgb=None, tags=None, view=None
+    ):
+        """
+        :param folder_ids: list of ids
+        :param color: color numeric; range 0-127; defaults to 0 if not present;
+        client can display only 0-7
+        :param flags: flags
+        :param parent_folder: id of new location folder
+        :param name: new name for the folder
+        :param tags: list of tag names
+        :param view: list of tag view
+        """
+        f_ids = self._return_comma_list(folder_ids)
+
+        params = {'action': {
+            'id': f_ids,
+            'op': 'update',
+        }}
+
+        if color:
+            params['action']['color'] = color
+        if flags:
+            params['action']['f'] = flags
+        if parent_folder:
+            params['action']['l'] = parent_folder
+        if name:
+            params['action']['name'] = name
+        if tags:
+            tn = self._return_comma_list(tags)
+            params['action']['tn'] = tn
+        if view:
+            params['action']['view'] = view
 
         self.request('FolderAction', params)
 
