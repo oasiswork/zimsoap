@@ -319,13 +319,13 @@ class PythonicAdminAPITests(unittest.TestCase):
     def test_get_all_accounts(self):
         accounts = self.zc.get_all_accounts()
         self.assertIsInstance(accounts[0], Account)
-        self.assertEqual(len(accounts), 16)
+        self.assertEqual(len(accounts), 17)
 
     def test_get_all_accounts_by_single_server(self):
         test_server = Server(name=self.SERVER_NAME)
         accounts = self.zc.get_all_accounts(server=test_server)
         self.assertIsInstance(accounts[0], Account)
-        self.assertEqual(len(accounts), 16)
+        self.assertEqual(len(accounts), 17)
 
     def test_get_all_accounts_by_single_domain(self):
         test_domain = Domain(name=self.DOMAIN2)
