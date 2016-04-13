@@ -964,6 +964,16 @@ class ZimbraAdminClient(ZimbraAbstractClient):
             'a': attrs
         })
 
+    def set_password(self, account, password):
+        """
+        :param account: a zobjects.Account
+        :param password: new password to set
+        """
+        self.request('SetPassword', {
+            'id': account.id,
+            'newPassword': password
+        })
+
     def create_account(self, email, password=None, attrs={}):
         """
         :param email:    Full email with domain eg: login@domain.com

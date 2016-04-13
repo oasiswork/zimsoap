@@ -473,6 +473,18 @@ class PythonicAdminAPITests(unittest.TestCase):
         ac_got = self.zc.get_account(ac_req)
         self.assertEqual(ac_got['displayName'], random_name_1)
 
+        # MODIFY PASSWORD
+        new_password = 'new_pass1234'
+        self.zc.set_password(ac, new_password)
+
+        act_zc = ZimbraAccountClient(TEST_CONF['host'],
+                                     TEST_CONF['https_port'])
+
+        try:
+            act_zc.login(ac.name, new_password)
+        except ZimbraSoapServerError:
+            self.fail('self.zc.set_password has failed to change password')
+
         # RENAME
         self.zc.rename_account(
             ac_got, 'renamed_account@zimbratest.example.com')
