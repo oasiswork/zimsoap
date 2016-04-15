@@ -42,21 +42,22 @@ class ZimbraAdminClientTests(unittest.TestCase):
 
     def testBadLoginFailure(self):
         with self.assertRaises(ZimbraSoapServerError) as cm:
-            zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
+            zc = ZimbraAdminClient(self.TEST_SERVER, self.TEST_ADMIN_PORT)
             zc.login('badlogin@zimbratest.example.com', self.TEST_PASSWORD)
 
         self.assertIn('authentication failed', cm.exception.msg)
 
     def testBadPasswordFailure(self):
         with self.assertRaises(ZimbraSoapServerError) as cm:
-            zc = ZimbraAdminClient(self.TEST_SERVER, 7071)
+            zc = ZimbraAdminClient(self.TEST_SERVER, self.TEST_ADMIN_PORT)
             zc.login(self.TEST_LOGIN, 'badpassword')
 
         self.assertIn('authentication failed', cm.exception.msg)
 
     def testBadHostFailure(self):
         with self.assertRaises(URLError):
-            zc = ZimbraAdminClient('nonexistanthost.example.com', 7071)
+            zc = ZimbraAdminClient('nonexistanthost.example.com',
+                                   self.TEST_ADMIN_PORT)
             zc.login(self.TEST_LOGIN, self.TEST_PASSWORD)
 
     def testBadPortFailure(self):
@@ -73,9 +74,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
     def setUp(self):
-        # self.zc = ZimbraAdminClient('zimbratest.example.com', 7071)
-        # self.zc.login('admin@zimbratest.example.com', 'admintest')
-
         self.EXISTANT_DOMAIN = TEST_CONF['domain_1']
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
         # Should not exist before the tests
@@ -223,8 +221,6 @@ class PythonicAdminAPITests(unittest.TestCase):
         cls.zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
 
     def setUp(self):
-        # self.zc = ZimbraAdminClient('zimbratest.example.com', 7071)
-        # self.zc.login('admin@zimbratest.example.com', 'admintest')
         self.HOST = TEST_CONF['host']
         self.ADMIN_PASSWORD = TEST_CONF['admin_password']
         self.ADMIN_PORT = TEST_CONF['admin_port']
