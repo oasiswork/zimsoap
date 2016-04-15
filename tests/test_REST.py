@@ -19,6 +19,7 @@ class RESTClientTest(unittest.TestCase):
     def setUp(cls):
         cls.HOST = TEST_CONF['host']
         cls.ADMIN_LOGIN = TEST_CONF['admin_login']
+        cls.ADMIN_PORT = TEST_CONF['admin_port']
 
         # Login/connection is done at class initialization to reduce tests time
         cls.zc = ZimbraAdminClient(cls.HOST, TEST_CONF['admin_port'])
@@ -44,12 +45,14 @@ class RESTClientTest(unittest.TestCase):
             c.get_preauth_token('idonotexist1234@'+TEST_CONF['domain_1'])
 
     def test_admin_preauth_returns_something(self):
-        c = AdminRESTClient(self.HOST, preauth_key=self.ph_key_domain1)
+        c = AdminRESTClient(self.HOST, server_port=self.ADMIN_PORT,
+                            preauth_key=self.ph_key_domain1)
         token = c.get_preauth_token(self.ADMIN_LOGIN)
         self.assertIsInstance(token, str)
 
     def test_admin_preauth_is_valid(self):
-        c = AdminRESTClient(self.HOST, preauth_key=self.ph_key_domain1)
+        c = AdminRESTClient(self.HOST, server_port=self.ADMIN_PORT,
+                            preauth_key=self.ph_key_domain1)
         token = c.get_preauth_token(self.ADMIN_LOGIN)
 
         self.zc._session.import_session(token)
