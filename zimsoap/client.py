@@ -1340,14 +1340,45 @@ not {0}'.format(type(ids)))
 
         return self.request('CreateMountpoint', params)['link']
 
-    def delete_folder(self, folder_ids):
+    def delete_folders(self, paths=None, folder_ids=None):
         """
         :param folder_ids: list of ids
+        :param path: list of folder's paths
         """
-        f_ids = self._return_comma_list(folder_ids)
+        if folder_ids:
+            f_ids = folder_ids
+        elif paths:
+            f_ids = []
+            for path in paths:
+                folder = self.get_folder(path=path)
+                f_ids.append(folder['folder']['id'])
+
+        comma_ids = self._return_comma_list(f_ids)
 
         params = {'action': {
-            'id': f_ids,
+            'id': comma_ids,
+            'op': 'delete'
+        }}
+
+        self.request('FolderAction', params)
+
+    def delete_mountpoints(self, paths=None, folder_ids=None):
+        """
+        :param folder_ids: list of ids
+        :param path: list of folder's paths
+        """
+        if folder_ids:
+            f_ids = folder_ids
+        elif paths:
+            f_ids = []
+            for path in paths:
+                folder = self.get_folder(path=path)
+                f_ids.append(folder['link']['id'])
+
+        comma_ids = self._return_comma_list(f_ids)
+
+        params = {'action': {
+            'id': comma_ids,
             'op': 'delete'
         }}
 
