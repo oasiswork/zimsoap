@@ -1,8 +1,0 @@
-{
-  "tests/test_REST.py": true,
-  "tests/test_utils.py": true,
-  "tests/test_zimbra_account.py": true,
-  "tests/test_zimbra_admin.py": true,
-  "tests/test_zimbra_mail.py": true,
-  "tests/test_zobjects.py": true
-}
