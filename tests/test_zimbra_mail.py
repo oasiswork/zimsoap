@@ -278,6 +278,64 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_conversation(conv_id)
 
+    # Data source_addresses
+
+    def test_add_get_update_delete_datasource(self):
+        # ADD
+        source_dic = {
+            'imap': {
+                'connectionType': 'tls',
+                'emailAddress': 'external@domain.com',
+                'host': 'mail.domain.com',
+                'importOnly': '1',
+                'isEnabled': '0',
+                'leaveOnServer': '0',
+                'name': 'My IMAP account',
+                'password': 'data-source-password',
+                'port': '993',
+                'replyToDisplay': 'An Other Name',
+                'useAddressForForwardReply': '0',
+                'username': 'data-source-username'
+            }
+        }
+        created_source = self.zc.create_data_source(source_dic, 'MyImapDir')
+        self.assertTrue(created_source)
+
+        # GET
+        source_id = created_source['imap']['id']
+        # get by id
+        get_source_by_id = self.zc.get_data_sources(source_id=source_id)
+        self.assertEqual(get_source_by_id['imap'][0]['emailAddress'],
+                         source_dic['imap']['emailAddress'])
+
+        # get by source address
+        get_source_by_address = self.zc.get_data_sources(
+            source_addresses=[source_dic['imap']['emailAddress']])
+        self.assertEqual(get_source_by_address['imap'][0]['emailAddress'],
+                         source_dic['imap']['emailAddress'])
+
+        # get by types
+        get_source_by_types = self.zc.get_data_sources(types=['imap'])
+        self.assertEqual(get_source_by_types['imap'][0]['emailAddress'],
+                         source_dic['imap']['emailAddress'])
+
+        # get by non present types
+        get_source_by_ntypes = self.zc.get_data_sources(types=['pop3'])
+        self.assertFalse(get_source_by_ntypes['pop3'])
+
+        # UPDATE
+        new_address = 'modified_external@domain.com'
+        created_source['imap']['emailAddress'] = new_address
+        self.zc.modify_data_source(created_source)
+        updated_source = self.zc.get_data_sources(source_id=source_id)
+        self.assertEqual(updated_source['imap'][0]['emailAddress'],
+                         new_address)
+
+        # DELETE
+        self.zc.delete_data_source(created_source)
+        self.assertFalse(
+            self.zc.get_data_sources(source_id=created_source['imap']['id']))
+
     # Message
 
     def test_add_get_update_delete_message(self):
