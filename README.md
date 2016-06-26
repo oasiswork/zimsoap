@@ -17,7 +17,7 @@ Allows accessing zimbraAdmin and zimbraAccount SOAP APIs
  - handle authentification
  - handle pre-authentification admin->admin and admin->Account
  - presents the request results as nice Python objects
- - all requests are tested with 8.0.4 and 8.0.5
+ - all requests are tested with 8.6.0
 
 [SOAP Zimbra API]:
 http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/index.html
