@@ -1397,8 +1397,10 @@ not {0}'.format(type(ids)))
 
     def get_folder_grant(self, **kwargs):
         folder = self.get_folder(**kwargs)
-
-        return folder['folder']['acl']
+        if 'acl' in folder['folder']:
+            return folder['folder']['acl']
+        else:
+            return None
 
     def modify_folder_grant(
         self,
