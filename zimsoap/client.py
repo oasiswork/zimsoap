@@ -1262,6 +1262,27 @@ not {0}'.format(type(l)))
 
         return [zobjects.Contact.from_dict(i) for i in contacts]
 
+    def modify_contact(self, contact_id, attrs, members=None, tags=None):
+        """
+        :param contact_id: zimbra id of the targetd contact
+        :param attrs  : a dictionary of attributes to set ({key:value,...})
+        :param members: list of groups  
+        :param tags:    comma-separated list of tag names
+        :returns:       the modified zobjects.Contact
+        """
+        cn = {}
+        if tags:
+            cn['tn'] = tags
+        if members:
+            cn['m'] = members
+
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
+        cn['a'] = attrs
+        cn['id'] = contact_id
+        resp = self.request_single('ModifyContact', {'cn': cn})
+
+        return zobjects.Contact.from_dict(resp)
+    
     def delete_contacts(self, ids):
         """ Delete selected contacts for the current user
 
