@@ -9,8 +9,6 @@ zimbra API. It is left to
 ZimbraAdminClient/ZimbraAccountClient/ZimbraMailClient...
 """
 
-from six import text_type, binary_type
-
 from zimsoap import utils
 
 
@@ -113,8 +111,8 @@ class ZObject(object):
 
     def _import_attributes(self, dic):
         for k, v in dic.items():
-            if (k != '_content') and (isinstance(v, (binary_type, text_type))):
-                setattr(self, k, str(v))
+            if (k != '_content'):
+                setattr(self, k, v)
 
     def property(self, property_name, default=Ellipsis):
         """ Returns a property value
