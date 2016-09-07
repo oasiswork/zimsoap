@@ -205,7 +205,10 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         contacts = self.zc.get_contacts(ids=contact.id)
         self.assertIsInstance(contacts[0], Contact)
 
-        # UPDATE (TO DO)
+        # MODIFY
+        contact = self.zc.modify_contact(
+            contact.id, attrs={'firstName': 'Marie'})
+        self.assertEqual(contact._a_tags.get('firstName'), 'Marie')
 
         # DELETE
         self.zc.delete_contacts([contact.id])
@@ -235,7 +238,6 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
 
         group_attrs = {
             'nickname': group_name,
-            'type': 'group'
         }
 
         group = self.zc.create_group(attrs=group_attrs, members=members)
@@ -243,7 +245,13 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         self.assertIsInstance(group, Contact)
         self.assertEqual(group['nickname'], group_name)
 
-        # UPDATE (TO DO)
+        # GET
+        # Not needed since it's the same for a contact
+
+        # MODIFY
+        group = self.zc.modify_contact(group.id, members=[
+            {'type': 'I', 'value': 'another_manual@example.com', 'op': '+'}])
+        self.assertEqual(len(group.m), 4)
 
         # DELETE
         self.zc.delete_contacts([group.id])
@@ -379,7 +387,7 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         new_folder = self.zc.get_folder(f_id=folder['id'])['folder']
         self.assertEqual(folder_name, new_folder['name'])
 
-        self.zc.delete_folder([new_folder['id']])
+        self.zc.delete_folders(folder_ids=[new_folder['id']])
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_folder(f_id=new_folder['id'])
 
@@ -423,7 +431,7 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         self.assertEqual(link['owner'], TEST_CONF['lambda_user'])
 
         # Clean grantee
-        grantee_zc.delete_folder([link['id']])
+        grantee_zc.delete_mountpoints(folder_ids=[link['id']])
 
         # Revoke rights
         self.zc.modify_folder_grant(

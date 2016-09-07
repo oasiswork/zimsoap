@@ -1104,6 +1104,8 @@ class ZimbraMailClient(ZimbraAbstractClient):
         """ get a list and return a string with comma separated list values
         Examples ['to', 'ta'] will return 'to,ta'.
         """
+        if isinstance(l, (text_type, int)):
+            return l
 
         if not isinstance(l, list):
             raise TypeError(l, ' should be a list of integers, \
@@ -1236,6 +1238,7 @@ not {0}'.format(type(l)))
         if folder_id:
             cn['l'] = str(folder_id)
         if tags:
+            tags = self._return_comma_list(tags)
             cn['tn'] = tags
         if members:
             cn['m'] = members
@@ -1253,25 +1256,46 @@ not {0}'.format(type(l)))
 
         :returns: a list of zobjects.Contact
         """
-        # TODO: put "a", "ma" and all others params available for
         params = {}
         if ids:
+            ids = self._return_comma_list(ids)
             params['cn'] = {'id': ids}
 
         contacts = self.request_list('GetContacts', params)
 
         return [zobjects.Contact.from_dict(i) for i in contacts]
 
+    def modify_contact(self, contact_id, attrs=None, members=None, tags=None):
+        """
+        :param contact_id: zimbra id of the targetd contact
+        :param attrs  : a dictionary of attributes to set ({key:value,...})
+        :param members: list of dict representing contacts and
+        operation (+|-|reset)
+        :param tags:    comma-separated list of tag names
+        :returns:       the modified zobjects.Contact
+        """
+        cn = {}
+        if tags:
+            tags = self._return_comma_list(tags)
+            cn['tn'] = tags
+        if members:
+            cn['m'] = members
+        if attrs:
+            attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
+            cn['a'] = attrs
+
+        cn['id'] = contact_id
+        resp = self.request_single('ModifyContact', {'cn': cn})
+
+        return zobjects.Contact.from_dict(resp)
+
     def delete_contacts(self, ids):
         """ Delete selected contacts for the current user
 
         :param ids: list of ids
         """
-        if not isinstance(ids, list):
-            raise TypeError('ids should be a list of inttegers, \
-not {0}'.format(type(ids)))
 
-        str_ids = ','.join(str(i) for i in ids)
+        str_ids = self._return_comma_list(ids)
         self.request('ContactAction', {'action': {'op': 'delete',
                                                   'id': str_ids}})
 
@@ -1367,22 +1391,7 @@ not {0}'.format(type(ids)))
         :param folder_ids: list of ids
         :param path: list of folder's paths
         """
-        if folder_ids:
-            f_ids = folder_ids
-        elif paths:
-            f_ids = []
-            for path in paths:
-                folder = self.get_folder(path=path)
-                f_ids.append(folder['link']['id'])
-
-        comma_ids = self._return_comma_list(f_ids)
-
-        params = {'action': {
-            'id': comma_ids,
-            'op': 'delete'
-        }}
-
-        self.request('FolderAction', params)
+        self.delete_folders(paths=paths, folder_ids=folder_ids)
 
     def get_folder(self, f_id=None, path=None, uuid=None):
         request = {'folder': {}}
@@ -1492,11 +1501,8 @@ not {0}'.format(type(ids)))
 
         :params ids: list of ids
         """
-        if not isinstance(ids, list):
-            raise TypeError('ids should be a list of inttegers, \
-not {0}'.format(type(ids)))
 
-        str_ids = ','.join(str(i) for i in ids)
+        str_ids = self._return_comma_list(ids)
         self.request('ConvAction', {'action': {'op': 'delete',
                                                'id': str_ids
                                                }})
@@ -1507,11 +1513,8 @@ not {0}'.format(type(ids)))
         :params ids: list of ids
         :params folder: folder id
         """
-        if not isinstance(ids, list):
-            raise TypeError('ids should be a list of inttegers, \
-not {0}'.format(type(ids)))
 
-        str_ids = ','.join(str(i) for i in ids)
+        str_ids = self._return_comma_list(ids)
         self.request('ConvAction', {'action': {'op': 'move',
                                                'id': str_ids,
                                                'l': str(folder)}})

@@ -53,8 +53,8 @@ class ZObjectsTests(unittest.TestCase):
         data = self.simple_domain_dict['domain']
         d = Domain.from_dict(data)
         self.assertIsInstance(d, Domain)
-        self.assertIsInstance(d.id, str)
-        self.assertIsInstance(d.name, str)
+        self.assertIsInstance(d.id, text_type)
+        self.assertIsInstance(d.name, text_type)
         self.assertIsNotNone(d.id)
         self.assertEqual(d.name, 'client1.unbound.example.com')
         self.assertEqual(d.get_full_data(), data)
