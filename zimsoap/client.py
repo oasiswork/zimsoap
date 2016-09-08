@@ -1084,6 +1084,58 @@ class ZimbraAdminClient(ZimbraAbstractClient):
         raise NotImplementedError(
             'zimbraAdmin do not support to get logged-in by delegated auth')
 
+    def search_directory(self, **kwargs):
+        """
+        SearchAccount is deprecated, using SearchDirectory
+
+        :param query: Query string - should be an LDAP-style filter
+        string (RFC 2254)
+        :param limit: The maximum number of accounts to return
+        (0 is default and means all)
+        :param offset: The starting offset (0, 25, etc)
+        :param domain: The domain name to limit the search to
+        :param applyCos: applyCos - Flag whether or not to apply the COS
+        policy to account. Specify 0 (false) if only requesting attrs that
+        aren't inherited from COS
+        :param applyConfig: whether or not to apply the global config attrs to
+        account. specify 0 (false) if only requesting attrs that aren't
+        inherited from global config
+        :param sortBy: Name of attribute to sort on. Default is the account
+        name.
+        :param types: Comma-separated list of types to return. Legal values
+        are: accounts|distributionlists|aliases|resources|domains|coses
+        (default is accounts)
+        :param sortAscending: Whether to sort in ascending order. Default is
+        1 (true)
+        :param countOnly: Whether response should be count only. Default is
+        0 (false)
+        :param attrs: Comma-seperated list of attrs to return ("displayName",
+        "zimbraId", "zimbraAccountStatus")
+        :return: dict of list of "account" "alias" "dl" "calresource" "domain"
+        "cos"
+        """
+
+        search_response = self.request('SearchDirectory', kwargs)
+
+        result = {}
+        items = {
+            "account": zobjects.Account.from_dict,
+            "domain": zobjects.Domain.from_dict,
+            "dl": zobjects.DistributionList.from_dict,
+            "cos": zobjects.COS.from_dict,
+            "calresource": zobjects.CalendarResource.from_dict
+            # "alias": TODO,
+        }
+
+        for obj_type, func in items.items():
+            if obj_type in search_response:
+                if isinstance(search_response[obj_type], list):
+                    result[obj_type] = [
+                        func(v) for v in search_response[obj_type]]
+                else:
+                    result[obj_type] = func(search_response[obj_type])
+        return result
+
 
 class ZimbraMailClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraMail webservice.

@@ -207,6 +207,17 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.request('GetAccountInfo', {'account': account})
         self.assertIsInstance(resp['cos']['id'], (text_type, binary_type))
 
+    def testSearchDirectory(self):
+        resp = self.zc.search_directory(
+            query='mail=%s' % TEST_CONF['lambda_user'])
+
+        self.assertEqual(resp['account'].name, TEST_CONF['lambda_user'])
+
+        resp = self.zc.search_directory(
+            query='dc=zimbratest', types='domains')
+
+        self.assertEqual(resp['domain'].name, 'zimbratest.example.com')
+
 
 class PythonicAdminAPITests(unittest.TestCase):
     """ Tests the pythonic API, the one that should be accessed by someone using
