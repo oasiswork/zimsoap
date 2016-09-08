@@ -100,24 +100,49 @@ class ZimbraAccountClientTests(unittest.TestCase):
         self.assertIsInstance(pref, dict)
         self.assertEqual(pref['name'], 'zimbraPrefMailFlashTitle')
 
-    def testGetIdentities(self):
-        identities = self.zc.request('GetIdentities')
+    def testCreateGetModifyDeleteIdentity(self):
+        # Create
+        i = self.zc.create_identity(name='test-identity', attrs=[{
+            'name': 'zimbraPrefWhenInFoldersEnabled',
+            '_content': 'TRUE'
+        }])
 
-        # only one
-        self.assertIsInstance(identities['identity'], dict)
+        # Get
+        get_i = self.zc.get_identities(identity='test-identity')[0]
+        # Verify create and get
+        self.assertEqual(i, get_i)
 
-    def modifyIdentity(self):
-        self.zc.request('ModifyIdentity', {'identity': {
-            'name': 'DEFAULT',
-            'a': {'name': 'zimbraPrefSaveToSent', '_content': 'FALSE'}
-        }})
+        # Modify 1
+        from_addr = 'anothersender@example.com'
 
-        self.zc.request('ModifyIdentity', {'identity': {
-            'name': 'DEFAULT',
-            'a': {'name': 'zimbraPrefSaveToSent', '_content': 'TRUE'}
-        }})
+        i = self.zc.modify_identity(
+            identity='test-identity', zimbraPrefFromAddress=from_addr)
+        self.assertEqual(i._a_tags['zimbraPrefFromAddress'], from_addr)
 
-        # just checks that it succeeds
+        # Modify 2
+        # clean (needed with use of zobjects.Identity to avoid illegal
+        # multivalue attribute)
+        i._full_data['a'].remove({
+            'name': 'zimbraPrefFromAddress',
+            '_content': from_addr})
+        from_addr = 'someaddress@example.com'
+        i._full_data['a'].append({
+            'name': 'zimbraPrefFromAddress',
+            '_content': from_addr})
+        mod_i = self.zc.modify_identity(i)
+        self.assertEqual(mod_i._a_tags['zimbraPrefFromAddress'], from_addr)
+
+        # Delete 1
+        self.zc.delete_identity(mod_i)
+
+        self.assertEqual(self.zc.get_identities(identity=mod_i), [])
+
+        # Delete 2
+        i = self.zc.create_identity(name='test-identity', attrs={
+            'zimbraPrefWhenInFoldersEnabled': 'TRUE'})
+        self.zc.delete_identity(identity='test-identity')
+
+        self.assertEqual(self.zc.get_identities(i), [])
 
     def testAddRemoveGetBlackWhiteLists(self):
         addr = 'test@external.com'
@@ -337,29 +362,6 @@ class PythonicAccountAPITests(unittest.TestCase):
         self.assertIsInstance(identities[0], Identity)
         self.assertEqual(identities[0].name, 'DEFAULT')
         self.assertTrue(utils.is_zuuid(identities[0]['zimbraPrefIdentityId']))
-
-    def test_modify_identity(self):
-        test_attr = 'zimbraPrefForwardReplyPrefixChar'
-
-        # First get the default identity id
-        def_identity = self.zc.get_identities()[0]
-
-        initial_attrval = def_identity[test_attr]
-        if initial_attrval == '>':
-            new_attrval = '|'
-        else:
-            new_attrval = '>'
-
-        i = Identity(id=def_identity.id)
-        i[test_attr] = new_attrval
-        self.zc.modify_identity(i)
-
-        modified_i = self.zc.get_identities()[0]
-        self.assertEqual(modified_i[test_attr], new_attrval)
-
-        # Revert it back
-        i[test_attr] = initial_attrval
-        self.zc.modify_identity(i)
 
     def test_account_get_logged_in_by(self):
         admin_zc = ZimbraAdminClient(TEST_CONF['host'],
