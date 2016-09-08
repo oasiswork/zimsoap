@@ -1416,7 +1416,7 @@ not {0}'.format(type(l)))
 
         return self.request('CreateMountpoint', params)['link']
 
-    def delete_folders(self, paths=None, folder_ids=None):
+    def delete_folders(self, paths=None, folder_ids=None, f_type='folder'):
         """
         :param folder_ids: list of ids
         :param path: list of folder's paths
@@ -1427,7 +1427,7 @@ not {0}'.format(type(l)))
             f_ids = []
             for path in paths:
                 folder = self.get_folder(path=path)
-                f_ids.append(folder['folder']['id'])
+                f_ids.append(folder[f_type]['id'])
 
         comma_ids = self._return_comma_list(f_ids)
 
@@ -1443,7 +1443,10 @@ not {0}'.format(type(l)))
         :param folder_ids: list of ids
         :param path: list of folder's paths
         """
-        self.delete_folders(paths=paths, folder_ids=folder_ids)
+        self.delete_folders(paths=paths, folder_ids=folder_ids, f_type='link')
+
+    def get_mountpoint(self, mp_id=None, path=None, uuid=None):
+        return self.get_folder(f_id=mp_id, path=path, uuid=uuid)
 
     def get_folder(self, f_id=None, path=None, uuid=None):
         request = {'folder': {}}

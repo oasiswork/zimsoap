@@ -426,7 +426,7 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
             parent_id='1'
         )
         mount_path = '/' + mount_name
-        link = grantee_zc.get_folder(path=mount_path)['link']
+        link = grantee_zc.get_mountpoint(path=mount_path)['link']
         self.assertEqual(link['name'], mount_name)
         self.assertEqual(link['owner'], TEST_CONF['lambda_user'])
 
