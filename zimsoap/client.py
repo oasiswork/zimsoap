@@ -1639,6 +1639,58 @@ not {0}'.format(type(l)))
         return self.request('MsgAction', {'action': {'op': 'delete',
                                                      'id': str_ids}})
 
+    def send_message(self, fr, to, su, msg_content, cc="", reply="", origid="", sender="", replace_line_breaks=True, **kwargs):
+       """ Send an email.
+
+       The email has the text/html mimetype, so ensure that
+       any special formatting beyond <br> is done in html
+
+       I kept experiencing issues with the text/plain mimetype
+       which were preventing multiline emailsfrom getting sent.
+       Perhaps someone else with more knowledge could explain
+       why?
+
+       By default it will replace linebreaks with <br> to
+       allow basic emails to be sent easily. This behavior
+       can be changed by passing replace_line_breaks=False
+
+       Documentation for the call being made can be found at
+       https://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraMail/SendMsg.html
+
+       ** Untested, but theoretically **
+
+       To send a reply, pass reply='r' as well as the id of
+       message being replied to as origid={msg_id}
+
+       To forward a message, pass reply='w' and the id of the
+       message to forward as origid={msg_id}
+       """
+       if (replace_line_breaks):
+           msg_content = msg_content.replace('\n', '<br>')
+
+       params = {'m': {
+           'e': [
+               { 'a': fr, 't': 'f'},
+               { 'a': to, 't': 't'},
+               { 'a': fr, 't': 's'},
+               { 'a': cc, 't': 'c'}
+               ],
+            'reply': reply,
+            'mp': [
+                {
+                    'content': msg_content,
+                    'ct': 'text/html'
+                }
+            ],
+            'su': su
+            }
+       }
+
+       if ( origid != ""):
+           params['m']['origid'] = origid
+
+       return self.request('SendMsg', params)
+
     # Search
     def search(self, query, **kwargs):
         """ Search object in account
