@@ -323,6 +323,13 @@ class CalendarResource(AbstractAddressableZObject):
     LOCATION_TYPE = 'Location'
 
 
+class FilterRule(ZObject):
+    """ A mailbox filter rule object
+    """
+    TAG_NAME = 'filter'
+    ATTRNAME_PROPERTY = 'name'
+
+
 class Identity(ZObject):
     """An account object
     """
