@@ -1804,6 +1804,115 @@ not {0}'.format(type(l)))
         self.delete_folders(folder_ids=[folder_id])
         return self.request('DeleteDataSource', data_source)
 
+    # Filter
+
+    def add_filter_rule(self, name, condition, filters, actions, active=1):
+        """
+        :param name: filter name
+        :param condition: allof or anyof
+        :param filters: dict of filters
+        :param actions: dict of actions
+        :returns: list of user's zobjects.FilterRule
+        """
+
+        filters['condition'] = condition
+
+        new_rule = {
+            'name': name,
+            'active': active,
+            'filterTests': filters,
+            'filterActions': actions
+        }
+
+        new_rules = [zobjects.FilterRule.from_dict(new_rule)]
+
+        prev_rules = self.get_filter_rules()
+
+        # if there is already some rules
+        if prev_rules:
+            new_rules = new_rules + prev_rules
+
+        content = {
+            'filterRules': {
+                'filterRule': [r._full_data for r in new_rules]
+            }
+        }
+
+        self.request('ModifyFilterRules', content)
+        return new_rules
+
+    def get_filter_rule(self, _filter):
+        """ Return the filter rule
+
+        :param: _filter a zobjects.FilterRule or the filter name
+        :returns: a zobjects.FilterRule"""
+        if isinstance(_filter, zobjects.FilterRule):
+            _filter = _filter.name
+        for f in self.get_filter_rules():
+            if f.name == _filter:
+                return f
+        return {}
+
+    def get_filter_rules(self):
+        """
+        :returns: list of zobjects.FilterRule
+        """
+        try:
+            filters = self.request(
+                'GetFilterRules')['filterRules']['filterRule']
+            return [zobjects.FilterRule.from_dict(f) for f in filters]
+        except KeyError:
+            return []
+
+    def apply_filter_rule(self, _filter, query='in:inbox'):
+        """
+        :param: _filter _filter a zobjects.FilterRule or the filter name
+        :param: query on what will the filter be applied
+        :returns: list of impacted message's ids
+        """
+        if isinstance(_filter, zobjects.FilterRule):
+            _filter = _filter.name
+
+        content = {
+            'filterRules': {
+                'filterRule': {'name': _filter}
+                },
+            'query': {'_content': query}
+        }
+        ids = self.request('ApplyFilterRules', content)
+
+        if ids:
+            return [int(m) for m in ids['m']['ids'].split(',')]
+        else:
+            return []
+
+    def delete_filter_rule(self, _filter):
+        """ delete a filter rule
+
+        :param: _filter a zobjects.FilterRule or the filter name
+        :returns: a list of zobjects.FilterRule
+        """
+        updated_rules = []
+        rules = self.get_filter_rules()
+
+        if isinstance(_filter, zobjects.FilterRule):
+            _filter = _filter.name
+
+        if rules:
+            for rule in rules:
+                if not rule.name == _filter:
+                    updated_rules.append(rule)
+
+        if rules != updated_rules:
+            content = {
+                'filterRules': {
+                    'filterRule': [f._full_data for f in updated_rules]
+                }
+            }
+            self.request('ModifyFilterRules', content)
+
+        return updated_rules
+
 
 class ZimbraAPISession:
     """Handle the login, the session expiration and the generation of the
