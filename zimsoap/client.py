@@ -329,13 +329,17 @@ class ZimbraAccountClient(ZimbraAbstractClient):
 
     # Share
 
-    def get_share_details(self):
+    def get_share_info(self):
         """
         :returns: list of dict representing shares informations
         """
 
-        resp = self.request('GetShareInfo')
-
+        try:
+            resp = self.request('GetShareInfo')
+        # if user never logged in, no mailbox was created
+        except ZimbraSoapServerError as e:
+            if 'mailbox not found for account' in str(e):
+                return []
         if resp and isinstance(resp['share'], list):
             return resp['share']
         elif resp and isinstance(resp['share'], dict):
