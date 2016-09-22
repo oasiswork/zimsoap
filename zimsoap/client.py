@@ -327,6 +327,24 @@ class ZimbraAccountClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    # Share
+
+    def get_share_details(self):
+        """
+        :returns: list of dict representing shares informations
+        """
+
+        resp = self.request('GetShareInfo')
+
+        if resp and isinstance(resp, list):
+            return resp['share']
+        elif resp and isinstance(resp, dict):
+            return [resp['share']]
+        else:
+            return []
+
+    # Signature
+
     def create_signature(self, name, content, contenttype="text/html"):
         """
         :param:  name        verbose name of the signature

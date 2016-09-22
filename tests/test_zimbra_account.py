@@ -13,9 +13,13 @@ import unittest
 from six import text_type, binary_type
 
 from zimsoap import utils
-from zimsoap.client import (ZimbraAccountClient, ZimbraSoapServerError,
-                            ZimbraAdminClient)
-from zimsoap.zobjects import Signature, Identity
+from zimsoap.client import (
+    ZimbraAccountClient,
+    ZimbraSoapServerError,
+    ZimbraMailClient,
+    ZimbraAdminClient
+)
+from zimsoap.zobjects import Signature, Identity, Account
 import tests
 
 TEST_CONF = tests.get_config()
@@ -384,3 +388,36 @@ class PythonicAccountAPITests(unittest.TestCase):
 
         self.assertTrue(new_zc._session.is_logged_in())
         self.assertTrue(new_zc.is_session_valid())
+
+    def test_get_share_details(self):
+
+        # No shares yes
+        shares = self.zc.get_share_details()
+        self.assertEqual(shares, [])
+
+        # Create share
+        admin_zc = ZimbraAdminClient(TEST_CONF['host'],
+                                     TEST_CONF['admin_port'])
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
+        mail_zc2 = ZimbraMailClient(
+            TEST_CONF['host'], TEST_CONF['webmail_port'])
+        mail_zc2.delegated_login(TEST_CONF['lambda_user2'], admin_zc)
+
+        mail_zc2.modify_folder_grant(
+                folder_ids=['1'],
+                grantee_name=TEST_CONF['lambda_user'],
+                perm='rwixd',
+                gt='usr'
+            )
+
+        shares = self.zc.get_share_details()
+        self.assertEqual(shares[0]['ownerEmail'], TEST_CONF['lambda_user2'])
+
+        # Clean
+        mail_zc2.modify_folder_grant(
+                folder_ids=['1'],
+                zid=admin_zc.get_account(
+                    Account(name=TEST_CONF['lambda_user'])).id,
+                perm='none',
+                gt='usr'
+            )
