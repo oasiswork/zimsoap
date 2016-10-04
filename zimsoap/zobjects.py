@@ -323,9 +323,17 @@ class CalendarResource(AbstractAddressableZObject):
     LOCATION_TYPE = 'Location'
 
 
-class Identity(ZObject):
-    """An account object
+class FilterRule(ZObject):
+    """ A mailbox filter rule object
     """
+    TAG_NAME = 'filter'
+    ATTRNAME_PROPERTY = 'name'
+
+
+class Identity(ZObject):
+    """An identity object
+    """
+    SELECTORS = ('name', 'id')
     TAG_NAME = 'identity'
     ATTRNAME_PROPERTY = 'name'
 
@@ -338,10 +346,13 @@ class Identity(ZObject):
             if hasattr(self, prop):
                 o[prop] = getattr(self, prop)
 
-        if len(self._a_tags) > 0:
-            o['a'] = []
-            for node in self._unparse_a_tags(self._a_tags):
-                o['a'].append(node)
+        try:
+            if len(self.a) > 0:
+                o['a'] = []
+                for node in self._unparse_a_tags(self._a_tags):
+                    o['a'].append(node)
+        except AttributeError:
+            pass
         return o
 
     def is_default(self):
@@ -349,6 +360,24 @@ class Identity(ZObject):
         # it's not just a convention : default identity name cannot be
         # changed...
         return self.name == 'DEFAULT'
+
+    def to_selector(self):
+        """ For some reason, the selector for <identity> is
+
+            <identity id="1234" />
+
+        rather than
+
+            <identity by="id"></identity>
+        """
+
+        for i in self.SELECTORS:
+            if hasattr(self, i):
+                val = getattr(self, i)
+                selector = i
+                break
+
+        return {selector: val}
 
 
 class ClassOfService(ZObject):

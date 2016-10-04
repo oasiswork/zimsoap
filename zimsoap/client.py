@@ -327,6 +327,28 @@ class ZimbraAccountClient(ZimbraAbstractClient):
             server_host, server_port,
             *args, **kwargs)
 
+    # Share
+
+    def get_share_info(self):
+        """
+        :returns: list of dict representing shares informations
+        """
+
+        try:
+            resp = self.request('GetShareInfo')
+        # if user never logged in, no mailbox was created
+        except ZimbraSoapServerError as e:
+            if 'mailbox not found for account' in str(e):
+                return []
+        if resp and isinstance(resp['share'], list):
+            return resp['share']
+        elif resp and isinstance(resp['share'], dict):
+            return [resp['share']]
+        else:
+            return []
+
+    # Signature
+
     def create_signature(self, name, content, contenttype="text/html"):
         """
         :param:  name        verbose name of the signature
@@ -422,9 +444,26 @@ class ZimbraAccountClient(ZimbraAbstractClient):
         resp = self.request_single('GetPrefs', {'pref': {'name': pref_name}})
         return utils.auto_type(resp['_content'])
 
-    def get_identities(self):
-        """ Get all the identities of the user, as a list
+    def create_identity(self, name, attrs=[]):
+        """ Create an Identity
 
+        :param: name identity name
+        :param: attrs list of dict of attributes (zimsoap format)
+        :returns: a zobjects.Identity object
+        """
+        params = {
+            'name': name,
+            'a': attrs
+        }
+        resp = self.request('CreateIdentity', {'identity': params})
+        return zobjects.Identity.from_dict(resp['identity'])
+
+    def get_identities(self, identity=None, attrs=None):
+        """ Get identities matching name and attrs
+        of the user, as a list
+
+        :param: zobjects.Identity or identity name (string)
+        :param: attrs dict of attributes to return only identities matching
         :returns: list of zobjects.Identity
         """
         resp = self.request('GetIdentities')
@@ -434,19 +473,69 @@ class ZimbraAccountClient(ZimbraAbstractClient):
             if type(identities) != list:
                 identities = [identities]
 
-            return [zobjects.Identity.from_dict(i) for i in identities]
+            if identity or attrs:
+                wanted_identities = []
+
+                for u_identity in [
+                        zobjects.Identity.from_dict(i) for i in identities]:
+                    if identity:
+                        if isinstance(identity, zobjects.Identity):
+                            if u_identity.name == identity.name:
+                                return [u_identity]
+                        else:
+                            if u_identity.name == identity:
+                                return [u_identity]
+
+                    elif attrs:
+                        for attr, value in attrs.items():
+                            if (attr in u_identity._a_tags and
+                                    u_identity._a_tags[attr] == value):
+                                wanted_identities.append(u_identity)
+                return wanted_identities
+            else:
+                return [zobjects.Identity.from_dict(i) for i in identities]
         else:
             return []
 
-    def modify_identity(self, identity):
+    def modify_identity(self, identity, **kwargs):
         """ Modify some attributes of an identity or its name.
 
         :param: identity a zobjects.Identity with `id` set (mandatory). Also
                set items you want to modify/set and/or the `name` attribute to
                rename the identity.
+               Can also take the name in string and then attributes to modify
+        :returns: zobjects.Identity object
         """
-        self.request('ModifyIdentity', {'identity': identity.to_creator()})
 
+        if isinstance(identity, zobjects.Identity):
+            self.request('ModifyIdentity', {'identity': identity._full_data})
+            return self.get_identities(identity=identity.name)[0]
+        else:
+            attrs = []
+            for attr, value in kwargs.items():
+                attrs.append({
+                    'name': attr,
+                    '_content': value
+                })
+            self.request('ModifyIdentity', {
+                'identity': {
+                    'name': identity,
+                    'a': attrs
+                }
+            })
+            return self.get_identities(identity=identity)[0]
+
+    def delete_identity(self, identity):
+        """ Delete an identity from its name or id
+
+        :param: a zobjects.Identity object with name or id defined or a string
+        of the identity's name
+        """
+        if isinstance(identity, zobjects.Identity):
+            self.request(
+                'DeleteIdentity', {'identity': identity.to_selector()})
+        else:
+            self.request('DeleteIdentity', {'identity': {'name': identity}})
     # Whitelists and Blacklists
 
     def get_white_black_lists(self):
@@ -1862,6 +1951,115 @@ not {0}'.format(type(l)))
         folder_id = complete_source[source_type][0]['l']
         self.delete_folders(folder_ids=[folder_id])
         return self.request('DeleteDataSource', data_source)
+
+    # Filter
+
+    def add_filter_rule(self, name, condition, filters, actions, active=1):
+        """
+        :param name: filter name
+        :param condition: allof or anyof
+        :param filters: dict of filters
+        :param actions: dict of actions
+        :returns: list of user's zobjects.FilterRule
+        """
+
+        filters['condition'] = condition
+
+        new_rule = {
+            'name': name,
+            'active': active,
+            'filterTests': filters,
+            'filterActions': actions
+        }
+
+        new_rules = [zobjects.FilterRule.from_dict(new_rule)]
+
+        prev_rules = self.get_filter_rules()
+
+        # if there is already some rules
+        if prev_rules:
+            new_rules = new_rules + prev_rules
+
+        content = {
+            'filterRules': {
+                'filterRule': [r._full_data for r in new_rules]
+            }
+        }
+
+        self.request('ModifyFilterRules', content)
+        return new_rules
+
+    def get_filter_rule(self, _filter):
+        """ Return the filter rule
+
+        :param: _filter a zobjects.FilterRule or the filter name
+        :returns: a zobjects.FilterRule"""
+        if isinstance(_filter, zobjects.FilterRule):
+            _filter = _filter.name
+        for f in self.get_filter_rules():
+            if f.name == _filter:
+                return f
+        return {}
+
+    def get_filter_rules(self):
+        """
+        :returns: list of zobjects.FilterRule
+        """
+        try:
+            filters = self.request(
+                'GetFilterRules')['filterRules']['filterRule']
+            return [zobjects.FilterRule.from_dict(f) for f in filters]
+        except KeyError:
+            return []
+
+    def apply_filter_rule(self, _filter, query='in:inbox'):
+        """
+        :param: _filter _filter a zobjects.FilterRule or the filter name
+        :param: query on what will the filter be applied
+        :returns: list of impacted message's ids
+        """
+        if isinstance(_filter, zobjects.FilterRule):
+            _filter = _filter.name
+
+        content = {
+            'filterRules': {
+                'filterRule': {'name': _filter}
+                },
+            'query': {'_content': query}
+        }
+        ids = self.request('ApplyFilterRules', content)
+
+        if ids:
+            return [int(m) for m in ids['m']['ids'].split(',')]
+        else:
+            return []
+
+    def delete_filter_rule(self, _filter):
+        """ delete a filter rule
+
+        :param: _filter a zobjects.FilterRule or the filter name
+        :returns: a list of zobjects.FilterRule
+        """
+        updated_rules = []
+        rules = self.get_filter_rules()
+
+        if isinstance(_filter, zobjects.FilterRule):
+            _filter = _filter.name
+
+        if rules:
+            for rule in rules:
+                if not rule.name == _filter:
+                    updated_rules.append(rule)
+
+        if rules != updated_rules:
+            content = {
+                'filterRules': {
+                    'filterRule': [f._full_data for f in updated_rules]
+                }
+            }
+            self.request('ModifyFilterRules', content)
+
+        return updated_rules
 
 
 class ZimbraAPISession:

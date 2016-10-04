@@ -12,7 +12,7 @@ import random
 
 from zimsoap.client import (ZimbraMailClient, ZimbraAdminClient,
                             ZimbraSoapServerError)
-from zimsoap.zobjects import Task, Contact, Account
+from zimsoap.zobjects import Task, Contact, Account, FilterRule
 from zimsoap import utils
 import tests
 
@@ -378,6 +378,66 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
 
         with self.assertRaises(ZimbraSoapServerError):
             self.zc.get_message(msg['m']['id'])
+
+    # Filter
+
+    def add_get_apply_delete_filters(self):
+        filter_name = "zimsoap_test_filter"
+        sender = "bad_user@example.com"
+        rule = {
+            'addressTest': {
+                'part': 'all',
+                'stringComparison': 'matches',
+                'index': '0',
+                'value': sender,
+                'header': 'from'
+            }
+        }
+
+        action = {
+            'actionFileInto': {
+                'folderPath': '7',
+                'index': '0'
+            },
+            'actionStop': {'index': '1'}}
+
+        # ADD
+        rules = self.zc.add_filter_rule(
+                name=filter_name,
+                condition='allof',
+                filters=rule,
+                actions=action
+            )
+        self.assertEqual(rules[0].name, filter_name)
+
+        # GET
+        # test get with string
+        _filter = self.zc.get_filter_rule(filter_name)
+        self.assertEqual(_filter.name, filter_name)
+        # get with zobjects.FilterRule
+        _filter = self.zc.get_filter_rule(_filter)
+        self.assertEqual(_filter.name, filter_name)
+
+        all_filters = self.zc.get_filter_rules()
+        self.assertIsInstance(all_filters[0], FilterRule)
+
+        # APPLY
+        applied = self.zc.apply_filter_rule(_filter, query='in:inbox')
+        self.assertEqual(applied, [])
+
+        # DELETE
+        # delete with string
+        rules = self.zc.delete_filter_rule(_filter.name)
+        self.assertEqual(rules, [])
+        # delete with zobjects.FilterRule
+        self.zc.add_filter_rule(
+                name=filter_name,
+                condition='allof',
+                filters=rule,
+                actions=action
+            )
+        rules = self.zc.delete_filter_rule(_filter)
+        self.assertEqual(rules, [])
 
     # Folder
 
