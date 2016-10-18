@@ -1895,12 +1895,14 @@ not {0}'.format(type(l)))
 
     # Filter
 
-    def add_filter_rule(self, name, condition, filters, actions, active=1):
+    def add_filter_rule(
+            self, name, condition, filters, actions, active=1, way='in'):
         """
-        :param name: filter name
-        :param condition: allof or anyof
-        :param filters: dict of filters
-        :param actions: dict of actions
+        :param: name filter name
+        :param: condition allof or anyof
+        :param: filters dict of filters
+        :param: actions dict of actions
+        :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: list of user's zobjects.FilterRule
         """
 
@@ -1915,7 +1917,7 @@ not {0}'.format(type(l)))
 
         new_rules = [zobjects.FilterRule.from_dict(new_rule)]
 
-        prev_rules = self.get_filter_rules()
+        prev_rules = self.get_filter_rules(way=way)
 
         # if there is already some rules
         if prev_rules:
@@ -1926,37 +1928,53 @@ not {0}'.format(type(l)))
                 'filterRule': [r._full_data for r in new_rules]
             }
         }
-
-        self.request('ModifyFilterRules', content)
+        if way == 'in':
+            self.request('ModifyFilterRules', content)
+        elif way == 'out':
+            self.request('ModifyOutgoingFilterRules', content)
         return new_rules
 
-    def get_filter_rule(self, _filter):
+    def get_filter_rule(self, _filter, way='in'):
         """ Return the filter rule
 
         :param: _filter a zobjects.FilterRule or the filter name
+        :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: a zobjects.FilterRule"""
         if isinstance(_filter, zobjects.FilterRule):
             _filter = _filter.name
-        for f in self.get_filter_rules():
+        for f in self.get_filter_rules(way=way):
             if f.name == _filter:
                 return f
-        return {}
+        return None
 
-    def get_filter_rules(self):
+    def get_filter_rules(self, way='in'):
         """
+        :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: list of zobjects.FilterRule
         """
         try:
-            filters = self.request(
-                'GetFilterRules')['filterRules']['filterRule']
+            if way == 'in':
+                filters = self.request(
+                    'GetFilterRules')['filterRules']['filterRule']
+                print(filters)
+            elif way == 'out':
+                filters = self.request(
+                    'GetOutgoingFilterRules')['filterRules']['filterRule']
+                print(filters)
+
+            # Zimbra return a dict if there is only one instance
+            if isinstance(filters, dict):
+                filters = [filters]
+
             return [zobjects.FilterRule.from_dict(f) for f in filters]
         except KeyError:
             return []
 
-    def apply_filter_rule(self, _filter, query='in:inbox'):
+    def apply_filter_rule(self, _filter, query='in:inbox', way='in'):
         """
         :param: _filter _filter a zobjects.FilterRule or the filter name
         :param: query on what will the filter be applied
+        :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: list of impacted message's ids
         """
         if isinstance(_filter, zobjects.FilterRule):
@@ -1968,21 +1986,25 @@ not {0}'.format(type(l)))
                 },
             'query': {'_content': query}
         }
-        ids = self.request('ApplyFilterRules', content)
+        if way == 'in':
+            ids = self.request('ApplyFilterRules', content)
+        elif way == 'out':
+            ids = self.request('ApplyOutgoingFilterRules', content)
 
         if ids:
             return [int(m) for m in ids['m']['ids'].split(',')]
         else:
             return []
 
-    def delete_filter_rule(self, _filter):
+    def delete_filter_rule(self, _filter, way='in'):
         """ delete a filter rule
 
         :param: _filter a zobjects.FilterRule or the filter name
+        :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: a list of zobjects.FilterRule
         """
         updated_rules = []
-        rules = self.get_filter_rules()
+        rules = self.get_filter_rules(way=way)
 
         if isinstance(_filter, zobjects.FilterRule):
             _filter = _filter.name
@@ -1998,7 +2020,10 @@ not {0}'.format(type(l)))
                     'filterRule': [f._full_data for f in updated_rules]
                 }
             }
-            self.request('ModifyFilterRules', content)
+            if way == 'in':
+                self.request('ModifyFilterRules', content)
+            elif way == 'out':
+                self.request('ModifyOutgoingFilterRules', content)
 
         return updated_rules
 

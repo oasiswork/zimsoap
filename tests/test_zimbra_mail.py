@@ -421,6 +421,10 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         all_filters = self.zc.get_filter_rules()
         self.assertIsInstance(all_filters[0], FilterRule)
 
+        # Outgoing filters should not be found
+        out_filter = self.zc.get_filter_rule(filter_name, way='out')
+        self.assertEqual(out_filter, None)
+
         # APPLY
         applied = self.zc.apply_filter_rule(_filter, query='in:inbox')
         self.assertEqual(applied, [])
