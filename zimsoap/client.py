@@ -1956,11 +1956,9 @@ not {0}'.format(type(l)))
             if way == 'in':
                 filters = self.request(
                     'GetFilterRules')['filterRules']['filterRule']
-                print(filters)
             elif way == 'out':
                 filters = self.request(
                     'GetOutgoingFilterRules')['filterRules']['filterRule']
-                print(filters)
 
             # Zimbra return a dict if there is only one instance
             if isinstance(filters, dict):
