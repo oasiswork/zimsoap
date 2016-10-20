@@ -1921,6 +1921,10 @@ not {0}'.format(type(l)))
 
         # if there is already some rules
         if prev_rules:
+            for rule in prev_rules:
+                # don't add rule if it already exist
+                if rule.name == new_rules[0].name:
+                    return prev_rules
             new_rules = new_rules + prev_rules
 
         content = {
