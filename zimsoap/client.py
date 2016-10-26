@@ -302,6 +302,7 @@ class ZimbraAbstractClient(object):
         lifetime = resp['lifetime']
         authToken = resp['authToken']
 
+        self.login_account = login
         self.login_with_authToken(authToken, lifetime)
 
     def is_session_valid(self):
