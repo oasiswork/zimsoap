@@ -487,7 +487,7 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
             name=mount_name,
             path='/',
             owner=TEST_CONF['lambda_user'],
-            parent_id='1'
+            l='1'
         )
         mount_path = '/' + mount_name
         link = grantee_zc.get_mountpoint(path=mount_path)['link']

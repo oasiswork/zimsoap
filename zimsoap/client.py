@@ -1488,20 +1488,12 @@ not {0}'.format(type(l)))
 
         return self.request('CreateFolder', params)['folder']
 
-    def create_mountpoint(self, name, path=None, owner=None, parent_id='1'):
+    def create_mountpoint(self, **kwargs):
+        """ Create mountpoint according to attributes definied in soap
+        documentation.
         """
-        :param name: Mountpoint path
-        :param parent_id: folder id of where mountpoint will be created
-        :param path:  Path to shared item
-        :param owner:  Primary email address of the owner of the
-        linked-to resource
-        """
-        params = {'link': {
-            'name': name,
-            'l': parent_id,
-            'path': path,
-            'owner': owner
-        }}
+
+        params = {'link': kwargs}
 
         return self.request('CreateMountpoint', params)['link']
 
