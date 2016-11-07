@@ -1286,6 +1286,196 @@ not {0}'.format(type(l)))
         # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
 
+    # Appointments
+    def create_appointment(self, appt):
+        """
+        """
+
+        # Remove potential ids
+        appt.pop('id', None)
+        appt['m'].pop('uid', None)
+        if isinstance(appt['m']['inv'], dict):
+            appt.pop('id', None)
+            appt['m']['inv']['comp'].pop('calItemId', None)
+            appt['m']['inv']['comp'].pop('uid', None)
+            appt['m']['inv']['comp'].pop('x_uid', None)
+            appt['m']['inv'].pop('id', None)
+            return self.request('CreateAppointment', appt)
+
+        elif isinstance(appt['m']['inv'], list):
+            for pos, comp in enumerate(appt['m']['inv']):
+                # Create event
+                if pos == 0:
+                    appt['m']['inv'][pos].pop('id', None)
+                    appt['m']['inv'][pos]['comp'].pop('calItemId', None)
+                    appt['m']['inv'][pos]['comp'].pop('uid', None)
+                    appt['m']['inv'][pos]['comp'].pop('x_uid', None)
+
+                    new_appt = self.request('CreateAppointment', appt)
+                # Create exception
+                else:
+
+                    comp.pop('id', None)
+                    comp.pop('uid', None)
+                    comp.pop('x_uid', None)
+                    comp['comp'].pop('d', None)
+                    comp['calItemId'] = new_appt['calItemId']
+                    comp['apptId'] = new_appt['apptId']
+                    appt['m']['inv'] = comp
+                    appt['m'].pop('d', None)
+                    appt['m'].pop('id', None)
+                    appt['id'] = new_appt['invId']
+                    appt['comp'] = '0'
+                    self.request('CreateAppointmentException', appt)
+
+    def get_appointment(self, apt_id):
+        """
+        :param apt_id: ID of an appointment
+        """
+
+        resp = self.request('GetAppointment', {'id': apt_id})
+        return resp
+
+    def modify_appointment(self, apt_id, change_dic):
+        """ apt_id must be like int-int made with ['id'] key and
+        ['inv']['id'] key
+        """
+
+        attrs = change_dic
+        attrs['id'] = apt_id
+
+        self.request('ModifyAppointment', attrs)
+
+    def cancel_appointment(self, appt):
+        """
+        :param apt_id: format : xxx-xxxx, invId of an appointment
+        :param comp_num: compNum of an appointment
+        """
+        # appt['inv']['id'] = appt['id'] + '-' + appt['inv']['id']
+
+        if isinstance(appt['inv'], dict):
+            appt['comp'] = appt['inv']['comp']['compNum']
+            appt['id'] = appt['id'] + '-' + appt['inv']['id']
+
+        elif isinstance(appt['inv'], list):
+            appt['comp'] = appt['inv'][0]['comp']['compNum']
+            # delete one instance delete them all
+            appt['id'] = appt['id'] + '-' + appt['inv'][0]['id']
+
+        self.request('CancelAppointment', appt)
+
+    def resend_invitations(self, appt_id, participation_status=None):
+        """
+
+        :params: appt_id appointment id. must be like int-int made with ['id']
+        key and ['inv']['comp']['id'] key
+        :params: participation_stats Valid values: NE|AC|TE|DE|DG|CO|IN|WE|DF
+        Meanings: "NE"eds-action, "TE"ntative, "AC"cept, "DE"clined,
+        "DG" (delegated), "CO"mpleted (todo), "IN"-process (todo),
+        "WA"iting (custom value only for todo), "DF" (deferred;
+        custom value only for todo). If not set, resend to everybody.
+        :returns: list of recipients and dict of the modified appointment
+        """
+
+        appt = self.get_appointment(appt_id)
+        mod_appt = {'m': appt['appt']}
+
+        # increase revision
+        mod_appt['m']['rev'] = str(int(appt['appt']['rev']) + 1)
+
+        # add emails
+        mod_appt['m']['e'] = []
+        recipients = []
+
+        if isinstance(appt['appt']['inv'], dict):
+            # not the organizer, can't send invitations
+            if appt['appt']['inv']['comp']['or']['a'] != self.login_account:
+                return [], mod_appt
+
+            mod_appt['id'] = (
+                appt['appt']['id'] +
+                '-' +
+                appt['appt']['inv']['id'])
+            # add message subject
+            mod_appt['m']['su'] = appt['appt']['inv']['comp']['name']
+
+            if 'at' in appt['appt']['inv']['comp'].keys():
+                if isinstance(appt['appt']['inv']['comp']['at'], dict):
+                    attendees = [appt['appt']['inv']['comp']['at']]
+                elif isinstance(appt['appt']['inv']['comp']['at'], list):
+                    attendees = appt['appt']['inv']['comp']['at']
+            # if no attendees
+            else:
+                attendees = None
+
+            # if multiple attendees
+            if isinstance(attendees, list):
+                for attendee in attendees:
+                    if not participation_status:
+                        mod_appt['m']['e'].append(
+                            {'a': attendee['a'], 't': 't'})
+                        recipients.append(attendee['a'])
+                    elif attendee['ptst'] == participation_status:
+                        mod_appt['m']['e'].append(
+                            {'a': attendee['a'], 't': 't'})
+                        recipients.append(attendee['a'])
+            # if only one attendee
+            elif isinstance(attendees, dict):
+                if not participation_status:
+                    mod_appt['m']['e'].append({'a': attendees['a'], 't': 't'})
+                    recipients.append(attendees['a'])
+                elif attendee['ptst'] == participation_status:
+                    mod_appt['m']['e'].append({'a': attendees['a'], 't': 't'})
+                    recipients.append(attendees['a'])
+
+            # send invitation for this appointement
+            self.request('ModifyAppointment', mod_appt)
+
+        # if it's repetition with exceptions
+        elif isinstance(appt['appt']['inv'], list):
+            # not the organizer, can't send invitations
+            if appt['appt']['inv'][0]['comp']['or']['a'] != self.login_account:
+                return [], mod_appt
+
+            # add message subject
+            mod_appt['m']['su'] = appt['appt']['inv'][0]['comp']['name']
+
+            for comp in appt['appt']['inv']:
+                mod_appt['id'] = (
+                    appt['appt']['id'] +
+                    '-' +
+                    comp['id'])
+
+                # if no attendees
+                if 'at' not in comp.keys():
+                    continue
+                # if multiple attendees
+                elif isinstance(comp['at'], list):
+                    for attendee in comp['at']:
+                        if not participation_status:
+                            mod_appt['m']['e'].append(
+                                {'a': attendee['a'], 't': 't'})
+                            recipients.append(attendee['a'])
+                        elif attendee['ptst'] == participation_status:
+                            mod_appt['m']['e'].append(
+                                {'a': attendee['a'], 't': 't'})
+                            recipients.append(attendee['a'])
+                # if only one attendee
+                elif isinstance(comp['at'], dict):
+                    if not participation_status:
+                        mod_appt['m']['e'].append(
+                            {'a': comp['at']['a'], 't': 't'})
+                        recipients.append(comp['at']['a'])
+                    elif comp['ptst'] == participation_status:
+                        mod_appt['m']['e'].append(
+                            {'a': comp['at']['a'], 't': 't'})
+                        recipients.append(comp['at']['a'])
+
+                # Send invitations for this exception
+                self.request('ModifyAppointment', mod_appt)
+
+        return recipients, mod_appt
+
     # Permissions
 
     def get_permission(self, right):
