@@ -1739,6 +1739,27 @@ not {0}'.format(type(l)))
         return self.request('MsgAction', {'action': {'op': 'delete',
                                                      'id': str_ids}})
 
+    def bounce_message(self, _id, a, t='t', p=''):
+        """ Resend message
+
+        :param id: message ID
+        :param a: email address to whom ressend message
+        :param t: adresse type *(f)rom, (t)o, (c)c, (b)cc, (r)eply-to,
+        (s)ender, read-receipt (n)otification, (rf) resent-from*
+        """
+        attrs = {
+            'm': {
+                'id': _id,
+                'e': {
+                    'a': a,
+                    't': t,
+                    'p': p
+                }
+            }
+        }
+
+        return self.request('BounceMsg', attrs)
+
     # Search
     def search(self, query, **kwargs):
         """ Search object in account
