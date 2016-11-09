@@ -2038,8 +2038,10 @@ not {0}'.format(type(l)))
                 self.request('ModifyFilterRules', content)
             elif way == 'out':
                 self.request('ModifyOutgoingFilterRules', content)
-
-        return updated_rules
+            return updated_rules
+        else:
+            raise ZimSOAPException(
+                'filter.NO_SUCH_FILTER: (no such filter: %s)' % _filter)
 
 
 class ZimbraAPISession:
