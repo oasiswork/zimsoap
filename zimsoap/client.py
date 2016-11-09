@@ -1935,7 +1935,8 @@ not {0}'.format(type(l)))
             for rule in prev_rules:
                 # don't add rule if it already exist
                 if rule.name == new_rules[0].name:
-                    return prev_rules
+                    raise ZimSOAPException(
+                        'filter %s already exists' % rule.name)
             new_rules = new_rules + prev_rules
 
         content = {
