@@ -134,15 +134,15 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
             grantee_name=TEST_CONF['lambda_user2']
         )
 
-        perm = self.zc.get_permission(right)
-        self.assertTrue(perm['ace']['d'], TEST_CONF['lambda_user2'])
+        perm = self.zc.get_permissions([right])
+        self.assertTrue(perm['ace'][0]['d'], TEST_CONF['lambda_user2'])
 
         self.zc.revoke_permission(
             right=right,
             grantee_name=TEST_CONF['lambda_user2']
         )
-        perm = self.zc.get_permission(right)
-        self.assertEqual(perm, {})
+        perm = self.zc.get_permissions([right])
+        self.assertEqual(perm, {'ace': []})
 
     def test_create_task(self):
         subject = 'test_create_task'

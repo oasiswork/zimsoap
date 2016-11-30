@@ -1287,11 +1287,34 @@ not {0}'.format(type(l)))
         self._session.login(user, password, 'urn:zimbraAccount')
 
     # Permissions
-    def get_permission(self, right):
-        return self.request(
-            'GetPermission',
-            {'ace': {'right': {'_content': right}}}
-        )
+    def get_permissions(self, rights=[]):
+        """
+        :param rights: list of rights. Possible values : 'sendAs',
+        'sendOnBehalfOf'
+        :return: dict with key ace with a list of rights
+        """
+        aces = []
+        if rights:
+            for right in rights:
+                ace = self.request(
+                    'GetPermission',
+                    {'ace': {
+                        'right': {'_content': right}}})
+
+                if 'ace' in ace.keys() and isinstance(ace, list):
+                    aces.extend(ace['ace'])
+                elif 'ace' in ace.keys() and isinstance(ace, dict):
+                    aces.append(ace['ace'])
+            return {'ace': aces}
+
+        else:
+            ace = self.request('GetPermission', {})
+            if 'ace' in ace.keys() and isinstance(ace, list):
+                return ace
+            elif 'ace' in ace.keys() and isinstance(ace, dict):
+                return {'ace': [ace['ace']]}
+            else:
+                return {'ace': []}
 
     def grant_permission(self, right, zid=None, grantee_name=None, gt='usr'):
         params = {'ace': {
