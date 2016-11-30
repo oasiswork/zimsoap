@@ -144,6 +144,34 @@ class PythonicZimbraMailAPITests(unittest.TestCase):
         perm = self.zc.get_permissions([right])
         self.assertEqual(perm, {'ace': []})
 
+    def get_multi_permissions(self):
+        admin_zc = ZimbraAdminClient(
+            TEST_CONF['host'], TEST_CONF['admin_port']
+        )
+        admin_zc.login(TEST_CONF['admin_login'], TEST_CONF['admin_password'])
+
+        right = 'sendAs'
+
+        self.zc.grant_permission(
+            right=right,
+            grantee_name=TEST_CONF['lambda_user2']
+        )
+        self.zc.grant_permission(
+            right=right,
+            grantee_name=TEST_CONF['lambda_user3']
+        )
+        perm = self.zc.get_permissions()
+        self.assertTrue(len(perm['ace']), 2)
+
+        self.zc.revoke_permission(
+            right=right,
+            grantee_name=TEST_CONF['lambda_user2']
+        )
+        self.zc.revoke_permission(
+            right=right,
+            grantee_name=TEST_CONF['lambda_user3']
+        )
+
     def test_create_task(self):
         subject = 'test_create_task'
         desc = 'Task Content'

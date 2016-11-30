@@ -1309,10 +1309,10 @@ not {0}'.format(type(l)))
 
         else:
             ace = self.request('GetPermission', {})
-            if 'ace' in ace.keys() and isinstance(ace, list):
+            if 'ace' in ace.keys() and isinstance(ace['ace'], list):
                 return ace
-            elif 'ace' in ace.keys() and isinstance(ace, dict):
-                return {'ace': [ace['ace']]}
+            elif 'ace' in ace.keys() and isinstance(ace['ace'], dict):
+                return ace
             else:
                 return {'ace': []}
 
