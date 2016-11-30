@@ -1287,7 +1287,6 @@ not {0}'.format(type(l)))
         self._session.login(user, password, 'urn:zimbraAccount')
 
     # Permissions
-
     def get_permission(self, right):
         return self.request(
             'GetPermission',
@@ -1409,9 +1408,10 @@ not {0}'.format(type(l)))
 
         return zobjects.Contact.from_dict(resp)
 
-    def get_contacts(self, ids=None):
+    def get_contacts(self, ids=None, **kwargs):
         """ Get all contacts for the current user
 
+        :param l: string of a folder id
         :param ids: An coma separated list of contact's ID to look for
 
         :returns: a list of zobjects.Contact
@@ -1420,6 +1420,12 @@ not {0}'.format(type(l)))
         if ids:
             ids = self._return_comma_list(ids)
             params['cn'] = {'id': ids}
+
+        for key, value in kwargs.items():
+            if key in ['a', 'ma']:
+                params[key] = {'n': value}
+            else:
+                params[key] = value
 
         contacts = self.request_list('GetContacts', params)
 
