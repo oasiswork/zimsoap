@@ -17,10 +17,9 @@ Allows accessing zimbraAdmin and zimbraAccount SOAP APIs
  - handle authentification
  - handle pre-authentification admin->admin and admin->Account
  - presents the request results as nice Python objects
- - all requests are tested with 8.6.0
+ - all requests are tested with Zimbra 8.6.0
 
-[SOAP Zimbra API]:
-https://files.zimbra.com/docs/soap_api/8.6.0/api-reference/index.html
+[SOAP Zimbra API]:https://wiki.zimbra.com/wiki/SOAP_API_Reference_Material_Beginning_with_ZCS_8
 [python-zimbra]:https://github.com/Zimbra-Community/python-zimbra/
 
 Installing
@@ -77,63 +76,44 @@ purposes.
 
 ----
 
-
-### Setting your environment for tests ###
-
-Most of Integration tests are to be run either :
-
-- against a pre-configured VM, using vagrant
-- using any zimbra server you provide, after reading the above warning.
-
-
-#### Using the vagrant VM ####
-
-There is a VM ready for you with vagrant, just make sure you have vagrant installed and then :
-
-    $ vagrant up 8.0.5
-    $ vagrant provision 8.0.5
-
-You have several zimbra versions available as VMs for testing (see vagrant
-status).
-
-*Warning*: the test VM requires 2GB RAM to function properly and may put heavy
- load on your machine.
-
-#### Using your own zimbra server ####
-
-Be sure to have a server:
+You will need a server:
 - running zimbra 8.x,
-- ports 7071 and 443 reachables
-- with an unix user having password-less sudo rights
+- with ports 7071 and 443 reachable
+- with a system user having password-less sudo rights
 
-First delete all accounts/domains/calendar resources from your test server and run :
+In the following commands, we consider that *mytestserver* is your server hostname and *user* is a unix user with admin sudo rights.
 
-    cat tests/provision-01-test-data.zmprov | ssh user@mytestserver -- sudo su - zimbra -c | zmprov
+#### Prepare the test server ####
 
-(considering *mytestserver* is your server hostname and *user* is a unix user with admin sudo rights)
+First, delete all domains/accounts/resources/lists/... from your test server.
 
-It will provision an admin account, but disabled. You have to set a password and enable the account
+If you're cleaning up a server previously used for testing ZimSOAP, you can run:
 
-    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov sp admin@zimbratest.example.com mypassword'
-    ssh user@mytestserver -- sudo su - zimbra -c 'zmprov ma admin@zimbratest.example.com zimbraAccountStatus active'
+    ssh user@mytestserver -- sudo su - zimbra -l < tests/cleanup-test-data.zmprov
 
-Then create a *test_config.ini* in tests/ directory. Example content:
+Then provision the test data :
+
+    ssh user@mytestserver -- sudo su - zimbra -c zmprov < tests/provision-test-data.zmprov
+
+It will provision an admin account `admin@zimbratest.example.com` with the password `password`, as well as other required elements.
+
+#### Configure the tests ####
+
+Create a *test_config.ini* in tests/ directory. Example content:
 
     [zimbra_server]
     host = mytestserver
-    server_name = zimbratest.example.com
+    server_name = zmhostname
     admin_port = 7071
     admin_login = admin@zimbratest.example.com
-    admin_password = mypassword
+    admin_password = password
+    https_port = 443
 
 *note: server_name is the internal server name from your zimbra server list (generally matches the hostname)*
 
-If you damaged the data with failed tests, you can just delete everything except
-the admin account and then run :
+If you damaged the data with failed tests, you will need to run the preparation steps above again.
 
-    cat tests/provision-01-test-data.zmprov | ssh user@mytestserver -- sudo su - zimbra -c | zmprov
-
-### Testing ###
+#### Run the tests ####
 
 After you are all set, you can run tests
 [the standard python way](https://docs.python.org/2/library/unittest.html)
@@ -144,7 +124,14 @@ After you are all set, you can run tests
 
     $ py.test
 
-For contributing code, you may also want to run the *flake8* linter:
+Contributing
+------------
+
+To contribute your fixes or improvements, please fork this repository and create pull requests:
+- for each fix or new API method / methodset support
+- with full unittest / integration test coverage for your PR
+
+Also please make sure your code passes the *flake8* linter:
 
     $ pip install -r test-requirements.txt
     $ make lint

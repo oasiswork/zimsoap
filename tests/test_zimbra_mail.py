@@ -10,8 +10,9 @@ It has to be tested against a zimbra server (see README.md).
 import unittest
 import random
 
-from zimsoap.client import (ZimbraMailClient, ZimbraAdminClient,
-                            ZimbraSoapServerError)
+from zimsoap.exceptions import ZimbraSoapServerError
+from zimsoap.client.mail import ZimbraMailClient
+from zimsoap.client.admin import ZimbraAdminClient
 from zimsoap.zobjects import Task, Contact, Account, FilterRule
 from zimsoap import utils
 import tests

@@ -1,0 +1,32 @@
+cd zimbratest.example.com
+cd zimbratest2.example.com
+cd zimbratest3.example.com
+
+gdpak zimbratest.example.com
+
+ca admin@zimbratest.example.com password zimbraIsAdminAccount TRUE zimbraAccountStatus active
+ca system@zimbratest.example.com systemsystem ZimbraIsSystemAccount TRUE
+ca albacore@zimbratest.example.com albacorealbacore
+ca barracuda@zimbratest.example.com barracudabarracuda
+ca carp@zimbratest.example.com carpcarp
+ca dorado@zimbratest.example.com doradodorado
+ca emperor@zimbratest.example.com emperoremperor
+
+ca footballfish@zimbratest2.example.com footballfishfootballfish
+ca grenadier@zimbratest2.example.com grenadiergrenadier
+ca haddock@zimbratest2.example.com haddockhaddock
+ca inanga@zimbratest2.example.com inangainanga
+ca javelin@zimbratest2.example.com javelinjavelin
+
+ca kokopu@zimbratest3.example.com kokopukokopu
+ca longfin@zimbratest3.example.com longfinlongfin
+ca mackerel@zimbratest3.example.com mackerelmackerel
+ca nase@zimbratest3.example.com nasenase
+ca opah@zimbratest3.example.com opahopah
+
+cdl birds@zimbratest.example.com
+adlm birds@zimbratest.example.com albatros@external.example.com
+adlm birds@zimbratest.example.com booby@external.example.com
+
+ccr camera@zimbratest2.example.com cameracamera displayName camera zimbraCalResType Equipment
+ccr meetingroom@zimbratest.example.com meetingroommeetingroom displayName meetingroom zimbraCalResType Location

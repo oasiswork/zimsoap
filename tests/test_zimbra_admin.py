@@ -9,9 +9,11 @@ It has to be tested against a zimbra server (see README.md)
 
 import unittest
 import random
-from zimsoap.client import (
-    DomainHasNoPreAuthKey, ZimbraAccountClient, ZimbraAdminClient,
-    ZimbraAPISession, ZimbraSoapServerError)
+from zimsoap.exceptions import (
+    ZimbraSoapServerError, DomainHasNoPreAuthKey)
+from zimsoap.client.account import ZimbraAccountClient
+from zimsoap.client.admin import ZimbraAdminClient
+from zimsoap.client import ZimbraAPISession
 from zimsoap.zobjects import (
     Account, CalendarResource, ClassOfService, COS, DistributionList, Domain,
     Mailbox, Server)
@@ -185,17 +187,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         # Should no longer exists
         with self.assertRaises(ZimbraSoapServerError):
             getDistributionList(self.TEST_DL_NAME)
-
-    def testCheckDomainMXRecord(self):
-        domain = {'by': 'name', '_content': self.EXISTANT_DOMAIN}
-        try:
-            self.zc.request('CheckDomainMXRecord', {'domain': domain})
-
-        except ZimbraSoapServerError as sf:
-            if 'NameNotFoundException' not in str(sf):
-                # Accept for the moment this exception as it's kind a response
-                # from server.
-                raise
 
     def testGetAccount(self):
         account = {'by': 'name', '_content': TEST_CONF['lambda_user']}
@@ -402,7 +393,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(calendar_resource_by_id.id, calendar_resource.id)
 
     def test_get_quota_usage(self):
-        resp = self.zc.get_quota_usage()
+        resp = self.zc.get_quota_usage('zimbratest3.example.com')
         for account in resp:
             if account['name'] == 'mackerel@zimbratest3.example.com':
                 quota_user = account

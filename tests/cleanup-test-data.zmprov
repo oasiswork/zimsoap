@@ -1,0 +1,28 @@
+dcr camera@zimbratest2.example.com
+dcr meetingroom@zimbratest.example.com
+
+ddl birds@zimbratest.example.com
+
+da admin@zimbratest.example.com
+da system@zimbratest.example.com
+da albacore@zimbratest.example.com
+da barracuda@zimbratest.example.com
+da carp@zimbratest.example.com
+da dorado@zimbratest.example.com
+da emperor@zimbratest.example.com
+
+da footballfish@zimbratest2.example.com
+da grenadier@zimbratest2.example.com
+da haddock@zimbratest2.example.com
+da inanga@zimbratest2.example.com
+da javelin@zimbratest2.example.com
+
+da kokopu@zimbratest3.example.com
+da longfin@zimbratest3.example.com
+da mackerel@zimbratest3.example.com
+da nase@zimbratest3.example.com
+da opah@zimbratest3.example.com
+
+dd zimbratest.example.com
+dd zimbratest2.example.com
+dd zimbratest3.example.com

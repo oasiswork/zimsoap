@@ -13,12 +13,11 @@ import unittest
 from six import text_type, binary_type
 
 from zimsoap import utils
-from zimsoap.client import (
-    ZimbraAccountClient,
-    ZimbraSoapServerError,
-    ZimbraMailClient,
-    ZimbraAdminClient
-)
+from zimsoap.exceptions import ZimbraSoapServerError
+from zimsoap.client.account import ZimbraAccountClient
+from zimsoap.client.mail import ZimbraMailClient
+from zimsoap.client.admin import ZimbraAdminClient
+
 from zimsoap.zobjects import Signature, Identity, Account
 import tests
 

@@ -6,8 +6,8 @@ It has to be tested against a zimbra server (see README.md).
 
 import unittest
 
-from zimsoap.client import (ZimbraAdminClient, RESTClient,
-                            AccountRESTClient, AdminRESTClient)
+from zimsoap.rest import RESTClient, AccountRESTClient, AdminRESTClient
+from zimsoap.client.admin import ZimbraAdminClient
 from zimsoap.zobjects import Account
 import tests
 
