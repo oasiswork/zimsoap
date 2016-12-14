@@ -317,7 +317,7 @@ class ZimbraAccountClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAccount webservice.
 
     API ref is
-    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAccount/service-summary.html
+    http://files.zimbra.com/docs/soap_api/<zimbra version>/api-reference/zimbraAccount/service-summary.html
     """
     NAMESPACE = 'urn:zimbraAccount'
     LOCATION = 'service/soap'
@@ -593,7 +593,7 @@ class ZimbraAdminClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
 
     API ref is
-    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraAdmin/service-summary.html
+    http://files.zimbra.com/docs/soap_api/<zimbra version>/api-reference/zimbraAdmin/service-summary.html
     """
     NAMESPACE = 'urn:zimbraAdmin'
     LOCATION = 'service/admin/soap'
@@ -1249,7 +1249,7 @@ class ZimbraMailClient(ZimbraAbstractClient):
     """ Specialized Soap client to access zimbraMail webservice.
 
     API ref is
-    http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/zimbraMail/service-summary.html
+    http://files.zimbra.com/docs/soap_api/<zimbra version>/api-reference/zimbraMail/service-summary.html
     """
     NAMESPACE = 'urn:zimbraMail'
     LOCATION = 'service/soap'

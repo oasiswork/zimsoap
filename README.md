@@ -20,7 +20,7 @@ Allows accessing zimbraAdmin and zimbraAccount SOAP APIs
  - all requests are tested with 8.6.0
 
 [SOAP Zimbra API]:
-http://files.zimbra.com/docs/soap_api/8.0.4/soap-docs-804/api-reference/index.html
+https://files.zimbra.com/docs/soap_api/8.6.0/api-reference/index.html
 [python-zimbra]:https://github.com/Zimbra-Community/python-zimbra/
 
 Installing
@@ -72,7 +72,7 @@ case they crash.
 **DO NOT USE A PRODUCTION SERVER TO RUN TESTS.**
 
 Use a dedicated test server, unable to send emails over network and consider
-all Zimbra accounts/domains/settings are disposable for automated tests
+that all Zimbra accounts/domains/settings are disposable for automated tests
 purposes.
 
 ----
@@ -80,7 +80,7 @@ purposes.
 
 ### Setting your environment for tests ###
 
-Most of tests are Integration tests are to be run either :
+Most of Integration tests are to be run either :
 
 - against a pre-configured VM, using vagrant
 - using any zimbra server you provide, after reading the above warning.
