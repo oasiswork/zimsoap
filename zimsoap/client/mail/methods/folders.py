@@ -1,4 +1,15 @@
 class MethodMixin:
+    def get_folder(self, f_id=None, path=None, uuid=None):
+        request = {'folder': {}}
+        if f_id:
+            request['folder']['l'] = str(f_id)
+        if uuid:
+            request['folder']['uuid'] = str(uuid)
+        if path:
+            request['folder']['path'] = str(path)
+
+        return self.request('GetFolder', request)
+
     def create_folder(self, name, parent_id='1'):
         params = {'folder': {
             'name': name,
@@ -7,14 +18,42 @@ class MethodMixin:
 
         return self.request('CreateFolder', params)['folder']
 
-    def create_mountpoint(self, **kwargs):
-        """ Create mountpoint according to attributes definied in soap
-        documentation.
+    def modify_folders(
+        self, folder_ids, color=None, flags=None, parent_folder=None,
+        name=None, num_days=None, rgb=None, tags=None, view=None
+    ):
         """
+        :param folder_ids: list of ids
+        :param color: color numeric; range 0-127; defaults to 0 if not present;
+        client can display only 0-7
+        :param flags: flags
+        :param parent_folder: id of new location folder
+        :param name: new name for the folder
+        :param tags: list of tag names
+        :param view: list of tag view
+        """
+        f_ids = self._return_comma_list(folder_ids)
 
-        params = {'link': kwargs}
+        params = {'action': {
+            'id': f_ids,
+            'op': 'update',
+        }}
 
-        return self.request('CreateMountpoint', params)['link']
+        if color:
+            params['action']['color'] = color
+        if flags:
+            params['action']['f'] = flags
+        if parent_folder:
+            params['action']['l'] = parent_folder
+        if name:
+            params['action']['name'] = name
+        if tags:
+            tn = self._return_comma_list(tags)
+            params['action']['tn'] = tn
+        if view:
+            params['action']['view'] = view
+
+        self.request('FolderAction', params)
 
     def delete_folders(self, paths=None, folder_ids=None, f_type='folder'):
         """
@@ -38,26 +77,24 @@ class MethodMixin:
 
         self.request('FolderAction', params)
 
+    def get_mountpoint(self, mp_id=None, path=None, uuid=None):
+        return self.get_folder(f_id=mp_id, path=path, uuid=uuid)
+
+    def create_mountpoint(self, **kwargs):
+        """ Create mountpoint according to attributes definied in soap
+        documentation.
+        """
+
+        params = {'link': kwargs}
+
+        return self.request('CreateMountpoint', params)['link']
+
     def delete_mountpoints(self, paths=None, folder_ids=None):
         """
         :param folder_ids: list of ids
         :param path: list of folder's paths
         """
         self.delete_folders(paths=paths, folder_ids=folder_ids, f_type='link')
-
-    def get_mountpoint(self, mp_id=None, path=None, uuid=None):
-        return self.get_folder(f_id=mp_id, path=path, uuid=uuid)
-
-    def get_folder(self, f_id=None, path=None, uuid=None):
-        request = {'folder': {}}
-        if f_id:
-            request['folder']['l'] = str(f_id)
-        if uuid:
-            request['folder']['uuid'] = str(uuid)
-        if path:
-            request['folder']['path'] = str(path)
-
-        return self.request('GetFolder', request)
 
     def get_folder_grant(self, **kwargs):
         folder = self.get_folder(**kwargs)
@@ -103,42 +140,5 @@ class MethodMixin:
             params['action']['grant']['zid'] = zid
         else:
             raise TypeError('missing zid or grantee_name')
-
-        self.request('FolderAction', params)
-
-    def modify_folders(
-        self, folder_ids, color=None, flags=None, parent_folder=None,
-        name=None, num_days=None, rgb=None, tags=None, view=None
-    ):
-        """
-        :param folder_ids: list of ids
-        :param color: color numeric; range 0-127; defaults to 0 if not present;
-        client can display only 0-7
-        :param flags: flags
-        :param parent_folder: id of new location folder
-        :param name: new name for the folder
-        :param tags: list of tag names
-        :param view: list of tag view
-        """
-        f_ids = self._return_comma_list(folder_ids)
-
-        params = {'action': {
-            'id': f_ids,
-            'op': 'update',
-        }}
-
-        if color:
-            params['action']['color'] = color
-        if flags:
-            params['action']['f'] = flags
-        if parent_folder:
-            params['action']['l'] = parent_folder
-        if name:
-            params['action']['name'] = name
-        if tags:
-            tn = self._return_comma_list(tags)
-            params['action']['tn'] = tn
-        if view:
-            params['action']['view'] = view
 
         self.request('FolderAction', params)
