@@ -1,6 +1,5 @@
 from six import text_type
 
-# import zimsoap.client.mail.methods as methods
 from zimsoap.rest import MailRESTClient
 from zimsoap.client import ZimbraAbstractClient
 from zimsoap.client.account import ZimbraAccountClient
@@ -56,7 +55,8 @@ not {0}'.format(type(l)))
         return zac.is_session_valid()
 
     def login(self, user, password):
-        # !!! We need to authenticate with the 'urn:zimbraAccount' namespace
+        # zimbraMail namespace does not have an Auth request
+        # We need to authenticate with the 'urn:zimbraAccount' namespace
         self._session.login(user, password, 'urn:zimbraAccount')
 
     def search(self, query, **kwargs):

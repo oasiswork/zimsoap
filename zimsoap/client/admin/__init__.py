@@ -1,14 +1,10 @@
 import time
-import warnings
 
-# import zimsoap.client.admin.methods as methods
-# from zimsoap.client.admin.methods import *
 from zimsoap import utils
 from zimsoap import zobjects
 from zimsoap.rest import AdminRESTClient
 from zimsoap.exceptions import DomainHasNoPreAuthKey
 from zimsoap.client import ZimbraAbstractClient
-from zimsoap.client.account import ZimbraAccountClient
 
 from . import methods
 
@@ -80,25 +76,6 @@ class ZimbraAdminClient(
         return utils.build_preauth_str(preauth_key, account.name, timestamp,
                                        expires, admin)
 
-    def delegate_auth(self, account):
-        """ Uses the DelegateAuthRequest to provide a ZimbraAccountClient
-        already logged with the provided account.
-
-        It's the mechanism used with the "view email" button in admin console.
-        """
-        warnings.warn("delegate_auth() on parent client is deprecated,"
-                      " use delegated_login() on child client instead",
-                      DeprecationWarning)
-        selector = account.to_selector()
-        resp = self.request('DelegateAuth', {'account': selector})
-
-        lifetime = resp['lifetime']
-        authToken = resp['authToken']
-
-        zc = ZimbraAccountClient(self._server_host)
-        zc.login_with_authToken(authToken, lifetime)
-        return zc
-
     def get_account_authToken(self, account=None, account_name=''):
         """ Use the DelegateAuthRequest to provide a token and his lifetime
         for the provided account.
@@ -119,7 +96,7 @@ class ZimbraAdminClient(
 
     def delegated_login(self, *args, **kwargs):
         raise NotImplementedError(
-            'zimbraAdmin do not support to get logged-in by delegated auth')
+            'zimbraAdmin does not support delegated auth')
 
     def search_directory(self, **kwargs):
         """

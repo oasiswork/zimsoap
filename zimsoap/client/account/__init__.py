@@ -1,9 +1,7 @@
-# import zimsoap.client.account.methods as methods
-# from zimsoap.client.account.methods import *
 from zimsoap.rest import AccountRESTClient
 from zimsoap.client import ZimbraAbstractClient
 
-from zimsoap.client.account import methods
+from . import methods
 
 
 class ZimbraAccountClient(

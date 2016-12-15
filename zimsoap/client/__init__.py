@@ -212,9 +212,9 @@ class ZimbraAbstractClient(object):
         """Use another client to get logged in via delegated_auth mechanism by an
         already logged in admin.
 
+        :param login: the user login (or email) you want to log as
         :param admin_zc: An already logged-in admin client
         :type admin_zc: ZimbraAdminClient
-        :param login: the user login (or email) you want to log as
         """
         # a duration of zero is interpretted literaly by the API...
         selector = zobjects.Account(name=login).to_selector()
