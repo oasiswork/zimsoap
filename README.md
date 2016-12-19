@@ -89,7 +89,7 @@ First, delete all domains/accounts/resources/lists/... from your test server.
 
 If you're cleaning up a server previously used for testing ZimSOAP, you can run:
 
-    ssh user@mytestserver -- sudo su - zimbra -l < tests/cleanup-test-data.zmprov
+    ssh user@mytestserver -- sudo su - zimbra -c zmprov < tests/cleanup-test-data.zmprov
 
 Then provision the test data :
 

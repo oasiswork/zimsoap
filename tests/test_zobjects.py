@@ -9,8 +9,9 @@ import unittest
 from six import text_type, binary_type
 
 import zimsoap.utils
-from zimsoap.zobjects import (
-    Account, Domain, Identity, Mailbox, Signature, ZObject)
+from zimsoap.zobjects import ZObject
+from zimsoap.zobjects.admin import Account, Domain, Mailbox
+from zimsoap.zobjects.account import Identity, Signature
 from . import samples
 
 

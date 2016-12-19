@@ -55,7 +55,7 @@ class ZimbraAPISession:
         data = self.client.request(
             'Auth',
             {
-                'account': zobjects.Account(name=username).to_selector(),
+                'account': zobjects.admin.Account(name=username).to_selector(),
                 'password': {'_content': password}
             },
             namespace)
@@ -138,7 +138,7 @@ class ZimbraAbstractClient(object):
             resp_content = resp.get_response()
             return resp_content[resp_name]
         except KeyError:
-            if 'Fault' in resp_content:
+            if resp.is_fault():
                 raise ZimbraSoapServerError(req, resp)
             raise ZimbraSoapUnexpectedResponse(
                 req, resp, 'Cannot find {} in response "{}"'.format(
@@ -198,7 +198,7 @@ class ZimbraAbstractClient(object):
         The preauth key cannot be created by API, do it with zmprov :
             zmprov gdpak <domain>
         """
-        domain_name = zobjects.Account(name=login).get_domain()
+        domain_name = zobjects.admin.Account(name=login).get_domain()
         preauth_key = parent_zc.get_domain(domain_name)['zimbraPreAuthKey']
 
         rc = self.REST_PREAUTH(
@@ -217,7 +217,7 @@ class ZimbraAbstractClient(object):
         :type admin_zc: ZimbraAdminClient
         """
         # a duration of zero is interpretted literaly by the API...
-        selector = zobjects.Account(name=login).to_selector()
+        selector = zobjects.admin.Account(name=login).to_selector()
         delegate_args = {'account': selector}
         if duration:
             delegate_args['duration': duration]

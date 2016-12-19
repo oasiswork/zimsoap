@@ -84,7 +84,8 @@ class ZimbraAdminClient(
         else we retreive the account from the provided account_name.
         """
         if account is None:
-            account = self.get_account(zobjects.Account(name=account_name))
+            account = self.get_account(zobjects.admin.Account(
+                name=account_name))
         selector = account.to_selector()
 
         resp = self.request('DelegateAuth', {'account': selector})
@@ -133,11 +134,11 @@ class ZimbraAdminClient(
 
         result = {}
         items = {
-            "account": zobjects.Account.from_dict,
-            "domain": zobjects.Domain.from_dict,
-            "dl": zobjects.DistributionList.from_dict,
-            "cos": zobjects.COS.from_dict,
-            "calresource": zobjects.CalendarResource.from_dict
+            "account": zobjects.admin.Account.from_dict,
+            "domain": zobjects.admin.Domain.from_dict,
+            "dl": zobjects.admin.DistributionList.from_dict,
+            "cos": zobjects.admin.COS.from_dict,
+            "calresource": zobjects.admin.CalendarResource.from_dict
             # "alias": TODO,
         }
 

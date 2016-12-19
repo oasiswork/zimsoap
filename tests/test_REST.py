@@ -8,7 +8,7 @@ import unittest
 
 from zimsoap.rest import RESTClient, AccountRESTClient, AdminRESTClient
 from zimsoap.client.admin import ZimbraAdminClient
-from zimsoap.zobjects import Account
+from zimsoap.zobjects.admin import Account
 import tests
 
 TEST_CONF = tests.get_config()

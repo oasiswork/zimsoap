@@ -37,7 +37,7 @@ class MethodMixin:
             selectors = {}
 
         got = self.request_list('GetAllDistributionLists', selectors)
-        return [zobjects.DistributionList.from_dict(i) for i in got]
+        return [zobjects.admin.DistributionList.from_dict(i) for i in got]
 
     def get_distribution_list(self, dl_description):
         """
@@ -49,7 +49,7 @@ class MethodMixin:
         selector = dl_description.to_selector()
 
         resp = self.request_single('GetDistributionList', {'dl': selector})
-        dl = zobjects.DistributionList.from_dict(resp)
+        dl = zobjects.admin.DistributionList.from_dict(resp)
         return dl
 
     def create_distribution_list(self, name, dynamic=0):
@@ -62,7 +62,7 @@ class MethodMixin:
         args = {'name': name, 'dynamic': str(dynamic)}
         resp = self.request_single('CreateDistributionList', args)
 
-        return zobjects.DistributionList.from_dict(resp)
+        return zobjects.admin.DistributionList.from_dict(resp)
 
     def modify_distribution_list(self, dl_description, attrs):
         """
@@ -92,7 +92,7 @@ class MethodMixin:
             'newName': new_dl_name
         })
 
-        return zobjects.DistributionList.from_dict(resp['dl'])
+        return zobjects.admin.DistributionList.from_dict(resp['dl'])
 
     def delete_distribution_list(self, dl):
         self.request('DeleteDistributionList', {

@@ -13,7 +13,7 @@ class MethodMixin:
 
         resources = []
         for i in dict_calres:
-            calres = zobjects.CalendarResource.from_dict(i)
+            calres = zobjects.admin.CalendarResource.from_dict(i)
             resources.append(calres)
 
         return resources
@@ -28,7 +28,7 @@ class MethodMixin:
         selector = cal_resource.to_selector()
         resp = self.request_single('GetCalendarResource',
                                    {'calresource': selector})
-        return zobjects.CalendarResource.from_dict(resp)
+        return zobjects.admin.CalendarResource.from_dict(resp)
 
     def create_calendar_resource(self, name, password=None, attrs={}):
         """
@@ -42,7 +42,7 @@ class MethodMixin:
         if password:
             args['password'] = password
         resp = self.request_single('CreateCalendarResource', args)
-        return zobjects.CalendarResource.from_dict(resp)
+        return zobjects.admin.CalendarResource.from_dict(resp)
 
     def delete_calendar_resource(self, calresource):
         self.request('DeleteCalendarResource', {
@@ -76,4 +76,4 @@ class MethodMixin:
             'newName': new_r_name
         })
 
-        return zobjects.CalendarResource.from_dict(resp['calresource'])
+        return zobjects.admin.CalendarResource.from_dict(resp['calresource'])

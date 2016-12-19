@@ -18,7 +18,8 @@ from zimsoap.client.account import ZimbraAccountClient
 from zimsoap.client.mail import ZimbraMailClient
 from zimsoap.client.admin import ZimbraAdminClient
 
-from zimsoap.zobjects import Signature, Identity, Account
+from zimsoap.zobjects.admin import Account
+from zimsoap.zobjects.account import Signature, Identity
 import tests
 
 TEST_CONF = tests.get_config()

@@ -13,7 +13,9 @@ import random
 from zimsoap.exceptions import ZimbraSoapServerError
 from zimsoap.client.mail import ZimbraMailClient
 from zimsoap.client.admin import ZimbraAdminClient
-from zimsoap.zobjects import Task, Contact, Account, FilterRule
+from zimsoap.zobjects.admin import Account
+from zimsoap.zobjects.account import FilterRule
+from zimsoap.zobjects.mail import Task, Contact
 from zimsoap import utils
 import tests
 

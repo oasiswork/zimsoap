@@ -14,9 +14,8 @@ from zimsoap.exceptions import (
 from zimsoap.client.account import ZimbraAccountClient
 from zimsoap.client.admin import ZimbraAdminClient
 from zimsoap.client import ZimbraAPISession
-from zimsoap.zobjects import (
-    Account, CalendarResource, ClassOfService, COS, DistributionList, Domain,
-    Mailbox, Server)
+from zimsoap.zobjects.admin import (
+    Account, CalendarResource, COS, DistributionList, Domain, Server, Mailbox)
 try:
     from urllib2 import URLError
 except ImportError:
@@ -536,13 +535,13 @@ class PythonicAdminAPITests(unittest.TestCase):
     def test_count_account(self):
         d = Domain(name=self.DOMAIN1)
 
-        # ex return: list: ((<ClassOfService object>, <int>), ...)
+        # ex return: list: ((<COS object>, <int>), ...)
         cos_counts = self.zc.count_account(d)
 
         self.assertIsInstance(cos_counts, list)
         self.assertIsInstance(cos_counts[0], tuple)
         self.assertIsInstance(cos_counts[0][0],
-                              ClassOfService)
+                              COS)
         self.assertIsInstance(cos_counts[0][1], int)
 
     def test_get_all_mailboxes(self):

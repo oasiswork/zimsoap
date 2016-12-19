@@ -19,4 +19,4 @@ class MethodMixin:
     def get_all_mailboxes(self):
         resp = self.request_list('GetAllMailboxes')
 
-        return [zobjects.Mailbox.from_dict(i) for i in resp]
+        return [zobjects.admin.Mailbox.from_dict(i) for i in resp]

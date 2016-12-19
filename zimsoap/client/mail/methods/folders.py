@@ -1,3 +1,6 @@
+# from zimsoap.zobjects import Folder
+
+
 class MethodMixin:
     def get_folder(self, f_id=None, path=None, uuid=None):
         request = {'folder': {}}
@@ -9,6 +12,13 @@ class MethodMixin:
             request['folder']['path'] = str(path)
 
         return self.request('GetFolder', request)
+
+    # def get_all_folders(self):
+    #     request = {'folder': {
+    #         'path': '/'
+    #     }}
+    #     resp = self.request('GetFolder', request)
+    #     return Folder.from_dict(resp)
 
     def create_folder(self, name, parent_id='1'):
         params = {'folder': {

@@ -4,12 +4,12 @@ from zimsoap import zobjects
 class MethodMixin:
     def get_all_domains(self):
         resp = self.request_list('GetAllDomains')
-        return [zobjects.Domain.from_dict(d) for d in resp]
+        return [zobjects.admin.Domain.from_dict(d) for d in resp]
 
     def count_account(self, domain):
         """ Count the number of accounts for a given domain, sorted by cos
 
-        :returns: a list of pairs <ClassOfService object>,count
+        :returns: a list of pairs <COS object>,count
         """
         selector = domain.to_selector()
         cos_list = self.request_list('CountAccount', {'domain': selector})
@@ -17,13 +17,17 @@ class MethodMixin:
 
         for i in cos_list:
             count = int(i['_content'])
-            ret.append((zobjects.ClassOfService.from_dict(i),  count))
+            ret.append((zobjects.admin.COS.from_dict(i),  count))
 
         return list(ret)
 
     def get_quota_usage(self, domain, all_servers=False,
                         limit=None, offset=None, sort_by=None,
                         sort_ascending=None, refresh=None):
+        """
+        :param domain: the domain name to limit the search to. A string, NOT a ZObject
+        :return: a zobjects.admin.QuotaUsage
+        """
         content = {}
         content['domain'] = domain
         content['allServers'] = all_servers
@@ -43,13 +47,13 @@ class MethodMixin:
 
     def create_domain(self, name):
         """
-        :param name: A string, NOT a zObject
+        :param name: A string, NOT a ZObject
         :return: a zobjects.Domain
         """
         args = {'name': name}
         resp = self.request_single('CreateDomain', args)
 
-        return zobjects.Domain.from_dict(resp)
+        return zobjects.admin.Domain.from_dict(resp)
 
     def delete_domain(self, domain):
         self.request('DeleteDomain', {
@@ -91,7 +95,7 @@ class MethodMixin:
     def get_domain(self, domain):
         selector = domain.to_selector()
         resp = self.request_single('GetDomain', {'domain': selector})
-        return zobjects.Domain.from_dict(resp)
+        return zobjects.admin.Domain.from_dict(resp)
 
     def modify_domain(self, domain, attrs):
         """
