@@ -3,71 +3,82 @@ from zimsoap import zobjects
 
 class MethodMixin:
     def get_all_domains(self):
-        resp = self.request_list('GetAllDomains')
-        return [zobjects.admin.Domain.from_dict(d) for d in resp]
+        """ Fetches the details of all the domains
 
-    def count_account(self, domain):
-        """ Count the number of accounts for a given domain, sorted by cos
+        :returns: a list of domain objects
+        :rtype:   [zobjects.admin.Domain]
+        """
+        return self.request_list('GetAllDomains', {}, zobjects.admin.Domain)
 
-        :returns: a list of pairs <COS object>,count
+    def get_domain(self, domain):
+        """ Fetches the information of a domain
+
+        :param domain: the domain to use as a selector
+        :type domain:  zobjects.admin.Domain
+
+        :returns: the domain object
+        :rtype:   zobjects.admin.Domain or None
         """
         selector = domain.to_selector()
-        cos_list = self.request_list('CountAccount', {'domain': selector})
-        ret = []
-
-        for i in cos_list:
-            count = int(i['_content'])
-            ret.append((zobjects.admin.COS.from_dict(i),  count))
-
-        return list(ret)
-
-    def get_quota_usage(self, domain, all_servers=False,
-                        limit=None, offset=None, sort_by=None,
-                        sort_ascending=None, refresh=None):
-        """
-        :param domain: the domain name to limit the search to. A string, NOT a ZObject
-        :return: a zobjects.admin.QuotaUsage
-        """
-        content = {}
-        content['domain'] = domain
-        content['allServers'] = all_servers
-
-        if limit:
-            content['limit'] = limit
-        if sort_by:
-            content['sortBy'] = sort_by
-        if sort_ascending:
-            content['sortAscending'] = sort_ascending
-        if refresh:
-            content['refresh'] = refresh
-
-        resp = self.request_list('GetQuotaUsage', content)
-
-        return resp
+        return self.request_single(
+            'GetDomain', {'domain': selector}, zobjects.admin.Domain)
 
     def create_domain(self, name):
-        """
-        :param name: A string, NOT a ZObject
-        :return: a zobjects.Domain
+        """ Creates a new domain
+
+        :param name: the domain name
+        :type name:  str
+
+        :returns: the creates domain object
+        :rtype:   zobjects.admin.Domain or None
         """
         args = {'name': name}
-        resp = self.request_single('CreateDomain', args)
+        return self.request_single('CreateDomain', args, zobjects.admin.Domain)
 
-        return zobjects.admin.Domain.from_dict(resp)
+    def modify_domain(self, domain, attrs):
+        """ Modifies a domain
+
+        :param domain: the domain to use as a selector
+        :type domain:  zobjects.admin.Domain
+        :param attrs: attributes to modify
+        :type attrs:  dict
+
+        :return: the modified domain object
+        :rtype:  zobjects.admin.Domain
+        """
+        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
+        return self.request_single('ModifyDomain', {
+            'id': self._get_or_fetch_id(domain, self.get_domain),
+            'a': attrs
+        }, zobjects.admin.Domain)
 
     def delete_domain(self, domain):
+        """ Deletes a domain
+
+        :param domain: the domain to use as a selector
+        :type domain:  zobjects.admin.Domain
+
+        :returns: None (the API returns nothing)
+        """
         self.request('DeleteDomain', {
             'id': self._get_or_fetch_id(domain, self.get_domain)
         })
 
     def delete_domain_forced(self, domain):
+        """ Deletes a domain, even if it has items (accounts, lists, ...)
+
+        :param domain: the domain to use as a selector
+        :type domain:  zobjects.admin.Domain
+
+        :returns: None (the API returns nothing)
+        """
         # Remove aliases and accounts
         # we take all accounts because there might be an alias
         # for an account of an other domain
         accounts = self.get_all_accounts()
         for a in accounts:
-            if 'zimbraMailAlias' in a._a_tags:
-                aliases = a._a_tags['zimbraMailAlias']
+            if 'zimbraMailAlias' in a._props:
+                aliases = a._props['zimbraMailAlias']
                 if isinstance(aliases, list):
                     for alias in aliases:
                         if alias.split('@')[1] == domain.name:
@@ -90,21 +101,4 @@ class MethodMixin:
 
         self.request('DeleteDomain', {
             'id': self._get_or_fetch_id(domain, self.get_domain)
-        })
-
-    def get_domain(self, domain):
-        selector = domain.to_selector()
-        resp = self.request_single('GetDomain', {'domain': selector})
-        return zobjects.admin.Domain.from_dict(resp)
-
-    def modify_domain(self, domain, attrs):
-        """
-        :type domain: a zobjects.Domain
-        :param attrs: attributes to modify
-        :type attrs dict
-        """
-        attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
-        self.request('ModifyDomain', {
-            'id': self._get_or_fetch_id(domain, self.get_domain),
-            'a': attrs
         })

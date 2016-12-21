@@ -61,9 +61,15 @@ def get_content(obj):
         return obj
 
 
-def auto_type(s):
+def auto_type(val):
     """ Get a XML response and tries to convert it to Python base object
     """
+    try:
+        s = str(val)
+    except UnicodeEncodeError:
+        # Some times, str() fails because of accents...
+        s = val
+
     if isinstance(s, bool):
         return s
     elif s is None:
@@ -97,6 +103,17 @@ def auto_untype(arg):
         return 'FALSE'
     else:
         return arg
+
+
+def bool2strint(val):
+    """ Convert a boolean to a '0' or '1' string to be used in requests
+    """
+    if val is True:
+        return '1'
+    elif val is False:
+        return '0'
+    else:
+        raise ValueError('Expecting a boolean, this is a {}'.format(type(val)))
 
 
 def xml_str_to_dict(s):

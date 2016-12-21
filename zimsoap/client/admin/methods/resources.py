@@ -3,77 +3,122 @@ from zimsoap import zobjects
 
 class MethodMixin:
     def get_all_calendar_resources(self, domain=None, server=None,):
-        selectors = {}
+        """ Fetches all calendar resources info, possibly limited to a domain
+        or server
+
+        :param domain: limit the search to resources of a specific domain
+        :type domain:  zobjects.admin.Domain
+        :param server: limit the search to resources a specific mailstore
+        :type domain:  zobjects.admin.Server
+
+        :returns: a list of CalendarResource objects
+        :rtype:   [zobjects.admin.CalendarResource]
+        """
+        params = {}
         if domain:
-            selectors['domain'] = domain.to_selector()
+            params['domain'] = domain.to_selector()
         if server:
-            selectors['server'] = server.to_selector()
+            params['server'] = server.to_selector()
 
-        dict_calres = self.request_list('GetAllCalendarResources', selectors)
+        return self.request_list(
+            'GetAllCalendarResources', params, zobjects.admin.CalendarResource)
 
-        resources = []
-        for i in dict_calres:
-            calres = zobjects.admin.CalendarResource.from_dict(i)
-            resources.append(calres)
-
-        return resources
-
-    def get_calendar_resource(self, cal_resource):
+    def get_calendar_resource(self, res):
         """ Fetches an calendar resource with all its attributes.
 
-        :param account: a CalendarResource, with either id or
-                        name attribute set.
-        :returns: a CalendarResource object, filled.
-        """
-        selector = cal_resource.to_selector()
-        resp = self.request_single('GetCalendarResource',
-                                   {'calresource': selector})
-        return zobjects.admin.CalendarResource.from_dict(resp)
+        :param res: a calendar resource to use as a selector
+        :type res:  zobjects.admin.CalendarResource
 
-    def create_calendar_resource(self, name, password=None, attrs={}):
+        :returns: a CalendarResource object populated with all info
+        :rtype:   zobjects.admin.CalendarResource
         """
-        :param: attrs a dict of attributes, must specify the displayName and
-                     zimbraCalResType
+        return self.request_single(
+            'GetCalendarResource', {'calresource': res.to_selector()},
+            zobjects.admin.CalendarResource)
+
+    def create_calendar_resource(
+            self, name, res_type, password=None, attrs={}):
+        """ Creates a new calendar resource
+
+        :param name: the email address for the new calendar resource
+        :type name:  str
+        :param res_type: the calendar resource type
+                         (must be one of "Equipment" or "Location")
+        :type res_type:  str
+        :param name: an optional password
+        :type name:  str
+        :param attrs: attributes to set for the new calendar resource
+                      (must specify zimbraCalResType)
+        :type attrs:  dict
+
+        :returns: the created calendar resource object
+        :rtype:   zobjects.admin.CalendarResource
         """
-        args = {
+        allowed_types = (
+            zobjects.admin.CalendarResource.EQUIPMENT_TYPE,
+            zobjects.admin.CalendarResource.LOCATION_TYPE,
+        )
+        if res_type not in allowed_types:
+            raise ValueError('res_type must be one of "{}"'.format(
+                '" or "'.join(allowed_types)))
+        attrs.pop('zimbraCalResType', None)
+
+        if 'displayName' not in attrs:
+            attrs['displayName'] = name
+
+        params = {
             'name': name,
             'a': [{'n': k, '_content': v} for k, v in attrs.items()]
-            }
+        }
+        params['a'].append({'n': 'zimbraCalResType', '_content': res_type})
+
         if password:
-            args['password'] = password
-        resp = self.request_single('CreateCalendarResource', args)
-        return zobjects.admin.CalendarResource.from_dict(resp)
+            params['password'] = password
 
-    def delete_calendar_resource(self, calresource):
-        self.request('DeleteCalendarResource', {
-            'id': self._get_or_fetch_id(calresource,
-                                        self.get_calendar_resource),
-        })
+        return self.request_single(
+            'CreateCalendarResource', params, zobjects.admin.CalendarResource)
 
-    def modify_calendar_resource(self, calres, attrs):
-        """
-        :param calres: a zobjects.CalendarResource
-        :param attrs:    a dictionary of attributes to set ({key:value,...})
+    def modify_calendar_resource(self, res, attrs):
+        """ Modifies an existing calendar resource
+
+        :param res: a calendar resource to use as a selector
+        :type res:  zobjects.admin.CalendarResource
+        :param attrs: a dictionary of attributes to set ({key:value,...})
+        :type attrs:  dict
+
+        :returns: the modified calendar resource object
+        :rtype:   zobjects.admin.CalendarResource
         """
         attrs = [{'n': k, '_content': v} for k, v in attrs.items()]
-        self.request('ModifyCalendarResource', {
-            'id': self._get_or_fetch_id(
-                calres, self.get_calendar_resource),
+
+        return self.request_single('ModifyCalendarResource', {
+            'id': self._get_or_fetch_id(res, self.get_calendar_resource),
             'a': attrs
-        })
+        }, zobjects.admin.CalendarResource)
 
-    def rename_calendar_resource(self, r_description, new_r_name):
-        """
-        :param r_description : a CalendarResource specifying either :
-                   - id:   the ressource ID
-                   - r_description: the name of the ressource
-        :param new_r_name: new name of the list
-        :return: a zobjects.CalendarResource
-        """
-        resp = self.request('RenameCalendarResource', {
-            'id': self._get_or_fetch_id(r_description,
-                                        self.get_calendar_resource),
-            'newName': new_r_name
-        })
+    def rename_calendar_resource(self, res, new_name):
+        """ Changes the email address of a calendar resource
 
-        return zobjects.admin.CalendarResource.from_dict(resp['calresource'])
+        :param res: a calendar resource to use as a selector
+        :type res:  zobjects.admin.CalendarResource
+        :param new_name: new email address for the list
+        :type new_name:  str
+
+        :returns: the renamed calendar resource object
+        :rtype:   zobjects.admin.CalendarResource
+        """
+        return self.request_single('RenameCalendarResource', {
+            'id': self._get_or_fetch_id(res, self.get_calendar_resource),
+            'newName': new_name
+        }, zobjects.admin.CalendarResource)
+
+    def delete_calendar_resource(self, res):
+        """ Deletes a calendar resource
+
+        :param res: a calendar resource to use as a selector
+        :type res:  zobjects.admin.CalendarResource
+
+        :returns: None (the API returns nothing)
+        """
+        self.request('DeleteCalendarResource', {
+            'id': self._get_or_fetch_id(res, self.get_calendar_resource)})

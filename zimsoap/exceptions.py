@@ -53,3 +53,15 @@ class ZimbraSoapUnexpectedResponse(ZimSOAPException):
             return self.msg
         else:
             return 'Unexpected Response from Zimbra Server'
+
+
+class NotEnoughInformation(Exception):
+    """Raised when we try to get information on an object but have too litle
+    data to infer it."""
+    pass
+
+
+class InvalidZObjectError(Exception):
+    """Raised when the ZObject we are working with does not have a valid
+    structure."""
+    pass

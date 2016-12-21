@@ -13,6 +13,7 @@ class ZimbraAdminClient(
         ZimbraAbstractClient,
         methods.accounts.MethodMixin,
         methods.config.MethodMixin,
+        methods.cos.MethodMixin,
         methods.domains.MethodMixin,
         methods.lists.MethodMixin,
         methods.mailboxes.MethodMixin,
@@ -21,7 +22,7 @@ class ZimbraAdminClient(
     """ Specialized Soap client to access zimbraAdmin webservice, handling auth.
 
     API ref is
-    http://files.zimbra.com/docs/soap_api/<zimbra version>/api-reference/zimbraAdmin/service-summary.html  # noqa
+    http://files.zimbra.com/docs/soap_api/8.6.0/api-reference/zimbraAdmin/service-summary.html
 
     See mixins in methods directory for API requests implementations.
     """
@@ -34,26 +35,6 @@ class ZimbraAdminClient(
         super(ZimbraAdminClient, self).__init__(
             server_host, server_port,
             *args, **kwargs)
-
-    def _get_or_fetch_id(self, zobj, fetch_func):
-        """ Returns the ID of a Zobject wether it's already known or not
-
-        If zobj.id is not known (frequent if zobj is a selector), fetches first
-        the object and then returns its ID.
-
-        :type zobj:       a zobject subclass
-        :type fetch_func: the function to fetch the zobj from server if its id
-                          is undefined.
-        :returns:         the object id
-        """
-
-        try:
-            return zobj.id
-        except AttributeError:
-            try:
-                return fetch_func(zobj).id
-            except AttributeError:
-                raise ValueError('Unqualified Resource')
 
     def mk_auth_token(self, account, admin=False, duration=0):
         """ Builds an authentification token, using preauth mechanism.

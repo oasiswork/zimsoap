@@ -1,31 +1,44 @@
+from zimsoap import zobjects
+
+
 class MethodMixin:
     def get_all_config(self):
-        resp = self.request_list('GetAllConfig')
-        config = {}
-        for attr in resp:
-            # If there is multiple attributes with the same name
-            if attr['n'] in config:
-                if isinstance(config[attr['n']], str):
-                    config[attr['n']] = [config[attr['n']], attr['_content']]
-                else:
-                    config[attr['n']].append(attr['_content'])
-            else:
-                config[attr['n']] = attr['_content']
-        return config
+        """ Fetches the values of all global config attributes
+
+        :returns: a dict-like Config object
+        :rtype:   zobjects.admin.Config or None
+        """
+        return self.request_single('GetAllConfig', {}, zobjects.admin.Config)
 
     def get_config(self, attr):
-        resp = self.request_list('GetConfig', {'a': {'n': attr}})
-        if len(resp) > 1:
-            config = {attr: []}
-            for a in resp:
-                config[attr].append(a['_content'])
-        elif len(resp) == 1:
-            config = {attr: resp[0]['_content']}
+        """ Fetches the value of a single global config attribute
+
+        :param attr: the name of the config attribute
+        :type attr:  str
+
+        :returns: the value of the config attribute
+                  (a list if nulti-valued attribute)
+        :rtype:   any
+        """
+        config = self.request_single(
+            'GetConfig', {'a': {'n': attr}}, zobjects.admin.Config)
+        if attr in config.properties():
+            return config[attr]
         else:
             raise KeyError('{} not found'.format(attr))
-        return config
 
     def modify_config(self, attr, value):
+        """ Sets the value a global config attribute
+
+        :param attr:  the name of the config attribute
+        :type attr:   str
+        :param value: the desired value for the attribute
+        :type value:  str
+
+        :returns: the value of the attribute fetched from Zimbra
+                  after modification
+        :rtype:   [str]
+        """
         self.request('ModifyConfig', {
             'a': {
                 'n': attr,

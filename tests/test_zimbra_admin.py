@@ -15,7 +15,8 @@ from zimsoap.client.account import ZimbraAccountClient
 from zimsoap.client.admin import ZimbraAdminClient
 from zimsoap.client import ZimbraAPISession
 from zimsoap.zobjects.admin import (
-    Account, CalendarResource, COS, DistributionList, Domain, Server, Mailbox)
+    Account, CalendarResource, COS, COSCount, DistributionList, Domain, Server,
+    MailboxInfo, MailboxStats)
 try:
     from urllib2 import URLError
 except ImportError:
@@ -98,10 +99,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         self.assertTrue(('account' in resp), list)
         self.assertIsInstance(resp['account'], list)
 
-    def testGetAlllCalendarResourcesReturnsSomething(self):
-        resp = self.zc.request_list('GetAllCalendarResources')
-        self.assertIsInstance(resp, list)
-
     def testGetAllDomainsReturnsSomething(self):
         resp = self.zc.request('GetAllDomains')
         self.assertTrue(('domain' in resp), list)
@@ -120,19 +117,6 @@ class ZimbraAdminClientRequests(unittest.TestCase):
         resp = self.zc.request('GetMailboxStats')
         self.assertTrue('stats' in resp)
         self.assertIsInstance(resp['stats'], dict)
-
-    def testCountAccountReturnsSomething(self):
-        """Count accounts on the first of domains"""
-
-        resp = self.zc.request_list(
-            'CountAccount',
-            {'domain': {'by': 'name', '_content': self.EXISTANT_DOMAIN}}
-        )
-        first_cos = resp[0]
-        self.assertTrue('id' in first_cos)
-
-        # will fail if not convertible to int
-        self.assertIsInstance(int(first_cos['_content']), int)
 
     def testGetMailboxRequest(self):
         try:
@@ -229,7 +213,7 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.LAMBDA_USER = TEST_CONF['lambda_user']
         self.DOMAIN1 = TEST_CONF['domain_1']
         self.DOMAIN2 = TEST_CONF['domain_2']
-        self.TMP_DOMAIN = 'oazimtools.test'
+        self.TMP_DOMAIN = 'zimsoap.test'
         self.SERVER_NAME = TEST_CONF['server_name']
 
         self.EXISTANT_MBOX_ID = "d78fd9c9-f000-440b-bce6-ea938d40fa2d"
@@ -285,10 +269,10 @@ class PythonicAdminAPITests(unittest.TestCase):
         self.assertEqual(dom.name, self.TMP_DOMAIN)
 
         self.zc.create_account(account_mail, 'pass1234')
-        self.zc.create_calendar_resource(cal_res_mail, attrs={
-            'displayName': 'test display name',
-            'zimbraCalResType': CalendarResource.EQUIPMENT_TYPE
-        })
+        self.zc.create_calendar_resource(
+            cal_res_mail, CalendarResource.EQUIPMENT_TYPE, attrs={
+                'displayName': 'test display name',
+            })
         self.zc.add_account_alias(Account(name=self.LAMBDA_USER), alias_name)
         self.zc.create_distribution_list(dl_mail)
 
@@ -393,13 +377,12 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_quota_usage(self):
         resp = self.zc.get_quota_usage('zimbratest3.example.com')
-        for account in resp:
-            if account['name'] == 'mackerel@zimbratest3.example.com':
-                quota_user = account
-
         self.assertIsInstance(resp, list)
-        self.assertEqual(quota_user['used'], '0')
-        self.assertEqual(quota_user['limit'], '0')
+
+        for account in resp:
+            if account.name == 'mackerel@zimbratest3.example.com':
+                self.assertEqual(account.used, 0)
+                self.assertEqual(account.limit, 0)
 
     def test_create_get_update_delete_calendar_resource(self):
         name = 'test-{}@zimbratest.example.com'.format(
@@ -412,10 +395,10 @@ class PythonicAdminAPITests(unittest.TestCase):
             self.zc.get_calendar_resource(res_req)
 
         # CREATE
-        res = self.zc.create_calendar_resource(name, attrs={
-            'displayName': 'test display name',
-            'zimbraCalResType': CalendarResource.EQUIPMENT_TYPE
-        })
+        res = self.zc.create_calendar_resource(
+            name, CalendarResource.EQUIPMENT_TYPE, attrs={
+                'displayName': 'test display name',
+            })
 
         self.assertIsInstance(res, CalendarResource)
         self.assertEqual(res.name, name)
@@ -528,26 +511,26 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_mailbox_stats(self):
         stats = self.zc.get_mailbox_stats()
-        self.assertIsInstance(stats, dict)
-        self.assertIsInstance(stats['numMboxes'], int)
-        self.assertIsInstance(stats['totalSize'], int)
+        self.assertIsInstance(stats, MailboxStats)
+        self.assertIsInstance(stats.numMboxes, int)
+        self.assertIsInstance(stats.totalSize, int)
 
     def test_count_account(self):
         d = Domain(name=self.DOMAIN1)
 
-        # ex return: list: ((<COS object>, <int>), ...)
-        cos_counts = self.zc.count_account(d)
+        cos_count = self.zc.count_account(d)
 
-        self.assertIsInstance(cos_counts, list)
-        self.assertIsInstance(cos_counts[0], tuple)
-        self.assertIsInstance(cos_counts[0][0],
+        self.assertIsInstance(cos_count, COSCount)
+        self.assertIsInstance(cos_count.counters, list)
+        self.assertIsInstance(cos_count.counters[0], tuple)
+        self.assertIsInstance(cos_count.counters[0][0],
                               COS)
-        self.assertIsInstance(cos_counts[0][1], int)
+        self.assertIsInstance(cos_count.counters[0][1], int)
 
     def test_get_all_mailboxes(self):
         mboxes = self.zc.get_all_mailboxes()
         self.assertIsInstance(mboxes, list)
-        self.assertIsInstance(mboxes[0], Mailbox)
+        self.assertIsInstance(mboxes[0], MailboxInfo)
 
     def test_account_mailbox(self):
         # First, fetch an existing account_id
@@ -702,14 +685,14 @@ class PythonicAdminAPITests(unittest.TestCase):
 
     def test_get_modify_config(self):
         attr = 'zimbraMtaMaxMessageSize'
-        new_value = '42'
-        ori_value = '10240000'
+        new_value = 42
+        ori_value = 10240000
         self.assertEqual(
-            self.zc.get_config(attr)[attr],
+            self.zc.get_config(attr),
             ori_value
         )
         modified_conf = self.zc.modify_config(attr, new_value)
-        self.assertEqual(modified_conf[attr], new_value)
+        self.assertEqual(modified_conf, new_value)
 
         # Undo
         self.zc.modify_config(attr, ori_value)

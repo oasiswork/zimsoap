@@ -21,9 +21,7 @@ from pythonzimbra.communication import Communication
 
 from zimsoap import zobjects
 from zimsoap.exceptions import (
-    ZimbraSoapServerError,
-    ZimbraSoapUnexpectedResponse
-)
+    ZimbraSoapServerError, ZimbraSoapUnexpectedResponse, InvalidZObjectError)
 
 
 class ZimbraAPISession:
@@ -146,41 +144,87 @@ class ZimbraAbstractClient(object):
 
         return resp_content
 
-    def request_single(self, name, content={}):
+    # def request_single(self, name, content={}):
+    def request_single(self, name, content, zobject_class):
         """ Simple wrapper arround request to extract a single response
 
-        :returns: the first tag in the response body
+        :returns: an instance of the ZObject class loaded with the
+                  response content or None if the content was of an
+                  unexpected type
+        :rtype:   zobjects.ZObject child class or None
         """
         resp = self.request(name, content)
 
-        # We stop on the first non-attribute (attributes are unicode/str)
-        # If it's a list, we only return the first one.
-
-        for i in resp.values():
-            if type(i) == list:
-                return i[0]
-            elif type(i) == dict:
-                return i
+        try:
+            if zobject_class.TAG_NAME is None:
+                # Top-level content explicitely required
+                r = resp
+            else:
+                r = resp[zobject_class.TAG_NAME]
+            if type(r) == list:
+                return zobject_class.from_dict(r[0])
+            elif type(r) == dict:
+                return zobject_class.from_dict(r)
+        except AttributeError:
+            raise InvalidZObjectError(
+                'Provided ZObject class does not have a TAG_NAME attribute')
+        except KeyError:
+            # This may mean the response returned no results
+            pass
 
         return None
 
-    def request_list(self, name, content={}):
-        """ Simple wrapper arround request to extract a list of response
-
-        :returns: the list of tags with same name or empty list
-        """
-        resp = self.request(name, content)
-
         # We stop on the first non-attribute (attributes are unicode/str)
         # If it's a list, we only return the first one.
 
-        for i in resp.values():
-            if type(i) == list:
-                return i
-            elif type(i) == dict:
-                return [i]
+        # for i in resp.values():
+        #     if type(i) == list:
+        #         return i[0]
+        #     elif type(i) == dict:
+        #         return i
+
+        # return None
+
+    # def request_list(self, name, content={}):
+    def request_list(self, name, content, zobject_class):
+        """ Simple wrapper arround request to extract a list of responses
+
+        :returns: an list of instances of the ZObject class loaded with the
+                  response content or an empty list if the content was of an
+                  unexpected type
+        :rtype:   [zobjects.ZObject child class]
+        """
+        resp = self.request(name, content)
+
+        try:
+            if zobject_class.TAG_NAME is None:
+                # Top-level content explicitely required
+                r = resp
+            else:
+                r = resp[zobject_class.TAG_NAME]
+            if type(r) == dict:
+                return [zobject_class.from_dict(r)]
+            elif type(r) == list:
+                return [zobject_class.from_dict(i) for i in r]
+        except AttributeError:
+            raise InvalidZObjectError(
+                'Provided ZObject class does not have a TAG_NAME attribute')
+        except KeyError:
+            # This may mean the response returned no results
+            pass
 
         return []
+
+        # We stop on the first non-attribute (attributes are unicode/str)
+        # If it's a dict, we make it a 1-element list.
+
+        # for i in resp.values():
+        #     if type(i) == list:
+        #         return i
+        #     elif type(i) == dict:
+        #         return [i]
+        #
+        # return []
 
     def login(self, user, password):
         self._session.login(user, password)
@@ -235,3 +279,23 @@ class ZimbraAbstractClient(object):
 
     def get_host(self):
         return self._server_host
+
+    def _get_or_fetch_id(self, zobj, fetch_func):
+        """ Returns the ID of a Zobject wether it's already known or not
+
+        If zobj.id is not known (frequent if zobj is a selector), fetches first
+        the object and then returns its ID.
+
+        :type zobj:       a zobject subclass
+        :type fetch_func: the function to fetch the zobj from server if its id
+                          is undefined.
+        :returns:         the object id
+        """
+
+        try:
+            return zobj.id
+        except AttributeError:
+            try:
+                return fetch_func(zobj).id
+            except AttributeError:
+                raise ValueError('Unqualified Resource')
