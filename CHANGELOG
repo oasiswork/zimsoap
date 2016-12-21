@@ -1,0 +1,40 @@
+.. _changelog:
+
+ChangeLog
+==============================================================================
+
+All bugs/feature details can be found at:
+
+https://github.com/oasiswork/zimsoap/issues
+
+
+0.5.0 - UNRELEASED
+------------------------------------------------------------------------------
+
+.. warning:: This version introduces backward-incompatible changes to the API
+   following a major refactoring of the code. See the section below
+   for details.
+
+Bugs:
+
+    * None
+
+Features:
+
+    * None
+
+Refactoring:
+
+    * None
+
+Incompatible:
+
+    * TODO
+
+Deprecation:
+
+    * None
+
+
+0.4.2 - Feb 9, 2016
+------------------------------------------------------------------------------

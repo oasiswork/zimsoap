@@ -135,3 +135,10 @@ Also please make sure your code passes the *flake8* linter:
 
     $ pip install -r test-requirements.txt
     $ make lint
+
+License
+-------
+
+The ZimSOAP library is Open Source and is distributed under the BSD License (three clause).
+
+Please see the LICENSE file included with this software.
