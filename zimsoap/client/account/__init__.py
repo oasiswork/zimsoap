@@ -15,7 +15,7 @@ class ZimbraAccountClient(
     """ Specialized Soap client to access zimbraAccount webservice.
 
     API ref is
-    http://files.zimbra.com/docs/soap_api/<zimbra version>/api-reference/zimbraAccount/service-summary.html  # noqa
+    http://files.zimbra.com/docs/soap_api/8.6.0/api-reference/zimbraAccount/service-summary.html
 
     See mixins in methods directory for API requests implementations.
     """

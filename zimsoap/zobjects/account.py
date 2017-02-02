@@ -1,37 +1,12 @@
 from . import ZObject
 
 
-class FilterRule(ZObject):
-    """ A mailbox filter rule object
-    """
-    TAG_NAME = 'filter'
-    ATTRNAME_PROPERTY = 'name'
-
-
 class Identity(ZObject):
     """An identity object
     """
     SELECTORS = ('name', 'id')
     TAG_NAME = 'identity'
     ATTRNAME_PROPERTY = 'name'
-
-    def to_creator(self):
-        """ Returns the dict suitable for CreateIdentity or ModifyIdentity
-        """
-        o = {}
-
-        for prop in ('name', 'id'):
-            if hasattr(self, prop):
-                o[prop] = getattr(self, prop)
-
-        try:
-            if len(self.a) > 0:
-                o['a'] = []
-                for node in self._unparse_a_tags(self._a_tags):
-                    o['a'].append(node)
-        except AttributeError:
-            pass
-        return o
 
     def is_default(self):
         """ Is it the default identity ? """

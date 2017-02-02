@@ -38,7 +38,7 @@ class MethodMixin:
         cn['a'] = attrs
         resp = self.request_single('CreateContact', {'cn': cn})
 
-        return zobjects.Contact.from_dict(resp)
+        return zobjects.mail.Contact.from_dict(resp)
 
     def get_contacts(self, ids=None, **kwargs):
         """ Get all contacts for the current user
@@ -61,7 +61,7 @@ class MethodMixin:
 
         contacts = self.request_list('GetContacts', params)
 
-        return [zobjects.Contact.from_dict(i) for i in contacts]
+        return [zobjects.mail.Contact.from_dict(i) for i in contacts]
 
     def modify_contact(self, contact_id, attrs=None, members=None, tags=None):
         """
@@ -85,7 +85,7 @@ class MethodMixin:
         cn['id'] = contact_id
         resp = self.request_single('ModifyContact', {'cn': cn})
 
-        return zobjects.Contact.from_dict(resp)
+        return zobjects.mail.Contact.from_dict(resp)
 
     def delete_contacts(self, ids):
         """ Delete selected contacts for the current user
@@ -133,4 +133,4 @@ class MethodMixin:
         cn['a'] = attrs
         resp = self.request_single('CreateContact', {'cn': cn})
 
-        return zobjects.Contact.from_dict(resp)
+        return zobjects.mail.Contact.from_dict(resp)

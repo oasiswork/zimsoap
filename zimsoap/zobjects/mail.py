@@ -9,6 +9,13 @@ class Contact(ZObject):
     SELECTORS = 'email'
 
 
+class FilterRule(ZObject):
+    """ A mailbox filter rule object
+    """
+    TAG_NAME = 'filter'
+    ATTRNAME_PROPERTY = 'name'
+
+
 class Task(ZObject):
     TAG_NAME = 'task'
     ATTRNAME_PROPERTY = 'id'

@@ -9,7 +9,7 @@ class MethodMixin:
         :param desc: the task's content in plain-text
         :returns: the task's id
         """
-        task = zobjects.Task()
+        task = zobjects.mail.Task()
         task_creator = task.to_creator(subject, desc)
         resp = self.request('CreateTask', task_creator)
         task_id = resp['calItemId']
@@ -26,6 +26,6 @@ class MethodMixin:
         task = self.request_single('GetTask', {'id': task_id})
 
         if task:
-            return zobjects.Task.from_dict(task)
+            return zobjects.mail.Task.from_dict(task)
         else:
             return None

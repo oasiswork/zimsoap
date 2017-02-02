@@ -21,7 +21,7 @@ class ZimbraMailClient(
     """ Specialized Soap client to access zimbraMail webservice.
 
     API ref is
-    http://files.zimbra.com/docs/soap_api/<zimbra version>/api-reference/zimbraMail/service-summary.html  # noqa
+    http://files.zimbra.com/docs/soap_api/8.6.0/api-reference/zimbraMail/service-summary.html
     """
     NAMESPACE = 'urn:zimbraMail'
     LOCATION = 'service/soap'

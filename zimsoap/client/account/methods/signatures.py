@@ -9,11 +9,11 @@ class MethodMixin:
         :param:  contenttype can be "text/html" (default) or "text/plain"
         :returns: a zobjects.Signature object
         """
-        s = zobjects.Signature(name=name)
+        s = zobjects.account.Signature(name=name)
         s.set_content(content, contenttype)
 
         resp = self.request('CreateSignature', {'signature': s.to_creator()})
-        return zobjects.Signature.from_dict(resp['signature'])
+        return zobjects.account.Signature.from_dict(resp['signature'])
 
     def get_signatures(self):
         """ Get all signatures for the current user
@@ -22,7 +22,7 @@ class MethodMixin:
         """
         signatures = self.request_list('GetSignatures')
 
-        return [zobjects.Signature.from_dict(i) for i in signatures]
+        return [zobjects.account.Signature.from_dict(i) for i in signatures]
 
     def get_signature(self, signature):
         """Retrieve one signature, discriminated by name or id.
@@ -41,7 +41,7 @@ class MethodMixin:
         # hand...
         if resp and (len(resp) > 0):
             for sig_dict in resp:
-                sig = zobjects.Signature.from_dict(sig_dict)
+                sig = zobjects.account.Signature.from_dict(sig_dict)
                 if hasattr(signature, 'id'):
                     its_this_one = (sig.id == signature.id)
                 elif hasattr(signature, 'name'):

@@ -14,7 +14,7 @@ class MethodMixin:
             'a': attrs
         }
         resp = self.request('CreateIdentity', {'identity': params})
-        return zobjects.Identity.from_dict(resp['identity'])
+        return zobjects.account.Identity.from_dict(resp['identity'])
 
     def get_identities(self, identity=None, attrs=None):
         """ Get identities matching name and attrs
@@ -35,9 +35,9 @@ class MethodMixin:
                 wanted_identities = []
 
                 for u_identity in [
-                        zobjects.Identity.from_dict(i) for i in identities]:
+                        zobjects.account.Identity.from_dict(i) for i in identities]:
                     if identity:
-                        if isinstance(identity, zobjects.Identity):
+                        if isinstance(identity, zobjects.account.Identity):
                             if u_identity.name == identity.name:
                                 return [u_identity]
                         else:
@@ -46,12 +46,12 @@ class MethodMixin:
 
                     elif attrs:
                         for attr, value in attrs.items():
-                            if (attr in u_identity._a_tags and
-                                    u_identity._a_tags[attr] == value):
+                            if (attr in u_identity._props and
+                                    u_identity._props[attr] == value):
                                 wanted_identities.append(u_identity)
                 return wanted_identities
             else:
-                return [zobjects.Identity.from_dict(i) for i in identities]
+                return [zobjects.account.Identity.from_dict(i) for i in identities]
         else:
             return []
 
@@ -65,7 +65,7 @@ class MethodMixin:
         :returns: zobjects.Identity object
         """
 
-        if isinstance(identity, zobjects.Identity):
+        if isinstance(identity, zobjects.account.Identity):
             self.request('ModifyIdentity', {'identity': identity._full_data})
             return self.get_identities(identity=identity.name)[0]
         else:
@@ -89,7 +89,7 @@ class MethodMixin:
         :param: a zobjects.Identity object with name or id defined or a string
         of the identity's name
         """
-        if isinstance(identity, zobjects.Identity):
+        if isinstance(identity, zobjects.account.Identity):
             self.request(
                 'DeleteIdentity', {'identity': identity.to_selector()})
         else:

@@ -23,7 +23,7 @@ class MethodMixin:
             'filterActions': actions
         }
 
-        new_rules = [zobjects.FilterRule.from_dict(new_rule)]
+        new_rules = [zobjects.mail.FilterRule.from_dict(new_rule)]
 
         prev_rules = self.get_filter_rules(way=way)
 
@@ -53,7 +53,7 @@ class MethodMixin:
         :param: _filter a zobjects.FilterRule or the filter name
         :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: a zobjects.FilterRule"""
-        if isinstance(_filter, zobjects.FilterRule):
+        if isinstance(_filter, zobjects.mail.FilterRule):
             _filter = _filter.name
         for f in self.get_filter_rules(way=way):
             if f.name == _filter:
@@ -77,7 +77,7 @@ class MethodMixin:
             if isinstance(filters, dict):
                 filters = [filters]
 
-            return [zobjects.FilterRule.from_dict(f) for f in filters]
+            return [zobjects.mail.FilterRule.from_dict(f) for f in filters]
         except KeyError:
             return []
 
@@ -88,7 +88,7 @@ class MethodMixin:
         :param: way string discribing if filter is for 'in' or 'out' messages
         :returns: list of impacted message's ids
         """
-        if isinstance(_filter, zobjects.FilterRule):
+        if isinstance(_filter, zobjects.mail.FilterRule):
             _filter = _filter.name
 
         content = {
@@ -117,7 +117,7 @@ class MethodMixin:
         updated_rules = []
         rules = self.get_filter_rules(way=way)
 
-        if isinstance(_filter, zobjects.FilterRule):
+        if isinstance(_filter, zobjects.mail.FilterRule):
             _filter = _filter.name
 
         if rules:
