@@ -31,6 +31,8 @@ class RESTClient:
     """ Abstract Classe, RESTClient defines a REST client for some operations we
     can't do with SOAP API, such as admin preauth.
     """
+    TOKEN_COOKIE = "ZM_AUTH_TOKEN"
+
     class NoPreauthKeyProvided(Exception):
         pass
 
@@ -40,7 +42,7 @@ class RESTClient:
             self.msg = 'Zimbra issued HTTP error : '+e.msg
             Exception.__init__(self, self.msg)
 
-    def __init__(self, server_host, server_port=None, preauth_key=None):
+    def __init__(self, server_host, server_port=None, preauth_key=None, isadmin=False):
         if server_port:
             self.preauth_url = 'https://{0}:{1}/service/preauth?'.format(
                 server_host, server_port)
@@ -48,6 +50,7 @@ class RESTClient:
             self.preauth_url = 'https://{0}/service/preauth?'.format(
                 server_host)
 
+        self.isadmin = isadmin
         self.set_preauth_key(preauth_key)
 
     def set_preauth_key(self, preauth_key):
