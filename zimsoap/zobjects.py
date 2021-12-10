@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from collections.abc import Mapping
 
 """ Zimbra specific objects, handle (un)parsing to/from XML and other glue-code
 
@@ -18,7 +19,7 @@ class NotEnoughInformation(Exception):
     pass
 
 
-class ZObject(object):
+class ZObject(Mapping, object):
     """ An abstract class to handle Zimbra Concepts
 
     A ZObject map to a tag name (subclasses have to define cls.TAG_NAME) :
@@ -89,6 +90,12 @@ class ZObject(object):
 
     def __setitem__(self, k, v):
         self._a_tags[k] = utils.auto_type(v)
+
+    def __iter__(self):
+        return iter(self._a_tags)
+
+    def __len__(self):
+        return len(self._a_tags)
 
     def __repr__(self):
         most_significant_id = getattr(self, 'id',
